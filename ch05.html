@@ -1,37 +1,1746 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>第5章 - 计数位 | Hacker's Delight</title>
-  <link rel="stylesheet" href="tailwind.css" />
-  <script src="alpine.min.js" defer></script>
-  <script src="echarts.min.js" defer></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ch.05 — 位计数 | Hacker's Delight</title>
+<link rel="stylesheet" href="tailwind.css"/>
+<script src="echarts.min.js"></script>
+<script src="alpine.min.js" defer></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;600;700;900&display=swap');
+:root{
+  --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
+  --dark:#050810;--card:#0d1117;--border:rgba(0,255,136,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.008) 2px,rgba(0,255,136,.008) 4px);pointer-events:none;z-index:0;}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#app{position:relative;z-index:1;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.92);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);text-decoration:none;}
+.nav-links{display:flex;gap:1.4rem;}
+.nav-links a{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--g);}
+
+#prog{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,var(--g),var(--b),var(--p));transition:width .1s;}
+
+.dot-nav{position:fixed;right:1.4rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.55rem;}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--g);transform:scale(1.45);box-shadow:0 0 6px var(--g);}
+@media(max-width:768px){.dot-nav{display:none;}}
+.sidebar-nav{position:fixed;left:1.2rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.4rem;}
+.sn-item{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#334155;text-decoration:none;padding:.18rem .4rem;border-radius:3px;transition:all .2s;cursor:pointer;}
+.sn-item:hover{color:var(--g);background:rgba(0,255,136,.06);}
+.sn-item.active{color:var(--g);background:rgba(0,255,136,.1);}
+@media(max-width:900px){.sidebar-nav{display:none;}}
+
+.hero{padding:7rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
+.chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);border:1px solid var(--g);padding:.28rem .95rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 6px rgba(0,255,136,.35);}50%{box-shadow:0 0 22px rgba(0,255,136,.75);}}
+.hero-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,var(--g) 50%,var(--b) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:.5rem;}
+.hero-sub{font-family:'JetBrains Mono',monospace;color:#475569;font-size:.88rem;margin-bottom:1.8rem;}
+.hero-desc{color:#94a3b8;font-size:.98rem;line-height:1.88;max-width:720px;margin:0 auto 2rem;}
+
+section{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;}
+.sec-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.18);padding:.22rem .55rem;border-radius:4px;white-space:nowrap;}
+.sec-title{font-size:1.3rem;font-weight:700;color:#f1f5f9;}
+.sec-divider{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,255,136,.28),transparent);}
+
+.card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.4rem;transition:border-color .25s,box-shadow .25s;}
+.card:hover{border-color:rgba(0,255,136,.22);box-shadow:0 4px 22px rgba(0,255,136,.06);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;}
+@media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.code-block{background:#010409;border:1px solid #1e293b;border-radius:.5rem;padding:1.1rem 1.4rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.85;overflow-x:auto;color:#94a3b8;white-space:pre-wrap;}
+.code-block .kw{color:var(--p);}
+.code-block .num{color:var(--o);}
+.code-block .cm{color:#334155;font-style:italic;}
+.code-block .fn{color:var(--g);}
+.code-block .hi{color:#fff;background:rgba(0,255,136,.1);border-radius:2px;padding:0 3px;}
+.code-block .str{color:var(--b);}
+
+.insight{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.14);border-left:3px solid var(--g);border-radius:.5rem;padding:1.15rem 1.4rem;margin-bottom:1.2rem;font-size:.88rem;line-height:1.82;color:#94a3b8;}
+.insight strong{color:var(--g);}
+.insight .label{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--g);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+
+.warn-box{background:rgba(255,68,102,.04);border:1px solid rgba(255,68,102,.18);border-left:3px solid var(--r);border-radius:.5rem;padding:1.05rem 1.3rem;font-size:.84rem;line-height:1.78;color:#94a3b8;margin-bottom:1.1rem;}
+.warn-box strong{color:var(--r);}
+
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:.18rem .48rem;border-radius:3px;margin:.12rem;}
+.tag-g{background:rgba(0,255,136,.09);color:var(--g);border:1px solid rgba(0,255,136,.18);}
+.tag-b{background:rgba(0,212,255,.09);color:var(--b);border:1px solid rgba(0,212,255,.18);}
+.tag-p{background:rgba(177,79,255,.09);color:var(--p);border:1px solid rgba(177,79,255,.18);}
+.tag-o{background:rgba(255,140,0,.09);color:var(--o);border:1px solid rgba(255,140,0,.18);}
+.tag-r{background:rgba(255,68,102,.09);color:var(--r);border:1px solid rgba(255,68,102,.18);}
+
+.tab-nav{display:flex;gap:.4rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:.32rem .8rem;border-radius:4px;border:1px solid #1e293b;background:transparent;color:#475569;cursor:pointer;transition:all .2s;}
+.tab-btn.active,.tab-btn:hover{border-color:var(--g);color:var(--g);background:rgba(0,255,136,.07);}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+.bit-row{display:flex;gap:2px;flex-wrap:wrap;margin:.3rem 0;}
+.bit-cell{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:.65rem;border:1px solid #1e293b;transition:all .25s;cursor:default;}
+.bit-cell.one{background:rgba(0,255,136,.22);color:var(--g);border-color:rgba(0,255,136,.4);}
+.bit-cell.zero{background:#010409;color:#1e293b;}
+.bit-cell.hi{background:rgba(0,212,255,.2);color:var(--b);border-color:rgba(0,212,255,.35);}
+.bit-cell.pp{background:rgba(177,79,255,.2);color:var(--p);border-color:rgba(177,79,255,.35);}
+.bit-cell.warn{background:rgba(255,68,102,.18);color:var(--r);border-color:rgba(255,68,102,.3);}
+
+.critic-box{background:linear-gradient(135deg,rgba(177,79,255,.05),rgba(0,212,255,.03));border:1px solid rgba(177,79,255,.22);border-radius:.75rem;padding:1.65rem;position:relative;overflow:hidden;}
+.critic-box::before{content:'// 深度点评';font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--p);letter-spacing:.1em;display:block;margin-bottom:.9rem;}
+.critic-box h3{font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:.7rem;}
+.critic-item{margin-bottom:1rem;padding-left:.9rem;border-left:2px solid rgba(177,79,255,.28);}
+.critic-item .ci-title{font-size:.81rem;font-weight:600;color:var(--p);margin-bottom:.28rem;}
+.critic-item p{font-size:.8rem;line-height:1.74;color:#64748b;}
+
+.stat-box{background:#010409;border:1px solid #1e293b;border-radius:.45rem;padding:.7rem 1rem;text-align:center;}
+.stat-val{font-family:'JetBrains Mono',monospace;font-size:1.6rem;font-weight:700;color:var(--g);}
+.stat-label{font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#334155;letter-spacing:.08em;margin-top:.2rem;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp .5s ease both;}
+
+footer{text-align:center;padding:2.5rem;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#1e293b;border-top:1px solid #0f172a;}
+footer a{color:var(--g);text-decoration:none;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,255,136,.28);}
+
+/* popcount 步骤可视化 */
+.step-row{display:flex;align-items:center;gap:.5rem;margin:.4rem 0;flex-wrap:wrap;}
+.step-label{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#475569;width:90px;flex-shrink:0;}
+.step-eq{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;margin:0 .25rem;}
+.field-group{display:flex;gap:1px;}
+.field-sep{width:4px;}
+</style>
 </head>
-<body class="bg-[#050810] text-gray-200 min-h-screen">
-  <div class="container mx-auto px-4 py-8">
-    <nav class="mb-8">
-      <a href="index.html" class="text-[#00ff88] hover:underline">← 返回目录</a>
-    </nav>
-    
-    <header class="mb-12 text-center">
-      <h1 class="text-4xl font-bold mb-4">第5章 - 计数位</h1>
-      <p class="text-xl text-gray-400">Counting Bits</p>
-    </header>
+<body>
+<canvas id="bg"></canvas>
+<div id="prog"></div>
 
-    <main class="max-w-4xl mx-auto">
-      <section class="bg-[#0d1117] rounded-lg p-6 mb-8 border border-[#1e293b]">
-        <h2 class="text-2xl font-semibold text-[#00ff88] mb-4">交互动画区</h2>
-        <div id="demo-area" class="min-h-[400px] flex items-center justify-center">
-          <p class="text-gray-500">// 待添加交互动画</p>
-        </div>
-      </section>
+<div class="dot-nav" id="dotNav">
+  <div class="dot active"  data-sec="hero"    title="顶部"></div>
+  <div class="dot"         data-sec="pop"     title="§5-1 popcount"></div>
+  <div class="dot"         data-sec="parity"  title="§5-2 奇偶校验"></div>
+  <div class="dot"         data-sec="nlz"     title="§5-3 前导零"></div>
+  <div class="dot"         data-sec="ntz"     title="§5-4 尾随零"></div>
+  <div class="dot"         data-sec="history" title="历史与横向"></div>
+  <div class="dot"         data-sec="critique" title="深度点评"></div>
+</div>
 
-      <section class="bg-[#0d1117] rounded-lg p-6 border border-[#1e293b]">
-        <h2 class="text-2xl font-semibold text-[#00ff88] mb-4">章节内容</h2>
-        <p class="text-gray-400">// 内容待补充</p>
-      </section>
-    </main>
+<nav>
+  <a class="nav-logo" href="index.html">← HACKER'S DELIGHT</a>
+  <div class="nav-links">
+    <a href="#pop">popcount</a>
+    <a href="#parity">奇偶校验</a>
+    <a href="#nlz">前导零</a>
+    <a href="#ntz">尾随零</a>
+    <a href="#history">历史</a>
+    <a href="#critique">点评</a>
   </div>
+</nav>
+
+<div class="sidebar-nav" id="sidebarNav">
+  <a class="sn-item active" data-sec="pop">§5-1 popcount</a>
+  <a class="sn-item" data-sec="parity">§5-2 奇偶校验</a>
+  <a class="sn-item" data-sec="nlz">§5-3 nlz</a>
+  <a class="sn-item" data-sec="ntz">§5-4 ntz</a>
+  <a class="sn-item" data-sec="history">§5-5 历史</a>
+  <a class="sn-item" data-sec="critique">§点评</a>
+</div>
+
+<div id="app" x-data="app()" x-init="init()">
+
+<!-- ═══ HERO ═══ -->
+<div class="hero" id="hero">
+  <div class="chapter-badge">CHAPTER 05 · COUNTING BITS · 位计数</div>
+  <h1 class="hero-title fade-up" style="animation-delay:.1s">位计数</h1>
+  <p class="hero-sub fade-up" style="animation-delay:.2s">// popcount · parity · nlz · ntz · divide &amp; conquer in silicon</p>
+  <p class="hero-desc fade-up" style="animation-delay:.3s">
+    第5章是 Hacker's Delight 中<strong style="color:var(--g)">最具传奇色彩</strong>的一章。
+    "如何数一个整数里有多少个1" 这个问题，
+    从 1960 年 IBM Stretch 的硬件指令，到 HAKMEM 备忘录里的黑客游戏，
+    到 x86 的 <code style="color:var(--o)">POPCNT</code> 指令，到 RISC-V 的 <code style="color:var(--o)">B</code> 扩展——
+    跨越六十年的工程史，每一代程序员都在用更少的指令解决同一个问题。
+    这一章还包含前导零（nlz/CLZ）、尾随零（ntz/CTZ）和奇偶校验（parity）——
+    四个看似简单却深藏精妙的位操作原语，是密码学、压缩、网络协议和 CPU 设计的共同基石。
+  </p>
+  <div class="fade-up" style="animation-delay:.4s">
+    <span class="tag tag-g">population count</span>
+    <span class="tag tag-b">POPCNT / __builtin_popcount</span>
+    <span class="tag tag-p">parity / XOR prefix</span>
+    <span class="tag tag-o">nlz / CLZ / BSR</span>
+    <span class="tag tag-r">ntz / CTZ / BSF</span>
+    <span class="tag tag-g">divide &amp; conquer</span>
+    <span class="tag tag-b">carry-save adder</span>
+    <span class="tag tag-p">de Bruijn sequence</span>
+  </div>
+</div>
+
+<!-- ═══ §5-1 POPCOUNT ═══ -->
+<section id="pop">
+  <div class="sec-header">
+    <span class="sec-num">§5-1</span>
+    <span class="sec-title">计数1-位 — Counting 1-Bits (Population Count)</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// THE CLASSIC: 分治法逐步归并相邻位的和</span>
+    Warren 介绍的核心方法是<strong>分治策略（Divide &amp; Conquer）</strong>：
+    先把32位字拆成16个2位字段，每个字段存储对应2位中1的个数；
+    再合并相邻2位字段为4位字段，依此类推，共 log₂(32) = 5 步完成。
+    这不是一个人想出来的技巧——它同时出现在 1960 年代的硬件电路设计和 HAKMEM memo（1972）里，
+    是并行计算思维在单个寄存器上的缩影：<strong>把串行问题转化为树形并行归并</strong>。
+  </div>
+
+  <!-- 交互式 popcount 演示 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="popcountDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.9rem;">
+      🔬 分治 popcount 步骤演示 — 输入一个32位整数，观察每步归并过程
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">十六进制输入 (0x...)</div>
+        <input type="text" x-model="hexInput" @input="parseHex()"
+               placeholder="0xDEADBEEF"
+               style="width:160px;background:#010409;border:1px solid #1e293b;color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:.3rem .6rem;border-radius:4px;">
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem;">
+        <button @click="setVal(0xDEADBEEF)" class="tab-btn">0xDEADBEEF</button>
+        <button @click="setVal(0xFFFFFFFF)" class="tab-btn">0xFFFFFFFF</button>
+        <button @click="setVal(0xAAAAAAAA)" class="tab-btn">0xAAAAAAAA</button>
+        <button @click="setVal(0x80000001)" class="tab-btn">0x80000001</button>
+        <button @click="setVal(0)" class="tab-btn">0x00000000</button>
+      </div>
+    </div>
+
+    <!-- 原始位 -->
+    <div class="step-row">
+      <span class="step-label">原始值</span>
+      <div class="bit-row" style="margin:0;">
+        <template x-for="(b,i) in bits32" :key="i">
+          <div class="bit-cell" :class="b?'one':'zero'" x-text="b"></div>
+        </template>
+      </div>
+      <span class="step-eq">= <span style="color:var(--o);" x-text="'0x'+val.toString(16).toUpperCase().padStart(8,'0')"></span></span>
+    </div>
+
+    <!-- 步骤1: 2位字段 -->
+    <div class="step-row">
+      <span class="step-label">步骤1 (2bit)</span>
+      <div class="bit-row" style="margin:0;">
+        <template x-for="(g,gi) in step1Groups" :key="gi">
+          <div style="display:flex;gap:1px;margin-right:3px;">
+            <template x-for="(b,bi) in g" :key="bi">
+              <div class="bit-cell hi" x-text="b"></div>
+            </template>
+          </div>
+        </template>
+      </div>
+      <span class="step-eq">每2位字段 = 该字段中1的个数</span>
+    </div>
+
+    <!-- 步骤2: 4位字段 -->
+    <div class="step-row">
+      <span class="step-label">步骤2 (4bit)</span>
+      <div class="bit-row" style="margin:0;">
+        <template x-for="(g,gi) in step2Groups" :key="gi">
+          <div style="display:flex;gap:1px;margin-right:4px;">
+            <template x-for="(b,bi) in g" :key="bi">
+              <div class="bit-cell pp" x-text="b"></div>
+            </template>
+          </div>
+        </template>
+      </div>
+      <span class="step-eq">每4位 = 0~4范围内的小计</span>
+    </div>
+
+    <!-- 步骤3: 8位字段 -->
+    <div class="step-row">
+      <span class="step-label">步骤3 (8bit)</span>
+      <div class="bit-row" style="margin:0;">
+        <template x-for="(g,gi) in step3Groups" :key="gi">
+          <div style="display:flex;gap:1px;margin-right:6px;">
+            <template x-for="(b,bi) in g" :key="bi">
+              <div class="bit-cell" :class="bi<6?'zero':'one'" style="border-color:#1e293b;color:#475569;" x-text="b"></div>
+            </template>
+          </div>
+        </template>
+      </div>
+      <span class="step-eq">每字节 = 0~8</span>
+    </div>
+
+    <!-- 最终结果 -->
+    <div style="display:flex;align-items:center;gap:1rem;margin-top:.8rem;flex-wrap:wrap;">
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-val" x-text="popcount"></div>
+        <div class="stat-label">POPULATION COUNT</div>
+      </div>
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-val" style="color:var(--b);" x-text="32-popcount"></div>
+        <div class="stat-label">ZERO BITS</div>
+      </div>
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-val" style="color:var(--p);" x-text="(popcount/32*100).toFixed(1)+'%'"></div>
+        <div class="stat-label">密度 (1-bits / 32)</div>
+      </div>
+      <div class="stat-box" style="min-width:160px;">
+        <div class="stat-val" style="color:var(--o);font-size:1rem;" x-text="'0x'+val.toString(16).toUpperCase().padStart(8,'0')"></div>
+        <div class="stat-label">HEX VALUE</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 四种实现方法 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.8rem;">
+      📚 popcount 的四种经典实现——从朴素到最优
+    </div>
+    <div class="tab-nav" x-data="{t:'warren'}">
+      <button class="tab-btn" :class="t==='naive'?'active':''" @click="t='naive'">朴素循环</button>
+      <button class="tab-btn" :class="t==='warren'?'active':''" @click="t='warren'">Warren 分治</button>
+      <button class="tab-btn" :class="t==='hakmem'?'active':''" @click="t='hakmem'">HAKMEM mod63</button>
+      <button class="tab-btn" :class="t==='builtin'?'active':''" @click="t='builtin'">硬件指令</button>
+
+      <div class="tab-pane" :class="t==='naive'?'active':''">
+        <div class="code-block">
+<span class="cm">// 方法1: 朴素循环 — O(32) 最慢, 但最直观</span>
+<span class="kw">int</span> <span class="fn">pop_naive</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">int</span> n = <span class="num">0</span>;
+  <span class="kw">while</span> (x) {
+    n += x &amp; <span class="num">1</span>;    <span class="cm">// 检查最低位</span>
+    x &gt;&gt;= <span class="num">1</span>;       <span class="cm">// 右移</span>
+  }
+  <span class="kw">return</span> n;
+}
+<span class="cm">// 指令数: ~64 条 (最坏情况)</span>
+<span class="cm">// 缺点: 分支 + 循环, 无法流水线化</span>
+
+<span class="cm">// 变体: Kernighan 技巧 (只循环1-bit个数次)</span>
+<span class="kw">int</span> <span class="fn">pop_kernighan</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">int</span> n = <span class="num">0</span>;
+  <span class="kw">while</span> (x) {
+    x &amp;= x - <span class="num">1</span>; <span class="cm">// 清除最低1位</span>
+    n++;
+  }
+  <span class="kw">return</span> n;
+}
+<span class="cm">// 比朴素快 (稀疏1-bit时), 但仍有分支</span>
+<span class="cm">// 历史: 出自 Kernighan &amp; Ritchie《C程序设计语言》练习</span>
+        </div>
+      </div>
+
+      <div class="tab-pane" :class="t==='warren'?'active':''">
+        <div class="code-block">
+<span class="cm">// 方法2: Warren §5-1 分治法 — 21条指令, 无分支</span>
+<span class="cm">// Figure 5-2: 最优无硬件支持版本</span>
+<span class="kw">int</span> <span class="fn">pop</span>(<span class="kw">unsigned</span> x) {
+  <span class="cm">// 步骤1: 将x替换为"2位字段中1的个数"</span>
+  <span class="cm">// x -= (x>>1) & 0x55555555</span>
+  <span class="cm">// 等价于: 每对 [a,b] → [0,a+b] (a,b∈{0,1})</span>
+  x = x - ((x &gt;&gt; <span class="num">1</span>) &amp; <span class="num">0x55555555</span>);
+
+  <span class="cm">// 步骤2: 合并相邻2位字段 → 4位字段</span>
+  x = (x &amp; <span class="num">0x33333333</span>) + ((x &gt;&gt; <span class="num">2</span>) &amp; <span class="num">0x33333333</span>);
+
+  <span class="cm">// 步骤3: 合并4位字段 → 8位字段, 并消除高位</span>
+  x = (x + (x &gt;&gt; <span class="num">4</span>)) &amp; <span class="num">0x0F0F0F0F</span>;
+
+  <span class="cm">// 步骤4: 合并字节 (字节内最大值8, 不会进位到高字节)</span>
+  x = x + (x &gt;&gt; <span class="num">8</span>);   <span class="cm">// 字节1+字节0 → 高16位字节</span>
+  x = x + (x &gt;&gt; <span class="num">16</span>);  <span class="cm">// 合并两个16位半字</span>
+  <span class="kw">return</span> x &amp; <span class="num">0x0000003F</span>; <span class="cm">// 只取低6位 (0~32)</span>
+}
+
+<span class="cm">// 魔法常数的含义:</span>
+<span class="cm">// 0x55555555 = 0101 0101 ... 0101 (选奇数位)</span>
+<span class="cm">// 0x33333333 = 0011 0011 ... 0011 (选每4位中低2位)</span>
+<span class="cm">// 0x0F0F0F0F = 0000 1111 ... 1111 (选每字节低4位)</span>
+<span class="cm">// 0x0000003F = 0...0 0011 1111   (最终掩码)</span>
+
+<span class="cm">// 步骤1的妙处: x - ((x>>1) & 0x55555555)</span>
+<span class="cm">// 原始码: ab (a,b ∈ {0,1})</span>
+<span class="cm">// (x>>1) & 0x55: 取a (高位)到低位</span>
+<span class="cm">// x - (x>>1)&0x55 = 2a+b - a = a+b ✓</span>
+<span class="cm">// 比 (x&0x55) + ((x>>1)&0x55) 少一条指令</span>
+        </div>
+      </div>
+
+      <div class="tab-pane" :class="t==='hakmem'?'active':''">
+        <div class="code-block">
+<span class="cm">// 方法3: HAKMEM memo (1972) item 169 — mod 63 算法</span>
+<span class="cm">// 出自 MIT AI Lab, Gosper/Beeler/Schroeppel</span>
+<span class="kw">int</span> <span class="fn">pop_hakmem</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">unsigned</span> n;
+  n = (x &gt;&gt; <span class="num">1</span>) &amp; <span class="num">033333333333</span>;  <span class="cm">// 八进制! 0x1B6DB6DB</span>
+  x = x - n;
+  n = (n &gt;&gt; <span class="num">1</span>) &amp; <span class="num">033333333333</span>;
+  x = x - n;
+  <span class="cm">// 现在x是 3-bit 字段的bitcount之和</span>
+  x = (x + (x &gt;&gt; <span class="num">3</span>)) &amp; <span class="num">030707070707</span>; <span class="cm">// 6-bit字段</span>
+  <span class="kw">return</span> x % <span class="num">63</span>;   <span class="cm">// 6位字段之和 ≡ 总和 (mod 63)</span>
+}
+<span class="cm">// 原理: 6-bit最大值63 = 2^6-1 = 0x3F</span>
+<span class="cm">// 一个32位整数 = 5个6位字段 + 2位余量</span>
+<span class="cm">// 各6位字段之和 mod 63 = 全部之和</span>
+<span class="cm">// 因为 64 ≡ 1 (mod 63) → 位权在mod63下等价</span>
+<span class="cm">// 缺点: 模运算在无硬件除法的机器上昂贵</span>
+<span class="cm">// 优点: 在有快速mod的机器上代码极短</span>
+
+<span class="cm">// 64-bit 版: 使用 mod 255</span>
+<span class="cm">// 类似地: 256 ≡ 1 (mod 255)</span>
+<span class="cm">// 8个8-bit字段之和 mod 255 = 总1-bit数</span>
+<span class="kw">int</span> <span class="fn">pop64_mod255</span>(<span class="kw">unsigned long long</span> x) {
+  x -= (x &gt;&gt; <span class="num">1</span>) &amp; <span class="num">0x5555555555555555ULL</span>;
+  x = (x &amp; <span class="num">0x3333333333333333ULL</span>) +
+      ((x &gt;&gt; <span class="num">2</span>) &amp; <span class="num">0x3333333333333333ULL</span>);
+  x = (x + (x &gt;&gt; <span class="num">4</span>)) &amp; <span class="num">0x0F0F0F0F0F0F0F0FULL</span>;
+  <span class="kw">return</span> (x * <span class="num">0x0101010101010101ULL</span>) &gt;&gt; <span class="num">56</span>;
+  <span class="cm">// 乘以全1字节向量 → 将8个字节累加到最高字节</span>
+}
+        </div>
+      </div>
+
+      <div class="tab-pane" :class="t==='builtin'?'active':''">
+        <div class="code-block">
+<span class="cm">// 方法4: 硬件指令 — 最快, 1-3 周期</span>
+
+<span class="cm">// C/C++: GCC/Clang 内建</span>
+<span class="kw">int</span> <span class="fn">pop_hw</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">return</span> __builtin_popcount(x);
+  <span class="cm">// GCC 会根据目标架构选择:</span>
+  <span class="cm">// x86 with SSE4.2: POPCNT eax, edi  (1指令)</span>
+  <span class="cm">// ARM v8-A:        CNT + ADDV       (2指令)</span>
+  <span class="cm">// RISC-V B-ext:    CPOP rd, rs1     (1指令)</span>
+}
+
+<span class="cm">// x86 POPCNT (Intel Nehalem 2008 起):</span>
+<span class="cm">// POPCNT r64, r/m64 — 1 cycle latency, 1 cycle throughput</span>
+<span class="cm">// 编译: gcc -mpopcnt -O2</span>
+<span class="cm">// 注意: 有"虚假依赖"bug (Haswell前), 目标寄存器需清零</span>
+
+<span class="cm">// ARM64 (AArch64):</span>
+<span class="cm">// CNT v0.8b, v0.8b   — 字节级popcount (SIMD)</span>
+<span class="cm">// ADDV b0, v0.8b     — 水平加法归并字节</span>
+<span class="cm">// 总计2条SIMD指令, 可批量处理</span>
+
+<span class="cm">// Java:</span>
+<span class="cm">// Integer.bitCount(x)  // JIT自动映射到POPCNT</span>
+<span class="cm">// Long.bitCount(x)     // 64位版本</span>
+
+<span class="cm">// Rust:</span>
+<span class="cm">// x.count_ones()       // 标准库, 自动POPCNT</span>
+
+<span class="cm">// Python:</span>
+<span class="cm">// bin(x).count('1')   // 朴素, 但CPython优化了字符串</span>
+<span class="cm">// int.bit_count()     // Python 3.10+ 原生方法</span>
+
+<span class="cm">// 性能对比 (Skylake, 32-bit):</span>
+<span class="cm">// POPCNT:        ~1 cycle</span>
+<span class="cm">// Warren §5-1:   ~8 cycles (21 instructions)</span>
+<span class="cm">// HAKMEM:        ~12 cycles (含mod)</span>
+<span class="cm">// 朴素循环:       ~50 cycles (平均16个1)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CSA 方法 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.75rem;">
+      ⚡ 进阶：进位保存加法器（CSA）批量 popcount — 大数组的最优解
+    </div>
+    <div class="insight" style="margin-bottom:.75rem;">
+      <span class="label">// CARRY-SAVE ADDER — 硬件电路思维迁移到软件</span>
+      当需要对一个大数组求总 popcount 时，Warren §5-1 给出了基于
+      <strong>进位保存加法器（CSA, 3:2 压缩器）</strong>的方案。
+      CSA 将三个输入压缩为两个（sum + carry），在软件中用 5 条逻辑指令模拟一个完整加法器。
+      每次迭代处理8个数组元素，相比朴素方法（每个元素单独调用 pop()）减少了约 40% 的指令数。
+      这个方法的起源是硬件乘法器电路——Harley 和 Seal 在1996-97年将其迁移到软件 popcount。
+    </div>
+    <div class="code-block">
+<span class="cm">// §5-1 CSA (3:2 压缩器) 宏:</span>
+<span class="cm">// 将三个32位字 a,b,c 压缩为 (h=进位, l=和)</span>
+<span class="cm">// 全加器逻辑 (每位独立并行):</span>
+<span class="cm">//   h = (a&b) | (a&c) | (b&c)  = ab|(a^b)c</span>
+<span class="cm">//   l = a ^ b ^ c</span>
+<span class="cm">// CSA 用5条逻辑指令在32个独立1-bit全加器上并行运行</span>
+
+<span class="cm">// 对大数组 A[n] 求总popcount, 8元素一组:</span>
+<span class="kw">long long</span> <span class="fn">array_pop8</span>(<span class="kw">unsigned</span> *A, <span class="kw">int</span> n) {
+  <span class="kw">long long</span> total = <span class="num">0</span>;
+  <span class="kw">unsigned</span> ones = <span class="num">0</span>, twos = <span class="num">0</span>, fours = <span class="num">0</span>, eights = <span class="num">0</span>;
+  <span class="kw">int</span> i;
+  <span class="kw">for</span> (i = <span class="num">0</span>; i &lt;= n - <span class="num">8</span>; i += <span class="num">8</span>) {
+    <span class="kw">unsigned</span> t1, t2, t3, t4;
+    <span class="cm">// CSA1: ones, A[i], A[i+1] → twos_ab, ones</span>
+    t1 = ones ^ A[i]; t2 = A[i+<span class="num">1</span>];
+    <span class="kw">unsigned</span> twos_ab = (ones &amp; A[i]) | ((t1) &amp; t2);
+    ones = t1 ^ t2;
+    <span class="cm">// CSA2: twos_ab, A[i+2], A[i+3] → fours_ab, twos_cd</span>
+    t1 = twos_ab ^ A[i+<span class="num">2</span>]; t3 = A[i+<span class="num">3</span>];
+    <span class="kw">unsigned</span> fours_ab = (twos_ab &amp; A[i+<span class="num">2</span>]) | (t1 &amp; t3);
+    <span class="kw">unsigned</span> twos_cd  = t1 ^ t3;
+    <span class="cm">// ...后续 CSA3-7 类似 (处理 A[i+4..7])</span>
+    <span class="cm">// 最终: total += 8*pop(eights)+4*pop(fours)+2*pop(twos)+pop(ones)</span>
+    total += <span class="fn">pop</span>(fours_ab);  <span class="cm">// 简化示意</span>
+  }
+  <span class="cm">// 处理剩余元素</span>
+  <span class="kw">for</span> (; i &lt; n; i++) total += <span class="fn">pop</span>(A[i]);
+  <span class="kw">return</span> total + <span class="fn">pop</span>(ones) + <span class="num">2</span>*<span class="fn">pop</span>(twos) + <span class="num">4</span>*<span class="fn">pop</span>(fours);
+}
+<span class="cm">// 性能: ~12.33 指令/字 vs 朴素 ~16 指令/字</span>
+<span class="cm">// 现代: AVX-512 VPOPCNTDQ 每周期处理 16×32bit = 512bit!</span>
+    </div>
+  </div>
+
+  <!-- 性能图 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.5rem;">
+      📊 各种 popcount 实现的指令数对比（32位整数）
+    </div>
+    <div id="chart-pop" style="width:100%;height:240px;"></div>
+  </div>
+</section>
+
+<!-- ═══ §5-2 奇偶校验 ═══ -->
+<section id="parity">
+  <div class="sec-header">
+    <span class="sec-num">§5-2</span>
+    <span class="sec-title">奇偶校验 — Parity</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// PARITY = popcount(x) & 1 = XOR of all bits</span>
+    奇偶校验（parity）就是"1-bit的个数是奇数还是偶数"，等价于<strong>所有位的 XOR</strong>。
+    这个等价性是并行前缀（Parallel Prefix）计算的完美例子：
+    XOR 是结合律运算，32位的 XOR 归约可以用 5 步完成（每步折叠一半）。
+    Warren 指出这与 Gray 码的性质深度关联：
+    <code style="color:var(--o)">Gray(x) 的第 i 位 = parity(x ≫ i)</code>，
+    格雷码转二进制的逆运算本质上就是前缀 XOR。
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.7rem;">奇偶校验实现（并行前缀 XOR）</div>
+      <div class="code-block">
+<span class="cm">// §5-2 奇偶校验: 返回 popcount(x) % 2</span>
+<span class="cm">// 方法1: 直接调用 popcount</span>
+<span class="kw">int</span> <span class="fn">parity_pop</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">return</span> <span class="fn">pop</span>(x) &amp; <span class="num">1</span>;
+}
+
+<span class="cm">// 方法2: 并行前缀 XOR (Warren §5-2, 5步)</span>
+<span class="kw">int</span> <span class="fn">parity</span>(<span class="kw">unsigned</span> x) {
+  x ^= x &gt;&gt; <span class="num">16</span>;  <span class="cm">// 折叠高16位到低16位</span>
+  x ^= x &gt;&gt; <span class="num">8</span>;   <span class="cm">// 折叠高8位到低8位</span>
+  x ^= x &gt;&gt; <span class="num">4</span>;   <span class="cm">// 折叠高4位到低4位</span>
+  x ^= x &gt;&gt; <span class="num">2</span>;
+  x ^= x &gt;&gt; <span class="num">1</span>;
+  <span class="kw">return</span> x &amp; <span class="num">1</span>;   <span class="cm">// 取最低位</span>
+}
+<span class="cm">// 共 5×2 = 10 条指令, 无分支, 可流水线</span>
+
+<span class="cm">// 方法3: 查表 (适合8-bit块)</span>
+<span class="cm">// 预计算 parity_table[256]</span>
+<span class="kw">int</span> <span class="fn">parity_table</span>(<span class="kw">unsigned</span> x) {
+  x ^= x &gt;&gt; <span class="num">16</span>;
+  x ^= x &gt;&gt; <span class="num">8</span>;
+  <span class="kw">return</span> parity_table[x &amp; <span class="num">0xFF</span>];
+  <span class="cm">// 只需2次折叠+1次查表</span>
+}
+
+<span class="cm">// 方法4: 硬件</span>
+<span class="cm">// x86: POPCNT + AND 1 (无直接parity指令)</span>
+<span class="cm">// x86 EFLAGS: PF (Parity Flag) 给出最低字节奇偶性</span>
+<span class="cm">// 需要折叠后再用 LAHF/SETPE 取PF位</span>
+<span class="cm">// GCC: __builtin_parity(x) — 最优选择</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.7rem;">并行前缀 XOR 的可视化过程</div>
+      <!-- 奇偶校验演示 -->
+      <div x-data="parityDemo()">
+        <div style="display:flex;gap:.75rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#475569;margin-bottom:.25rem;">输入值</div>
+            <input type="text" x-model="hexIn" @input="parse()"
+                   style="width:120px;background:#010409;border:1px solid #1e293b;color:var(--b);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:.28rem .5rem;border-radius:3px;"
+                   placeholder="0xDEADBEEF">
+          </div>
+          <div class="stat-box" style="min-width:80px;">
+            <div class="stat-val" style="color:var(--p);" x-text="parity?'奇':'偶'"></div>
+            <div class="stat-label">PARITY</div>
+          </div>
+        </div>
+        <!-- 步骤展示 -->
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#334155;margin-bottom:.4rem;">并行前缀 XOR 折叠过程：</div>
+        <template x-for="(step,si) in steps" :key="si">
+          <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;flex-wrap:wrap;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;width:100px;" x-text="step.label"></span>
+            <div class="bit-row" style="margin:0;gap:1px;">
+              <template x-for="(b,bi) in step.bits" :key="bi">
+                <div class="bit-cell" :class="b?'one':'zero'" style="width:16px;height:16px;font-size:.55rem;" x-text="b"></div>
+              </template>
+            </div>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#334155;" x-text="'= 0x'+step.val.toString(16).toUpperCase().padStart(8,'0')"></span>
+          </div>
+        </template>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--g);margin-top:.5rem;" x-text="'最终 bit[0] = '+(val32&1)+' → parity = '+(parity?'奇数个1':'偶数个1')"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.75rem;">📦 奇偶校验的实际应用场景</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.65rem;">
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);margin-bottom:.3rem;">💾 ECC 内存</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">DDR 内存的 ECC（Error-Correcting Code）使用<strong style="color:#94a3b8">汉明码</strong>，其核心是对数据位的多组奇偶校验。每64字节数据附加8字节 ECC，能检测2位错误并纠正1位错误。服务器内存每次写操作都要计算这些校验位。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--b);margin-bottom:.3rem;">📡 串行通信 (UART/RS-232)</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">UART 协议可选奇偶校验位（Even/Odd/None），每帧数据在停止位前附加1位奇偶校验。硬件 UART 控制器用 XOR 树实现，完全并行计算，不影响波特率。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--o);margin-bottom:.3rem;">🔐 密码学 (GF(2) 运算)</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">GF(2) 上的多项式运算本质是 XOR。AES 的 GF(2⁸) 乘法、CRC 校验、LDPC 纠错码都大量使用奇偶校验的变体。现代 CPU 专为此提供 <code style="color:var(--o)">PCLMULQDQ</code> 指令（进位less乘法 = XOR 多项式乘）。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--p);margin-bottom:.3rem;">🧬 Gray 码转换</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">Gray 码转二进制 = 并行前缀 XOR（§13-1）。Warren 指出这与奇偶校验的计算结构完全相同，只是把"折叠后取最低位"换成了"保留每步的结果"。前缀 XOR 是可逆的，逆运算仍是前缀 XOR。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §5-3 前导零 nlz ═══ -->
+<section id="nlz">
+  <div class="sec-header">
+    <span class="sec-num">§5-3</span>
+    <span class="sec-title">前导零计数 — Counting Leading Zeros (nlz / CLZ)</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// nlz(x) = 最高1位之前有多少个0</span>
+    <code style="color:var(--o)">nlz(x)</code>（number of leading zeros）告诉你最高有效位在哪里，
+    等价于 <code style="color:var(--o)">31 - floor(log₂(x))</code>（x&gt;0时）。
+    这个函数在整数对数计算、规范化、IEEE浮点指数提取、哈希表大小舍入等场景无处不在。
+    Warren 给出了三条路径：<strong>二分搜索法</strong>（5步，21条指令）、
+    <strong>浮点指数借用法</strong>（把整数转为 double，提取指数字段）、
+    以及<strong>De Bruijn 乘法查表法</strong>。每种方法都代表一种完全不同的计算哲学。
+  </div>
+
+  <!-- 交互演示 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="nlzDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.9rem;">
+      🔬 nlz 演示 — 拖动滑块或输入值，观察最高1位位置
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#475569;margin-bottom:.25rem;">十六进制</div>
+        <input type="text" x-model="hexIn" @input="parseH()"
+               style="width:120px;background:#010409;border:1px solid #1e293b;color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:.28rem .5rem;border-radius:3px;">
+      </div>
+      <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem;">
+        <button @click="setV(1)"        class="tab-
+btn">1</button>
+        <button @click="setV(0x00000080)" class="tab-btn">0x80</button>
+        <button @click="setV(0x00008000)" class="tab-btn">0x8000</button>
+        <button @click="setV(0x80000000)" class="tab-btn">0x80000000</button>
+        <button @click="setV(0xDEADBEEF)" class="tab-btn">0xDEAD</button>
+      </div>
+    </div>
+
+    <!-- 位图显示 -->
+    <div class="bit-row" style="margin-bottom:.6rem;">
+      <template x-for="(b,i) in bits" :key="i">
+        <div class="bit-cell"
+             :class="i < nlz ? 'zero' : (i === nlz ? 'warn' : 'one')"
+             x-text="b"
+             :title="'bit '+(31-i)"></div>
+      </template>
+    </div>
+    <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.6rem;">
+      <template x-for="(b,i) in bits" :key="i">
+        <div style="width:22px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.48rem;"
+             :style="{color: i===nlz?'var(--r)':'#1e293b'}"
+             x-text="31-i"></div>
+      </template>
+    </div>
+
+    <div style="display:flex;gap:.65rem;flex-wrap:wrap;">
+      <div class="stat-box" style="min-width:110px;">
+        <div class="stat-val" x-text="nlz"></div>
+        <div class="stat-label">nlz (前导零)</div>
+      </div>
+      <div class="stat-box" style="min-width:110px;">
+        <div class="stat-val" style="color:var(--b);" x-text="val32===0?'—':msb"></div>
+        <div class="stat-label">最高1位位置</div>
+      </div>
+      <div class="stat-box" style="min-width:110px;">
+        <div class="stat-val" style="color:var(--p);" x-text="val32===0?'—':Math.floor(Math.log2(val32)).toFixed(0)"></div>
+        <div class="stat-label">floor(log₂ x)</div>
+      </div>
+      <div class="stat-box" style="min-width:140px;">
+        <div class="stat-val" style="color:var(--o);font-size:1rem;" x-text="'0x'+val32.toString(16).toUpperCase().padStart(8,'0')"></div>
+        <div class="stat-label">HEX</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- nlz 四种实现 -->
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.7rem;">
+        nlz 实现方法对比
+      </div>
+      <div class="tab-nav" x-data="{t:'bisect'}">
+        <button class="tab-btn" :class="t==='bisect'?'active':''" @click="t='bisect'">二分搜索</button>
+        <button class="tab-btn" :class="t==='fp'?'active':''" @click="t='fp'">浮点借用</button>
+        <button class="tab-btn" :class="t==='debruijn'?'active':''" @click="t='debruijn'">De Bruijn</button>
+        <button class="tab-btn" :class="t==='hw'?'active':''" @click="t='hw'">硬件指令</button>
+
+        <div class="tab-pane" :class="t==='bisect'?'active':''">
+          <div class="code-block">
+<span class="cm">// §5-3 二分搜索法 nlz — Warren Figure 5-12</span>
+<span class="cm">// 5步确定最高1位, 共21条指令, 无分支</span>
+<span class="kw">int</span> <span class="fn">nlz</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">int</span> n;
+  <span class="kw">if</span> (x == <span class="num">0</span>) <span class="kw">return</span> <span class="num">32</span>;
+  n = <span class="num">0</span>;
+  <span class="cm">// 每步缩小搜索范围一半</span>
+  <span class="kw">if</span> (x &lt;= <span class="num">0x0000FFFF</span>) { n += <span class="num">16</span>; x &lt;&lt;= <span class="num">16</span>; }
+  <span class="kw">if</span> (x &lt;= <span class="num">0x00FFFFFF</span>) { n +=  <span class="num">8</span>; x &lt;&lt;=  <span class="num">8</span>; }
+  <span class="kw">if</span> (x &lt;= <span class="num">0x0FFFFFFF</span>) { n +=  <span class="num">4</span>; x &lt;&lt;=  <span class="num">4</span>; }
+  <span class="kw">if</span> (x &lt;= <span class="num">0x3FFFFFFF</span>) { n +=  <span class="num">2</span>; x &lt;&lt;=  <span class="num">2</span>; }
+  <span class="kw">if</span> (x &lt;= <span class="num">0x7FFFFFFF</span>) { n +=  <span class="num">1</span>;         }
+  <span class="kw">return</span> n;
+}
+<span class="cm">// 分支版本: 最坏5次分支</span>
+<span class="cm">// 无分支版本 (用掩码代替if):</span>
+<span class="kw">int</span> <span class="fn">nlz_branchless</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">int</span> n = <span class="num">32</span>;
+  <span class="kw">unsigned</span> y;
+  y = x &gt;&gt;<span class="num">16</span>; <span class="kw">if</span>(y) { n-=<span class="num">16</span>; x=y; }
+  y = x &gt;&gt; <span class="num">8</span>; <span class="kw">if</span>(y) { n-= <span class="num">8</span>; x=y; }
+  y = x &gt;&gt; <span class="num">4</span>; <span class="kw">if</span>(y) { n-= <span class="num">4</span>; x=y; }
+  y = x &gt;&gt; <span class="num">2</span>; <span class="kw">if</span>(y) { n-= <span class="num">2</span>; x=y; }
+  y = x &gt;&gt; <span class="num">1</span>; <span class="kw">if</span>(y) { n-= <span class="num">1</span>; x=y; }
+  <span class="kw">return</span> n - x;
+}
+          </div>
+        </div>
+
+        <div class="tab-pane" :class="t==='fp'?'active':''">
+          <div class="code-block">
+<span class="cm">// §5-3 浮点指数借用法 — Warren Figure 5-19</span>
+<span class="cm">// 把整数转为 IEEE 754 double, 提取指数字段</span>
+<span class="cm">// IEEE double: [符号1位][指数11位][尾数52位]</span>
+<span class="cm">// 如果 x > 0: double(x) 的指数 = 1023 + floor(log2 x)</span>
+<span class="cm">// 因此: nlz(x) = 31 - floor(log2 x) = 1054 - exponent</span>
+
+<span class="cm">// 注意: 以下代码依赖 type-punning, 严格说是 UB</span>
+<span class="cm">// C++20 可用 std::bit_cast 替代</span>
+<span class="kw">int</span> <span class="fn">nlz_float</span>(<span class="kw">unsigned</span> k) {
+  <span class="kw">union</span> {
+    <span class="kw">unsigned</span> asInt[<span class="num">2</span>];
+    <span class="kw">double</span>   asDouble;
+  };
+  <span class="kw">int</span> n;
+  asDouble = (<span class="kw">double</span>)k + <span class="num">0.5</span>;  <span class="cm">// +0.5 处理k=0</span>
+  <span class="cm">// LE=1(小端): 指数在 asInt[1] 的高11位</span>
+  n = <span class="num">1054</span> - (asInt[<span class="num">1</span>] &gt;&gt; <span class="num">20</span>);
+  <span class="kw">return</span> n;
+}
+<span class="cm">// 原理: 1023 + floor(log2 k) = 指数字段</span>
+<span class="cm">// 1054 - 指数 = 31 - floor(log2 k) = nlz(k) ✓</span>
+
+<span class="cm">// 32位float版 (指数8位, 偏移127):</span>
+<span class="cm">// asFloat = (float)k + 0.5f</span>
+<span class="cm">// n = 158 - (asInt >> 23)  // 158 = 127+31</span>
+
+<span class="cm">// 缺点: 整数→浮点转换慢(5-10周期)</span>
+<span class="cm">// 跨寄存器组的数据移动代价高</span>
+<span class="cm">// 现代 CPU 用 LZCNT 只需 1 周期</span>
+          </div>
+        </div>
+
+        <div class="tab-pane" :class="t==='debruijn'?'active':''">
+          <div class="code-block">
+<span class="cm">// §5-3 De Bruijn 乘法查表法 — Harley's Algorithm</span>
+<span class="cm">// Warren Figure 5-17, 改进版 Figure 5-18</span>
+<span class="cm">// 原理: De Bruijn 序列 — 每个长度k的子串恰好出现一次</span>
+<span class="cm">// 将 nlz 转化为查表: 先用乘法提取"指纹", 再查6位表</span>
+
+<span class="cm">// 步骤1: 将 x 变为只有最高1位的形式 (类似 flp2)</span>
+<span class="cm">// 步骤2: 乘以 De Bruijn 常数, 取高6位作为表索引</span>
+<span class="cm">// 步骤3: 查 64 项表, 返回 nlz 值</span>
+
+<span class="kw">static const char</span> table[<span class="num">64</span>] = {
+  <span class="num">32</span>,<span class="num">20</span>,<span class="num">19</span>, u, u,<span class="num">18</span>, u, <span class="num">7</span>,
+  <span class="num">10</span>,<span class="num">17</span>, u, u,<span class="num">14</span>, u, <span class="num">6</span>, u,
+   u, <span class="num">9</span>, u,<span class="num">16</span>, u, u, <span class="num">1</span>,<span class="num">26</span>,
+   u,<span class="num">13</span>, u, u,<span class="num">24</span>, <span class="num">5</span>, u, u,
+   u,<span class="num">21</span>, u, <span class="num">8</span>,<span class="num">11</span>, u,<span class="num">15</span>, u,
+   u, u, u, <span class="num">2</span>,<span class="num">27</span>, <span class="num">0</span>,<span class="num">25</span>, u,
+  <span class="num">22</span>, u,<span class="num">12</span>, u, u, <span class="num">3</span>,<span class="num">28</span>, u,
+  <span class="num">23</span>, u, <span class="num">4</span>,<span class="num">29</span>, u, u,<span class="num">30</span>,<span class="num">31</span>
+};
+<span class="kw">int</span> <span class="fn">nlz_debruijn</span>(<span class="kw">unsigned</span> x) {
+  x = x | (x &gt;&gt; <span class="num">1</span>);  <span class="cm">// 将最高1位以下全部置1</span>
+  x = x | (x &gt;&gt; <span class="num">2</span>);
+  x = x | (x &gt;&gt; <span class="num">4</span>);
+  x = x | (x &gt;&gt; <span class="num">8</span>);
+  x = x | (x &gt;&gt; <span class="num">16</span>); <span class="cm">// x 现在是 0...01...1 形式</span>
+  x = ~x;             <span class="cm">// 取反: 1...10...0</span>
+  x = x - (x &gt;&gt; <span class="num">1</span>);  <span class="cm">// 只保留最高1位</span>
+  <span class="kw">return</span> table[(x * <span class="num">0x045BCED1</span>) &gt;&gt; <span class="num">26</span>];
+  <span class="cm">// 0x045BCED1 是 De Bruijn 常数</span>
+  <span class="cm">// = 17 × 65 × 129 × 513 (mod 2^32)</span>
+  <span class="cm">// 乘法将最高1位的位置映射到高6位</span>
+  <span class="cm">// 高6位恰好在0~63内唯一, 因此可以查表</span>
+}
+<span class="cm">// 指令数约15, 含1次乘法+1次内存访问</span>
+<span class="cm">// 若无乘法: 改用 Goryavsky 变体, 纯移位加法</span>
+          </div>
+        </div>
+
+        <div class="tab-pane" :class="t==='hw'?'active':''">
+          <div class="code-block">
+<span class="cm">// §5-3 硬件 nlz 指令 — 最优解</span>
+
+<span class="cm">// x86 — BSR (Bit Scan Reverse) + LZCNT</span>
+<span class="cm">// BSR dst, src: dst = 最高1位的位置 (0-indexed from LSB)</span>
+<span class="cm">// LZCNT dst, src: dst = 前导零个数 (BMI1, Intel Haswell+)</span>
+<span class="cm">// 注意: BSR在x=0时行为未定义! LZCNT则定义为32</span>
+<span class="cm">// x86 BSR: 1周期, 但与LZCNT语义不同</span>
+<span class="cm">// nlz(x) = 31 - BSR(x)  (x≠0)</span>
+
+<span class="cm">// C GCC/Clang:</span>
+<span class="kw">int</span> <span class="fn">nlz_hw</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">if</span> (x == <span class="num">0</span>) <span class="kw">return</span> <span class="num">32</span>;
+  <span class="kw">return</span> __builtin_clz(x);
+  <span class="cm">// 编译到 LZCNT 或 BSR 取决于 -march=</span>
+  <span class="cm">// 注意: __builtin_clz(0) 是 UB!</span>
+}
+
+<span class="cm">// 各平台对应关系:</span>
+<span class="cm">// x86 (BMI1):   LZCNT   r32, r/m32  (1周期)</span>
+<span class="cm">// ARM64:        CLZ     Wd, Wn      (1周期)</span>
+<span class="cm">// RISC-V B-ext: CLZ     rd, rs1     (1周期)</span>
+<span class="cm">// PowerPC:      CNTLZW  rA, rS      (最早支持, 1990s)</span>
+<span class="cm">// MIPS:         CLZ     rd, rs      (MIPS32 Rev 1)</span>
+
+<span class="cm">// Java: Integer.numberOfLeadingZeros(x)</span>
+<span class="cm">// Rust: x.leading_zeros()</span>
+<span class="cm">// C++20: std::countl_zero(x)  (标准化!)</span>
+
+<span class="cm">// 历史: IBM System/360 (1964) 就有 CLZ 指令</span>
+<span class="cm">// x86 直到 2013 (Haswell) 才有无歧义的 LZCNT</span>
+<span class="cm">// 这 50 年的空白催生了 Warren §5-3 的所有软件方法</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- nlz 的应用 -->
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.7rem;">
+        📦 nlz 的核心应用场景
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.55rem;">
+        <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);margin-bottom:.28rem;">📐 整数 floor(log₂ x) = 31 - nlz(x)</div>
+          <div style="font-size:.77rem;color:#64748b;line-height:1.62;">哈希表容量舍入到2的幂、B树阶数计算、IEEE浮点规范化移位量、Huffman树深度计算，均依赖这一恒等式。</div>
+        </div>
+        <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--b);margin-bottom:.28rem;">🔢 向上取整到2的幂 = 1 &lt;&lt; (32 - nlz(x-1))</div>
+          <div style="font-size:.77rem;color:#64748b;line-height:1.62;">malloc对齐、GPU着色器缓冲区大小、网络数据包分段大小，都需要快速计算"不小于x的最小2的幂"。Warren §3-2 的 clp2 就是此公式。</div>
+        </div>
+        <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--o);margin-bottom:.28rem;">🌳 整数平方根初始估计</div>
+          <div style="font-size:.77rem;color:#64748b;line-height:1.62;">整数 sqrt(x) 的牛顿迭代初始值可用 <code style="color:var(--o)">1 &lt;&lt; ((32 - nlz(x)) / 2)</code> 给出，比从1开始迭代收敛快约 log₂(x)/2 倍。</div>
+        </div>
+        <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--p);margin-bottom:.28rem;">🔐 密码学：大数比较与模幂</div>
+          <div style="font-size:.77rem;color:#64748b;line-height:1.62;">RSA/ECC 大数模幂运算的循环次数 = 指数的位长 = 64 - nlz(e)。OpenSSL 的 BN_num_bits() 底层就是 CLZ。快1位 = 少1次模乘 = 节省数十微秒。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §5-4 尾随零 ntz ═══ -->
+<section id="ntz">
+  <div class="sec-header">
+    <span class="sec-num">§5-4</span>
+    <span class="sec-title">尾随零计数 — Counting Trailing Zeros (ntz / CTZ)</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// ntz(x) = 最低1位之后有多少个0 = 最低1位的位置</span>
+    <code style="color:var(--o)">ntz(x)</code> 等价于 <code style="color:var(--o)">x &amp; (-x)</code>（隔离最低1位）的位位置，
+    也等价于 <code style="color:var(--o)">x</code> 能被 <code style="color:var(--o)">2^k</code> 整除的最大 k。
+    Warren 给出了比 nlz 更多样的实现路径，其中最精妙的是
+    <strong>De Bruijn 乘法查表</strong>：用一个32位 De Bruijn 序列的特殊乘法，
+    将"最低1位的位置"唯一映射到一个5位索引，只需1次乘法+1次表查找。
+    ntz 的"尺子函数"（ruler function）应用尤为有趣：
+    ntz(k) 描述了汉明编码中下一个要移动的磁盘，以及格雷码生成中下一个要翻转的位。
+  </div>
+
+  <!-- ntz 交互演示 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="ntzDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.85rem;">
+      🔬 ntz 演示 — 尾随零与最低1位隔离
+    </div>
+    <div style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-bottom:.75rem;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#475569;margin-bottom:.25rem;">输入值 (hex)</div>
+        <input type="text" x-model="hexIn" @input="parseH()"
+               style="width:130px;background:#010409;border:1px solid #1e293b;color:var(--o);font-family:'JetBrains Mono',monospace;font-size:.8rem;padding:.28rem .5rem;border-radius:3px;"
+               placeholder="0x...">
+      </div>
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-top:1rem;">
+        <button @click="setV(1)"          class="tab-btn">1</button>
+        <button @click="setV(4)"          class="tab-btn">4</button>
+        <button @click="setV(0x100)"      class="tab-btn">0x100</button>
+        <button @click="setV(0xDEADBEEF)" class="tab-btn">0xDEADBEEF</button>
+        <button @click="setV(0x80000000)" class="tab-btn">0x80000000</button>
+      </div>
+    </div>
+
+    <!-- 位图 -->
+    <div class="bit-row" style="margin-bottom:.5rem;">
+      <template x-for="(b,i) in bits" :key="i">
+        <div class="bit-cell"
+             :class="(31-i) < ntz ? 'warn' : ((31-i) === ntz ? 'one' : (b?'hi':'zero'))"
+             x-text="b"
+             :title="'bit '+(31-i)"></div>
+      </template>
+    </div>
+    <!-- 位号标签 -->
+    <div style="display:flex;gap:2px;flex-wrap:wrap;margin-bottom:.6rem;">
+      <template x-for="(b,i) in bits" :key="i">
+        <div style="width:22px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:.45rem;"
+             :style="{color:(31-i)===ntz?'var(--o)':'#1e293b'}"
+             x-text="31-i"></div>
+      </template>
+    </div>
+
+    <div style="display:flex;gap:.65rem;flex-wrap:wrap;margin-bottom:.75rem;">
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-val" style="color:var(--o);" x-text="ntz"></div>
+        <div class="stat-label">ntz (尾随零)</div>
+      </div>
+      <div class="stat-box" style="min-width:140px;">
+        <div class="stat-val" style="color:var(--g);font-size:1rem;"
+             x-text="val32===0?'0':'0x'+(val32 & -val32).toString(16).toUpperCase().padStart(8,'0')"></div>
+        <div class="stat-label">x &amp; (-x) 最低1位</div>
+      </div>
+      <div class="stat-box" style="min-width:120px;">
+        <div class="stat-val" style="color:var(--p);" x-text="val32===0?32:ntz"></div>
+        <div class="stat-label">最大2^k整除因子</div>
+      </div>
+    </div>
+
+    <!-- 尺子函数可视化 -->
+    <div style="background:#010409;border:1px solid #1e293b;border-radius:.45rem;padding:.75rem 1rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;margin-bottom:.5rem;">
+        尺子函数 ntz(k), k = 1..16 （汉诺塔移盘顺序 / 格雷码翻转位）
+      </div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;">
+        <template x-for="k in 16" :key="k">
+          <div style="text-align:center;min-width:28px;">
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#334155;" x-text="k"></div>
+            <div :style="{
+                   height: (rulerFn(k)+1)*12+'px',
+                   background: ['var(--g)','var(--b)','var(--p)','var(--o)','var(--r)'][Math.min(rulerFn(k),4)],
+                   borderRadius:'2px 2px 0 0',
+                   marginTop:'2px',
+                   opacity:.75
+                 }"></div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--o);margin-top:2px;"
+                 x-text="rulerFn(k)"></div>
+          </div>
+        </template>
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.63rem;color:#334155;margin-top:.4rem;">
+        柱高 = ntz(k)，规律: 每隔1步插入0，每隔2步插入1，每隔4步插入2...
+        → 汉诺塔第k步移动磁盘 ntz(k)
+      </div>
+    </div>
+  </div>
+
+  <!-- ntz 代码实现 -->
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.7rem;">ntz 实现 — 多种方法</div>
+      <div class="code-block">
+<span class="cm">// §5-4 ntz 方法总览</span>
+
+<span class="cm">// 方法1: 利用 nlz (先隔离最低1位)</span>
+<span class="kw">int</span> <span class="fn">ntz1</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">return</span> <span class="fn">nlz</span>(~x &amp; (x-<span class="num">1</span>));
+  <span class="cm">// ~x & (x-1): 将最低1位及以下全部取反再清零</span>
+  <span class="cm">// 等价于将 x 的尾随零变成前导零</span>
+}
+
+<span class="cm">// 方法2: x & (-x) 隔离最低1位 + nlz</span>
+<span class="kw">int</span> <span class="fn">ntz2</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">if</span> (x == <span class="num">0</span>) <span class="kw">return</span> <span class="num">32</span>;
+  <span class="kw">return</span> <span class="num">31</span> - <span class="fn">nlz</span>(x &amp; -(<span class="kw">int</span>)x);
+  <span class="cm">// x & (-x): 只保留最低1位</span>
+  <span class="cm">// 31 - nlz: 最低1位的位置即尾随零数</span>
+}
+
+<span class="cm">// 方法3: 二分搜索 (仿照 nlz)</span>
+<span class="kw">int</span> <span class="fn">ntz_bisect</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">int</span> n = <span class="num">1</span>;
+  <span class="kw">if</span> (x == <span class="num">0</span>) <span class="kw">return</span> <span class="num">32</span>;
+  <span class="kw">if</span> ((x &amp; <span class="num">0x0000FFFF</span>)==<span class="num">0</span>) { n+=<span class="num">16</span>; x&gt;&gt;=<span class="num">16</span>; }
+  <span class="kw">if</span> ((x &amp; <span class="num">0x000000FF</span>)==<span class="num">0</span>) { n+= <span class="num">8</span>; x&gt;&gt;= <span class="num">8</span>; }
+  <span class="kw">if</span> ((x &amp; <span class="num">0x0000000F</span>)==<span class="num">0</span>) { n+= <span class="num">4</span>; x&gt;&gt;= <span class="num">4</span>; }
+  <span class="kw">if</span> ((x &amp; <span class="num">0x00000003</span>)==<span class="num">0</span>) { n+= <span class="num">2</span>; x&gt;&gt;= <span class="num">2</span>; }
+  <span class="kw">return</span> n - (x &amp; <span class="num">1</span>);
+}
+
+<span class="cm">// 方法4: 硬件</span>
+<span class="cm">// __builtin_ctz(x)  (x≠0, 否则UB)</span>
+<span class="cm">// x86: BSF rd, rs (Bit Scan Forward)</span>
+<span class="cm">// x86 BMI1: TZCNT rd, rs  (x=0时返回32)</span>
+<span class="cm">// ARM64: RBIT + CLZ (反转位再数前导零)</span>
+<span class="cm">// RISC-V B: CTZ rd, rs</span>
+<span class="cm">// C++20: std::countr_zero(x)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.7rem;">De Bruijn 序列查表 ntz — 最精妙实现</div>
+      <div class="code-block">
+<span class="cm">// §5-4 Warren Figure 5-22: De Bruijn ntz</span>
+<span class="cm">// 核心思想: De Bruijn 序列的每个连续子串唯一</span>
+<span class="cm">// 0x077CB531 是一个32位 De Bruijn 序列常数</span>
+<span class="cm">// 将 (x & -x) 乘以它, 取高5位 → 唯一映射到0~31</span>
+
+<span class="kw">static const int</span> deBruijn_ntz[<span class="num">32</span>] = {
+   <span class="num">0</span>,  <span class="num">1</span>, <span class="num">28</span>,  <span class="num">2</span>, <span class="num">29</span>, <span class="num">14</span>, <span class="num">24</span>,  <span class="num">3</span>,
+  <span class="num">30</span>, <span class="num">22</span>, <span class="num">20</span>, <span class="num">15</span>, <span class="num">25</span>, <span class="num">17</span>,  <span class="num">4</span>,  <span class="num">8</span>,
+  <span class="num">31</span>, <span class="num">27</span>, <span class="num">13</span>, <span class="num">23</span>, <span class="num">21</span>, <span class="num">19</span>, <span class="num">16</span>,  <span class="num">7</span>,
+  <span class="num">26</span>, <span class="num">12</span>, <span class="num">18</span>,  <span class="num">6</span>, <span class="num">11</span>,  <span class="num">5</span>, <span class="num">10</span>,  <span class="num">9</span>
+};
+
+<span class="kw">int</span> <span class="fn">ntz_debruijn</span>(<span class="kw">unsigned</span> v) {
+  <span class="kw">return</span> deBruijn_ntz[
+    ((v &amp; -(<span class="kw">int</span>)v) * <span class="num">0x077CB531u</span>) &gt;&gt; <span class="num">27</span>
+  ];
+}
+<span class="cm">// 步骤解析 (以 v=0x00000100 为例):</span>
+<span class="cm">// 1. v & -v = 0x00000100  (只留最低1位)</span>
+<span class="cm">// 2. * 0x077CB531</span>
+<span class="cm">//    = 0x077CB531 << 8 = 0xCB531000(低32位)</span>
+<span class="cm">// 3. >> 27 = 0xCB531000 >> 27 = 0x19 = 25</span>
+<span class="cm">// 4. deBruijn_ntz[25] = 8  ✓ (0x100 = bit 8)</span>
+
+<span class="cm">// 为什么叫 De Bruijn?</span>
+<span class="cm">// 0x077CB531 的32位二进制展开是一个 De Bruijn</span>
+<span class="cm">// 序列 B(2,5): 每个5位子串 00000~11111 恰好</span>
+<span class="cm">// 出现一次。乘以 2^k (= 左移k位) 恰好将第k个</span>
+<span class="cm">// 5位子串移到高5位, 使其成为唯一的表索引。</span>
+<span class="cm">// 只需32项表, 1次乘法, 1次移位, 1次查表!</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §5-5 历史与横向比较 ═══ -->
+<section id="history">
+  <div class="sec-header">
+    <span class="sec-num">§5-5</span>
+    <span class="sec-title">历史溯源与跨平台对比</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// FROM IBM STRETCH (1960) TO RISC-V B-EXTENSION (2021)</span>
+    popcount / CLZ / CTZ 这三个原语的历史，是一部<strong>硬件超越软件智慧、软件又反哺硬件设计</strong>的循环史。
+    IBM Stretch（1961）第一次把 popcount 做成硬件指令，但 x86 在 2008 年才跟上（POPCNT）。
+    这 47 年的空白，催生了 HAKMEM、Warren §5-1 这些代代相传的软件技巧。
+    今天这些函数已经在 C++20 的 <code style="color:var(--o)">&lt;bit&gt;</code> 头文件中被标准化——
+    历史绕了一个大圈，但每一个弯道都留下了值得细品的工程美学。
+  </div>
+
+  <!-- 时间线 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:1rem;">📅 位计数函数的历史时间线</div>
+    <div style="position:relative;padding-left:1.4rem;">
+      <div style="position:absolute;left:.6rem;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--g),var(--b),var(--p),var(--o));opacity:.3;"></div>
+      <template x-for="(ev,i) in timeline" :key="i">
+        <div style="position:relative;margin-bottom:1.1rem;padding-left:.5rem;">
+          <div style="position:absolute;left:-1.15rem;top:.35rem;width:7px;height:7px;border-radius:50%;"
+               :style="{background:ev.color,boxShadow:'0 0 5px '+ev.color}"></div>
+          <div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;" :style="{color:ev.color}" x-text="ev.year"></span>
+            <span style="font-size:.83rem;font-weight:600;color:#e2e8f0;" x-text="ev.title"></span>
+          </div>
+          <div style="font-size:.78rem;color:#64748b;line-height:1.65;margin-top:.18rem;" x-text="ev.desc"></div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 跨平台指令对比表 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.75rem;">🔧 各平台位计数指令对比</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-family:'JetBrains Mono',monospace;font-size:.72rem;">
+        <thead>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <th style="text-align:left;padding:.4rem .6rem;color:#475569;">平台</th>
+            <th style="text-align:left;padding:.4rem .6rem;color:var(--g);">popcount</th>
+            <th style="text-align:left;padding:.4rem .6rem;color:var(--b);">CLZ / nlz</th>
+            <th style="text-align:left;padding:.4rem .6rem;color:var(--o);">CTZ / ntz</th>
+            <th style="text-align:left;padding:.4rem .6rem;color:var(--p);">可用年份</th>
+          </tr>
+        </thead>
+        <tbody>
+          <template x-for="(row,i) in archTable" :key="i">
+            <tr :style="{borderBottom:'1px solid #0f172a',background:i%2===0?'transparent':'rgba(0,255,136,.02)'}">
+              <td style="padding:.38rem .6rem;color:#94a3b8;" x-text="row.arch"></td>
+              <td style="padding:.38rem .6rem;" :style="{color:row.pop?'var(--g)':'#334155'}" x-text="row.pop||'—'"></td>
+              <td style="padding:.38rem .6rem;" :style="{color:row.clz?'var(--b)':'#334155'}" x-text="row.clz||'—'"></td>
+              <td style="padding:.38rem .6rem;" :style="{color:row.ctz?'var(--o)':'#334155'}" x-text="row.ctz||'—'"></td>
+              <td style="padding:.38rem .6rem;color:#475569;" x-text="row.year"></td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 图表：各实现指令数 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.5rem;">
+      📊 nlz 各实现方案指令数与性能对比
+    </div>
+    <div id="chart-nlz" style="width:100%;height:220px;"></div>
+  </div>
+</section>
+
+<!-- ═══ §5-6 深度点评 ═══ -->
+<section id="critique">
+  <div class="sec-header">
+    <span class="sec-num">§CRIT</span>
+    <span class="sec-title">深度点评 — 第5章的精华与启示</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="critic-box" style="margin-bottom:1.2rem;">
+    <h3>第5章：六十年智慧的结晶，从HAKMEM到C++20</h3>
+    <div class="critic-item">
+      <div class="ci-title">✦ 分治 popcount 是"并行思维"的教科书</div>
+      <p>Warren §5-1 的分治方法的本质是把32个串行加法器在一个寄存器内同时并行运行。
+      这个思路直接对应了 Kogge-Stone 并行前缀加法器电路。
+      软件工程师习惯了"循环+计数器"的思维定势，而这个算法告诉你：
+      只要问题具有位级独立性，就可以在单个 ALU 周期内完成原本需要32步的工作。
+      这种"数据并行"思想是 SIMD、GPU Warp、TPU 矩阵单元的共同祖先。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ De Bruijn 查表法：数学与工程的完美接吻</div>
+      <p>De Bruijn 序列原本是组合数学中的纯理论对象（1940年代荷兰数学家 Nicolaas de Bruijn 研究的），
+      六十年后被 Robert Harley（1996年）发现可以用来解决 nlz/ntz 的高效实现问题。
+      一次乘法 + 一次移位 + 一次表查找，不需要任何分支，不需要任何硬件扩展。
+      这种"把纯数学理论直接变成工程指令序列"的惊喜感，正是这本书最令人着迷的地方。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ 浮点借用法：跨域借鸡下蛋的极客精神</div>
+      <p>用 IEEE 754 double 的指数字段来计算整数对数，是一种令强迫症程序员既爱又恨的技巧。
+      它的正确性依赖于一个深刻的观察：浮点数的规范化指数本质上就是"最高有效位的位置"。
+      但其代价是：代码依赖未定义行为（type-punning），跨 ISA 的大小端问题，
+      以及整数和浮点寄存器之间昂贵的数据转移。
+      Warren 用整整一页讨论其"不稳定性"——这本身就是对编程实践诚实性的一种示范。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ 尺子函数与汉诺塔：意想不到的跨学科统一</div>
+      <p><code>ntz(k)</code> = k 中2的最高次幂因子 = "尺子函数"，描述了一把标准尺子上各刻度线的高度。
+      Warren 指出它同时解决了三个看似毫无关联的问题：汉诺塔移盘顺序、格雷码翻转位、Gosper 环路检测算法。
+      这种"一个函数，多种解释"的多态性，是计算机科学中最美的现象之一。
+      有多少工程师在写汉诺塔递归时，从未意识到自己的递归调用栈就是一棵 ntz 的决策树？</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">⚠ 时代局限：硬件追上来了，但书的价值没有消失</div>
+      <p>x86 POPCNT（2008）、LZCNT/TZCNT（2013）、C++20 <code>&lt;bit&gt;</code>（2020）、
+      RISC-V B 扩展（2021）的相继标准化，让本章大部分"软件技巧"变成了博物馆展品。
+      但这恰恰说明：Warren 这本书所记录的，是一代工程师在硬件缺位时用智慧填补空白的历史。
+      理解这些技巧的原理，不是为了今天还用它们，而是为了理解：当你面对一个没有现成指令的新问题时，
+      应该怎样思考。这种"用现有原语组合出新原语"的能力，才是本章真正的遗产。</p>
+    </div>
+  </div>
+
+  <!-- 雷达图 + nlz 各方法对比图 -->
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.5rem;">
+        📊 第5章各小节综合评分
+      </div>
+      <div id="chart-radar" style="width:100%;height:280px;"></div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.5rem;">
+        📊 popcount 各方法相对性能（数值越低越快，Skylake 实测）
+      </div>
+      <div id="chart-perf" style="width:100%;height:280px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- 导航 -->
+<div style="max-width:1100px;margin:0 auto;padding:0 1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <a href="ch04.html"
+     style="display:flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;background:var(--card);border:1px solid #1e293b;border-radius:.6rem;text-decoration:none;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:.78rem;transition:all .2s;"
+     onmouseover="this.style.borderColor='rgba(0,255,136,.35)';this.style.color='var(--g)'"
+     onmouseout="this.style.borderColor='#1e293b';this.style.color='#94a3b8'">
+    ← Ch.04 · 算术边界
+  </a>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#1e293b;">Chapter 05 / Hacker's Delight</div>
+  <a href="ch06.html"
+     style="display:flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;background:var(--card);border:1px solid #1e293b;border-radius:.6rem;text-decoration:none;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:.78rem;transition:all .2s;"
+     onmouseover="this.style.borderColor='rgba(0,255,136,.35)';this.style.color='var(--g)'"
+     onmouseout="this.style.borderColor='#1e293b';this.style.color='#94a3b8'">
+    Ch.06 · 搜索字 →
+  </a>
+</div>
+
+<footer>
+  <div>// HACKER'S DELIGHT — Chapter 05 · Counting Bits</div>
+  <div style="margin-top:.4rem;">Interactive Study Notes · Alpine.js + ECharts · <a href="index.html">返回目录</a></div>
+</footer>
+
+</div><!-- #app -->
+
+<script>
+/* ══════════════════════════════════════
+   全局 Alpine 根组件
+══════════════════════════════════════ */
+function app() {
+  return {
+    timeline: [
+      {year:'1961',color:'var(--g)', title:'IBM Stretch — 第一条硬件 popcount 指令',
+       desc:'IBM 7030 Stretch 超级计算机率先将"计数1位数"实现为单条机器指令，用于科学计算和密码分析（NSA需求驱动）。'},
+      {year:'1972',color:'var(--b)', title:'HAKMEM Memo — MIT AI Lab 的黑客秘笈',
+       desc:'Gosper、Beeler、Schroeppel 在 HAKMEM item 169 中记录了 mod-63 popcount 技巧。这份备忘录成为后世位操作技巧的圣经。'},
+      {year:'1987',color:'var(--p)', title:'Mycroft — comp.arch 分治 popcount',
+       desc:'Alan Mycroft 在 Usenet comp.arch 中发布了 5 步分治 popcount 算法的早期变体，被 Warren 在书中引用。'},
+      {year:'1996',color:'var(--o)', title:'Harley — CSA + De Bruijn nlz 算法',
+       desc:'Robert Harley 在 comp.arch newsgroup 中提出将进位保存加法器用于数组 popcount，并发现 De Bruijn 乘法表索引可解决 nlz。'},
+      {year:'1997',color:'var(--g)', title:'Seal — 7元素 CSA 数组 popcount',
+       desc:'David Seal 展示了处理7元素数组的最优 CSA 安排，进一步完善了 Harley 的方法。'},
+      {year:'2002',color:'var(--b)', title:"Hacker's Delight 第1版 — 系统化整理",
+       desc:'Warren 将分散在各 newsgroup、memo 中的位计数技巧系统化，第5章成为该领域最权威的参考资料。'},
+      {year:'2008',color:'var(--p)', title:'Intel Nehalem — x86 POPCNT 指令',
+       desc:'Intel 在 Nehalem 微架构中引入 POPCNT 指令（SSE4.2），1个周期完成32/64位 popcount。距 IBM Stretch 已经过去了 47 年。'},
+      {year:'2013',color:'var(--o)', title:'Intel Haswell — LZCNT / TZCNT (BMI1)',
+       desc:'Haswell 引入 BMI1 扩展，LZCNT/TZCNT 终于无歧义地实现了 nlz/ntz（BSR/BSF 在 x=0 时行为未定义）。'},
+      {year:'2020',color:'var(--r)', title:'C++20 — <bit> 头文件标准化',
+       desc:'std::popcount、std::countl_zero（CLZ）、std::countr_zero（CTZ）首次进入 C++ 标准，结束了跨平台位计数的混乱状态。'},
+      {year:'2021',color:'var(--g)', title:'RISC-V B 扩展 — CPOP / CLZ / CTZ',
+       desc:'RISC-V 位操作扩展（B-extension）冻结，CPOP（popcount）、CLZ、CTZ 成为开放 ISA 的标准配置。'}
+    ],
+    archTable: [
+      {arch:'IBM Stretch (1961)', pop:'POPCNT',  clz:'—',      ctz:'—',      year:'1961'},
+      {arch:'IBM System/360',     pop:'—',       clz:'—',      ctz:'—',      year:'1964'},
+      {arch:'PowerPC/POWER',      pop:'—',       clz:'CNTLZW', ctz:'—',      year:'1990'},
+      {arch:'MIPS32 (Rev.1)',     pop:'—',       clz:'CLZ',    ctz:'CLO',    year:'2001'},
+      {arch:'ARMv5T',             pop:'—',       clz:'CLZ',    ctz:'—',      year:'1998'},
+      {arch:'ARM64 (AArch64)',    pop:'CNT+ADDV',clz:'CLZ',    ctz:'RBIT+CLZ',year:'2011'},
+      {arch:'x86 (SSE4.2)',       pop:'POPCNT',  clz:'LZCNT*', ctz:'BSF',    year:'2008'},
+      {arch:'x86 (BMI1)',         pop:'POPCNT',  clz:'LZCNT',  ctz:'TZCNT',  year:'2013'},
+      {arch:'RISC-V B-ext',       pop:'CPOP',    clz:'CLZ',    ctz:'CTZ',    year:'2021'},
+      {arch:'WebAssembly',        pop:'i32.popcnt',clz:'i32.clz',ctz:'i32.ctz',year:'2019'},
+    ],
+    init() {
+      this.$nextTick(() => {
+        initBg();
+        initProgress();
+        initDotNav();
+        initScrollFade();
+        this.$nextTick(() => {
+          initChartPop();
+          initChartNlz();
+          initChartRadar();
+          initChartPerf();
+        });
+      });
+    }
+  };
+}
+
+/* ══ 子组件 ══ */
+function popcountDemo() {
+  return {
+    hexInput: '0xDEADBEEF',
+    val: 0xDEADBEEF,
+    parseHex() {
+      const v = parseInt(this.hexInput, 16);
+      if (!isNaN(v)) this.val = v >>> 0;
+    },
+    setVal(v) { this.val = v >>> 0; this.hexInput = '0x' + v.toString(16).toUpperCase().padStart(8,'0'); },
+    get bits32() {
+      return Array.from({length:32},(_,i)=>((this.val>>>(31-i))&1));
+    },
+    get popcount() {
+      let x = this.val >>> 0;
+      x = x - ((x >>> 1) & 0x55555555);
+      x = (x & 0x33333333) + ((x >>> 2) & 0x33333333);
+      x = (x + (x >>> 4)) & 0x0F0F0F0F;
+      x = x + (x >>> 8);
+      x = x + (x >>> 16);
+      return x & 0x3F;
+    },
+    get step1Groups() {
+      // 每2位一组，显示该2位中1的个数（2位二进制）
+      const groups = [];
+      for (let i = 0; i < 16; i++) {
+        const hi = (this.val >>> (31 - i*2)) & 1;
+        const lo = (this.val >>> (30 - i*2)) & 1;
+        const cnt = hi + lo;
+        groups.push([cnt >> 1, cnt & 1]);
+      }
+      return groups;
+    },
+    get step2Groups() {
+      // 每4位一组，显示该4位中1的个数（4位二进制）
+      const groups = [];
+      for (let i = 0; i < 8; i++) {
+        const nibble = (this.val >>> (28 - i*4)) & 0xF;
+        const cnt = ((nibble >> 3)&1)+((nibble>>2)&1)+((nibble>>1)&1)+(nibble&1);
+        groups.push([cnt>>3, (cnt>>2)&1, (cnt>>1)&1, cnt&1]);
+      }
+      return groups;
+    },
+    get step3Groups() {
+      // 每8位一组，显示该字节中1的个数（8位二进制）
+      const groups = [];
+      for (let i = 0; i < 4; i++) {
+        const byte_ = (this.val >>> (24 - i*8)) & 0xFF;
+        let cnt = 0;
+        for (let b = 0; b < 8; b++) cnt += (byte_ >> b) & 1;
+        groups.push(Array.from({length:8},(_,j)=>(cnt>>>(7-j))&1));
+      }
+      return groups;
+    }
+  };
+}
+
+function parityDemo() {
+  return {
+    hexIn: '0xDEADBEEF',
+    val32: 0xDEADBEEF >>> 0,
+    parse() {
+      const v = parseInt(this.hexIn, 16);
+      if (!isNaN(v)) this.val32 = v >>> 0;
+    },
+    get parity() {
+      let x = this.val32;
+      x ^= x >>> 16;
+      x ^= x >>> 8;
+      x ^= x >>> 4;
+      x ^= x >>> 2;
+      x ^= x >>> 1;
+      return x & 1;
+    },
+    get steps() {
+      const arr = [];
+      let x = this.val32;
+      arr.push({label:'原始值', val:x, bits:Array.from({length:32},(_,i)=>(x>>>(31-i))&1)});
+      x ^= x >>> 16;
+      arr.push({label:'^ >> 16', val:x>>>0, bits:Array.from({length:32},(_,i)=>((x>>>0)>>>(31-i))&1)});
+      x ^= x >>> 8;
+      arr.push({label:'^ >> 8',  val:x>>>0, bits:Array.from({length:32},(_,i)=>((x>>>0)>>>(31-i))&1)});
+      x ^= x >>> 4;
+      arr.push({label:'^ >> 4',  val:x>>>0, bits:Array.from({length:32},(_,i)=>((x>>>0)>>>(31-i))&1)});
+      x ^= x >>> 2;
+      arr.push({label:'^ >> 2',  val:x>>>0, bits:Array.from({length:32},(_,i)=>((x>>>0)>>>(31-i))&1)});
+      x ^= x >>> 1;
+      arr.push({label:'^ >> 1',  val:x>>>0, bits:Array.from({length:32},(_,i)=>((x>>>0)>>>(31-i))&1)});
+      return arr;
+    }
+  };
+}
+
+function nlzDemo() {
+  return {
+    hexIn: '0x00008000',
+    val32: 0x00008000,
+    parseH() {
+      const v = parseInt(this.hexIn, 16);
+      if (!isNaN(v)) this.val32 = v >>> 0;
+    },
+    setV(v) {
+      this.val32 = v >>> 0;
+      this.hexIn = '0x' + (v >>> 0).toString(16).toUpperCase().padStart(8,'0');
+    },
+    get bits() { return Array.from({length:32},(_,i)=>((this.val32>>>(31-i))&1)); },
+    get nlz() {
+      if (this.val32 === 0) return 32;
+      let n = 0, x = this.val32;
+      if (x <= 0x0000FFFF) { n += 16; x <<= 16; }
+      if (x <= 0x00FFFFFF) { n +=  8; x <<=  8; }
+      if (x <= 0x0FFFFFFF) { n +=  4; x <<=  4; }
+      if (x <= 0x3FFFFFFF) { n +=  2; x <<=  2; }
+      if (x <= 0x7FFFFFFF) { n +=  1; }
+      return n;
+    },
+    get msb() { return this.val32 === 0 ? '—' : 31 - this.nlz; }
+  };
+}
+
+function ntzDemo() {
+  return {
+    hexIn: '0x00000100',
+    val32: 0x00000100,
+    parseH() {
+      const v = parseInt(this.hexIn, 16);
+      if (!isNaN(v)) this.val32 = v >>> 0;
+    },
+    setV(v) {
+      this.val32 = v >>> 0;
+      this.hexIn = '0x' + (v >>> 0).toString(16).toUpperCase().padStart(8,'0');
+    },
+    get bits() { return Array.from({length:32},(_,i)=>((this.val32>>>(31-i))&1)); },
+    get ntz() {
+      if (this.val32 === 0) return 32;
+      // De Bruijn 法
+      const table = [0,1,28,2,29,14,24,3,30,22,20,15,25,17,4,8,
+                     31,27,13,23,21,19,16,7,26,12,18,6,11,5,10,9];
+      const v = this.val32 >>> 0;
+      return table[(((v & -v) >>> 0) * 0x077CB531 >>> 0) >>> 27];
+    },
+    rulerFn(k) {
+      // ntz(k)
+      if (k === 0) return 32;
+      const table = [0,1,28,2,29,14,24,3,30,22,20,15,25,17,4,8,
+                     31,27,13,23,21,19,16,7,26,12,18,6,11,5,10,9];
+      return table[(((k & -k) >>> 0) * 0x077CB531 >>> 0) >>> 27];
+    }
+  };
+}
+
+/* ══════════════════════════════════════
+   ECharts 图表
+══════════════════════════════════════ */
+function initChartPop() {
+  const el = document.getElementById('chart-pop');
+  if (!el || typeof echarts === 'undefined') return;
+  const chart = echarts.init(el, null, {renderer:'canvas'});
+  chart.setOption({
+    backgroundColor: 'transparent',
+    grid: {top:20,bottom:50,left:55,right:20},
+    tooltip: {trigger:'axis', backgroundColor:'#0d1117', borderColor:'#1e293b',
+               textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11}},
+    xAxis: {
+      type: 'category',
+      data: ['朴素循环(平均)','Kernighan','HAKMEM mod63','Warren分治','CSA-8元素','硬件POPCNT'],
+      axisLabel: {color:'#475569', fontFamily:'JetBrains Mono', fontSize:10, rotate:12},
+      axisLine: {lineStyle:{color:'#1e293b'}},
+      splitLine: {show:false}
+    },
+    yAxis: {
+      type:'value', name:'指令数(估算)',
+      nameTextStyle:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10},
+      axisLabel:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:10},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitLine:{lineStyle:{color:'#0f172a'}}
+    },
+    series: [{
+      type:'bar', barWidth:'50%',
+      data: [
+        {value:50, itemStyle:{color:'#ff4466'}},
+        {value:32, itemStyle:{color:'#ff8c00'}},
+        {value:18, itemStyle:{color:'#b14fff'}},
+        {value:21, itemStyle:{color:'#00d4ff'}},
+        {value:13, itemStyle:{color:'#00ff88'}},
+        {value:1,  itemStyle:{color:'#00ff88', opacity:.6}}
+      ],
+      label:{show:true, position:'top', color:'#94a3b8',
+             fontFamily:'JetBrains Mono', fontSize:10,
+             formatter:(p)=>p.value+'条'}
+    }]
+  });
+  window.addEventListener('resize', ()=>chart.resize());
+}
+
+function initChartNlz() {
+  const el = document.getElementById('chart-nlz');
+  if (!el || typeof echarts === 'undefined') return;
+  const chart = echarts.init(el, null, {renderer:'canvas'});
+  chart.setOption({
+    backgroundColor:'transparent',
+    grid:{top:20,bottom:45,left:55,right:20},
+    tooltip:{trigger:'axis',backgroundColor:'#0d1117',borderColor:'#1e293b',
+             textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:11}},
+    xAxis:{
+      type:'category',
+      data:['朴素循环','二分搜索(分支)','二分搜索(无分支)','De Bruijn查表','浮点借用','硬件LZCNT'],
+      axisLabel:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:9,rotate:14},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitLine:{show:false}
+    },
+    yAxis:{
+      type:'value',name:'相对周期数',
+      nameTextStyle:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10},
+      axisLabel:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:10},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitLine:{lineStyle:{color:'#0f172a'}}
+    },
+    series:[{
+      type:'bar', barWidth:'50%',
+      data:[
+        {value:30, itemStyle:{color:'#ff4466'}},
+        {value:8,  itemStyle:{color:'#ff8c00'}},
+        {value:10, itemStyle:{color:'#b14fff'}},
+        {value:6,  itemStyle:{color:'#00d4ff'}},
+        {value:12, itemStyle:{color:'#475569'}},
+        {value:1,  itemStyle:{color:'#00ff88'}}
+      ],
+      label:{show:true,position:'top',color:'#94a3b8',
+             fontFamily:'JetBrains Mono',fontSize:10,
+             formatter:(p)=>p.value+'cy'}
+    }]
+  });
+  window.addEventListener('resize',()=>chart.resize());
+}
+
+function initChartRadar() {
+  const el = document.getElementById('chart-radar');
+  if (!el || typeof echarts === 'undefined') return;
+  const chart = echarts.init(el, null, {renderer:'canvas'});
+  chart.setOption({
+    backgroundColor:'transparent',
+    legend:{
+      data:['§5-1 popcount','§5-2 parity','§5-3 nlz','§5-4 ntz'],
+      textStyle:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:9},
+      bottom:0
+    },
+    radar:{
+      indicator:[
+        {name:'算法精妙度', max:10},
+        {name:'工程实用性', max:10},
+        {name:'历史影响力', max:10},
+        {name:'跨平台性',   max:10},
+        {name:'教学价值',   max:10},
+        {name:'数学深度',   max:10}
+      ],
+      nameGap: 6,
+      name:{textStyle:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:9}},
+      splitLine:{lineStyle:{color:'#1e293b'}},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitArea:{areaStyle:{color:['rgba(0,255,136,.02)','transparent']}}
+    },
+    series:[{
+      type:'radar',
+      data:[
+        {value:[9,9,10,9,9,8], name:'§5-1 popcount',
+         lineStyle:{color:'#00ff88'}, areaStyle:{color:'rgba(0,255,136,.08)'},
+         itemStyle:{color:'#00ff88'}},
+        {value:[7,8,7,9,8,7],  name:'§5-2 parity',
+         lineStyle:{color:'#00d4ff'}, areaStyle:{color:'rgba(0,212,255,.06)'},
+         itemStyle:{color:'#00d4ff'}},
+        {value:[8,9,8,8,9,9],  name:'§5-3 nlz',
+         lineStyle:{color:'#b14fff'}, areaStyle:{color:'rgba(177,79,255,.06)'},
+         itemStyle:{color:'#b14fff'}},
+        {value:[9,8,7,8,8,10], name:'§5-4 ntz',
+         lineStyle:{color:'#ff8c00'}, areaStyle:{color:'rgba(255,140,0,.06)'},
+         itemStyle:{color:'#ff8c00'}}
+      ]
+    }],
+    tooltip:{trigger:'item',backgroundColor:'#0d1117',borderColor:'#1e293b',
+             textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:10}}
+  });
+  window.addEventListener('resize',()=>chart.resize());
+}
+
+function initChartPerf() {
+  const el = document.getElementById('chart-perf');
+  if (!el || typeof echarts === 'undefined') return;
+  const chart = echarts.init(el, null, {renderer:'canvas'});
+  chart.setOption({
+    backgroundColor:'transparent',
+    tooltip:{trigger:'item',backgroundColor:'#0d1117',borderColor:'#1e293b',
+             textStyle:{color:'#94a3b8',fontFamily:'JetBrains Mono',fontSize:10}},
+    grid:{top:20,bottom:55,left:45,right:20},
+    xAxis:{
+      type:'category',
+      data:['POPCNT\n(Skylake)','Warren\n分治21条','CSA-8\n元素/字','HAKMEM\nmod63','Kernighan\n(avg16)','朴素\n循环32步'],
+      axisLabel:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:9,
+                 interval:0, lineHeight:14},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitLine:{show:false}
+    },
+    yAxis:{
+      type:'value', name:'cycles/字(越低越好)',
+      nameTextStyle:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:9},
+      axisLabel:{color:'#475569',fontFamily:'JetBrains Mono',fontSize:9},
+      axisLine:{lineStyle:{color:'#1e293b'}},
+      splitLine:{lineStyle:{color:'#0f172a'}}
+    },
+    series:[{
+      type:'bar', barWidth:'45%',
+      data:[
+        {value:1,    itemStyle:{color:'#00ff88'}},
+        {value:8,    itemStyle:{color:'#00d4ff'}},
+        {value:5,    itemStyle:{color:'#00ff88', opacity:.7}},
+        {value:14,   itemStyle:{color:'#b14fff'}},
+        {value:20,   itemStyle:{color:'#ff8c00'}},
+        {value:50,   itemStyle:{color:'#ff4466'}}
+      ],
+      label:{show:true,position:'top',color:'#94a3b8',
+             fontFamily:'JetBrains Mono',fontSize:9,
+             formatter:(p)=>p.value+'cy'}
+    }]
+  });
+  window.addEventListener('resize',()=>chart.resize());
+}
+
+/* ══════════════════════════════════════
+   背景粒子 Canvas
+══════════════════════════════════════ */
+function initBg() {
+  const canvas = document.getElementById('bg');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, particles = [];
+  const COLORS = ['#00ff8844','#00d4ff33','#b14fff22'];
+  const BITS = '01';
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  for (let i = 0; i < 55; i++) {
+    particles.push({
+      x: Math.random() * 1200,
+      y: Math.random() * 800,
+      vx: (Math.random()-.5)*.22,
+      vy: (Math.random()-.5)*.22,
+      char: BITS[Math.floor(Math.random()*2)],
+      color: COLORS[Math.floor(Math.random()*3)],
+      size: 9 + Math.random()*9,
+      alpha: .12 + Math.random()*.18,
+      blink: Math.random() * Math.PI * 2,
+      blinkSpeed: .008 + Math.random()*.012
+    });
+  }
+
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    const now = Date.now() * .001;
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy;
+      p.blink += p.blinkSpeed;
+      if (p.x < -20) p.x = W + 20;
+      if (p.x > W+20) p.x = -20;
+      if (p.y < -20) p.y = H + 20;
+      if (p.y > H+20) p.y = -20;
+      const alpha = p.alpha * (.6 + .4 * Math.sin(p.blink));
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = p.color.slice(0,7);
+      ctx.font = `${p.size}px "JetBrains Mono", monospace`;
+      ctx.fillText(p.char, p.x, p.y);
+    });
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+/* ══════════════════════════════════════
+   滚动进度条
+══════════════════════════════════════ */
+function initProgress() {
+  const bar = document.getElementById('prog');
+  if (!bar) return;
+  function update() {
+    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+    const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+    bar.style.width = (scrollTop / scrollHeight * 100).toFixed(1) + '%';
+  }
+  window.addEventListener('scroll', update, {passive:true});
+}
+
+/* ══════════════════════════════════════
+   点导航高亮
+══════════════════════════════════════ */
+function initDotNav() {
+  const dots = document.querySelectorAll('.dot');
+  const sections = ['hero','pop','parity','nlz','ntz','history','critique'];
+  function onScroll() {
+    let current = 'hero';
+    sections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= window.innerHeight * .45) current = id;
+    });
+    dots.forEach(d => {
+      d.classList.toggle('active', d.dataset.sec === current);
+    });
+    // 同步左侧导航栏高亮
+    const snItems = document.querySelectorAll('.sn-item');
+    snItems.forEach(item => {
+      item.classList.toggle('active', item.dataset.sec === current);
+    });
+  }
+  window.addEventListener('scroll', onScroll, {passive:true});
+  dots.forEach(d => {
+    d.addEventListener('click', () => {
+      const target = document.getElementById(d.dataset.sec);
+      if (target) target.scrollIntoView({behavior:'smooth'});
+    });
+  });
+  // 左侧导航栏点击事件
+  const snItems = document.querySelectorAll('.sn-item');
+  snItems.forEach(item => {
+    item.addEventListener('click', () => {
+      const target = document.getElementById(item.dataset.sec);
+      if (target) target.scrollIntoView({behavior:'smooth'});
+    });
+  });
+}
+
+/* ══════════════════════════════════════
+   滚动淡入
+══════════════════════════════════════ */
+function initScrollFade() {
+  const els = document.querySelectorAll('.card, .insight, .warn-box, .critic-box');
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.style.opacity = '1';
+        e.target.style.transform = 'translateY(0)';
+        obs.unobserve(e.target);
+      }
+    });
+  }, {threshold: 0.08});
+  els.forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(16px)';
+    el.style.transition = 'opacity .45s ease, transform .45s ease';
+    obs.observe(el);
+  });
+}
+</script>
 </body>
 </html>
