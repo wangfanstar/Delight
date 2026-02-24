@@ -1,0 +1,558 @@
+ 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hacker's Delight — 位运算黑客的喜悦</title>
+  <link rel="stylesheet" href="tailwind.css" />
+  <script src="alpine.min.js" defer></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;600;700;900&display=swap');
+
+    :root {
+      --neon-green: #00ff88;
+      --neon-blue: #00d4ff;
+      --neon-purple: #b14fff;
+      --dark-bg: #050810;
+      --card-bg: #0d1117;
+      --border-glow: rgba(0, 255, 136, 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark-bg);
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* === 粒子背景 === */
+    #canvas-bg {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content { position: relative; z-index: 1; }
+
+    /* === 扫描线 === */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,255,136,0.015) 2px,
+        rgba(0,255,136,0.015) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* === HERO === */
+    .hero {
+      text-align: center;
+      padding: 5rem 2rem 3rem;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--neon-green);
+      border: 1px solid var(--neon-green);
+      padding: 0.3rem 1rem;
+      border-radius: 999px;
+      margin-bottom: 1.5rem;
+      letter-spacing: 0.15em;
+      animation: pulse-badge 2s infinite;
+    }
+
+    @keyframes pulse-badge {
+      0%, 100% { box-shadow: 0 0 8px rgba(0,255,136,0.4); }
+      50%       { box-shadow: 0 0 20px rgba(0,255,136,0.8); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 900;
+      background: linear-gradient(135deg, #fff 0%, var(--neon-green) 50%, var(--neon-blue) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero-subtitle {
+      font-family: 'JetBrains Mono', monospace;
+      color: #64748b;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    /* === 统计栏 === */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-bottom: 4rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-size: 2.2rem;
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--neon-green);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: #64748b;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    /* === 网格 === */
+    .chapters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 0 1.5rem 5rem;
+    }
+
+    /* === 卡片 === */
+    .chapter-card {
+      background: var(--card-bg);
+      border: 1px solid #1e293b;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      cursor: pointer;
+      transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chapter-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 3px; height: 100%;
+      background: linear-gradient(180deg, var(--neon-green), var(--neon-blue));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .chapter-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(0,255,136,0.4);
+      box-shadow: 0 8px 32px rgba(0,255,136,0.12), 0 0 0 1px rgba(0,255,136,0.1);
+    }
+
+    .chapter-card:hover::before { opacity: 1; }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.875rem;
+    }
+
+    .card-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--neon-green);
+      line-height: 1;
+      min-width: 2.5rem;
+    }
+
+    .card-num.appendix {
+      color: var(--neon-purple);
+      font-size: 1.1rem;
+    }
+
+    .card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.4;
+    }
+
+    .card-desc {
+      font-size: 0.82rem;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .card-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      background: rgba(0,255,136,0.08);
+      color: var(--neon-green);
+      border: 1px solid rgba(0,255,136,0.2);
+    }
+
+    .card-tag.blue  { background: rgba(0,212,255,0.08); color: var(--neon-blue); border-color: rgba(0,212,255,0.2); }
+    .card-tag.purple{ background: rgba(177,79,255,0.08); color: var(--neon-purple); border-color: rgba(177,79,255,0.2); }
+
+    .card-arrow {
+      position: absolute;
+      bottom: 1.25rem;
+      right: 1.25rem;
+      color: #334155;
+      font-size: 1rem;
+      transition: transform 0.25s, color 0.25s;
+    }
+
+    .chapter-card:hover .card-arrow {
+      transform: translateX(4px);
+      color: var(--neon-green);
+    }
+
+    /* === 空状态 === */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #334155;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      grid-column: 1 / -1;
+    }
+
+    /* === 底部 === */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      color: #1e293b;
+      border-top: 1px solid #0f172a;
+    }
+
+    /* === 滚动条 === */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark-bg); }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0,255,136,0.3); }
+
+    /* === 进度条 === */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--neon-green), var(--neon-blue));
+      z-index: 999;
+      transition: width 0.1s;
+    }
+
+    /* 入场动画 */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .chapter-card { animation: fadeInUp 0.4s ease both; }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas-bg"></canvas>
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="content" x-data="app()" x-init="init()">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-badge">📖 HACKER'S DELIGHT · 2ND EDITION · Henry S. Warren, Jr.</div>
+    <h1 class="hero-title">位运算黑客的喜悦</h1>
+    <p class="hero-subtitle">// Bit Manipulation · Integer Arithmetic · Low-Level Algorithms</p>
+
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-num">18</div>
+        <div class="stat-label">章节</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">3</div>
+        <div class="stat-label">附录</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">494</div>
+        <div class="stat-label">页</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">Tricks</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 章节网格 -->
+  <div class="chapters-grid">
+    <template x-for="(ch, i) in chapters" :key="ch.id">
+      <a
+        :href="ch.file"
+        class="chapter-card"
+        :style="`animation-delay: ${i * 0.04}s`"
+      >
+        <div class="card-header">
+          <div class="card-num" :class="ch.isAppendix ? 'appendix' : ''" x-text="ch.num"></div>
+          <div class="card-title" x-text="ch.title"></div>
+        </div>
+        <p class="card-desc" x-text="ch.desc"></p>
+        <div class="card-tags">
+          <template x-for="tag in ch.tags" :key="tag.label">
+            <span class="card-tag" :class="tag.color" x-text="tag.label"></span>
+          </template>
+        </div>
+        <span class="card-arrow">→</span>
+      </a>
+    </template>
+  </div>
+
+  <footer>
+    <p>Hacker's Delight, 2nd Ed. · Henry S. Warren, Jr. · Addison-Wesley, 2013</p>
+    <p style="margin-top:0.5rem;">Interactive HTML Edition · Built with Alpine.js + ECharts + Tailwind CSS</p>
+  </footer>
+</div>
+
+<script>
+function app() {
+  return {
+    chapters: [
+      {
+        id: 1, num: '01', file: 'ch01.html', isAppendix: false,
+        category: '基础位运算',
+        title: '奠定基础 — Laying the Groundwork',
+        desc: '计算机整数表示基础，二进制/十六进制，RISC指令集介绍，C语言运算符速查，本书约定的计算机代数记法。',
+        tags: [{ label: 'notation', color: '' }, { label: 'RISC ISA', color: 'blue' }, { label: '数制', color: '' }]
+      },
+      {
+        id: 2, num: '02', file: 'ch02.html', isAppendix: false,
+        category: '基础位运算',
+        title: '基础技巧 — Basics',
+        desc: '整数基本运算的位操作妙技：符号判断、绝对值、最小/最大值、符号扩展、比较、条件移动、溢出检测、Horner规则等。',
+        tags: [{ label: 'abs/min/max', color: '' }, { label: '溢出检测', color: 'blue' }, { label: 'branch-free', color: 'purple' }]
+      },
+      {
+        id: 3, num: '03', file: 'ch03.html', isAppendix: false,
+        category: '基础位运算',
+        title: '2的幂边界 — Power-of-2 Boundaries',
+        desc: '向上/向下取整到2的幂、判断是否为2的幂、在2的幂范围内的运算。高性能内存分配器的基石。',
+        tags: [{ label: 'pow2', color: '' }, { label: '取整', color: 'blue' }, { label: '内存对齐', color: '' }]
+      },
+      {
+        id: 4, num: '04', file: 'ch04.html', isAppendix: false,
+        category: '基础位运算',
+        title: '算术边界传播 — Arithmetic Bounds',
+        desc: '在已知操作数范围情况下估算运算结果的范围，用于编译器优化，减少溢出检测开销。',
+        tags: [{ label: '值域分析', color: '' }, { label: '编译器优化', color: 'purple' }, { label: '区间算术', color: 'blue' }]
+      },
+      {
+        id: 5, num: '05', file: 'ch05.html', isAppendix: false,
+        category: '基础位运算',
+        title: '计数位 — Counting Bits',
+        desc: 'Population count（popcount）、奇偶校验、前导/尾随零计数。现代CPU POPCNT指令的软件前身，密码学与信息论核心。',
+        tags: [{ label: 'popcount', color: '' }, { label: 'nlz / ntz', color: 'blue' }, { label: '奇偶校验', color: '' }]
+      },
+      {
+        id: 6, num: '06', file: 'ch06.html', isAppendix: false,
+        category: '基础位运算',
+        title: '字内搜索 — Searching Words',
+        desc: '快速定位字（word）中的零字节、连续1串、最长/最短1串。字符串处理加速、SIMD前身技术。',
+        tags: [{ label: '零字节查找', color: '' }, { label: '位模式匹配', color: 'purple' }, { label: 'SWAR', color: 'blue' }]
+      },
+      {
+        id: 7, num: '07', file: 'ch07.html', isAppendix: false,
+        category: '基础位运算',
+        title: '比特与字节重排 — Rearranging Bits & Bytes',
+        desc: '位/字节逆序、完美洗牌、位矩阵转置、压缩/扩展（Compress/Expand）、羊与山羊（SAG）、LRU算法。',
+        tags: [{ label: 'bit-shuffle', color: '' }, { label: 'compress/expand', color: 'blue' }, { label: 'SAG', color: 'purple' }]
+      },
+      {
+        id: 8, num: '08', file: 'ch08.html', isAppendix: false,
+        category: '整数运算',
+        title: '乘法 — Multiplication',
+        desc: '多字乘法、64位乘积高半部分、有符号与无符号高位乘、常数乘法优化（移位加法序列）。',
+        tags: [{ label: '多字乘法', color: '' }, { label: '高位乘积', color: 'blue' }, { label: '常数乘法', color: 'purple' }]
+      },
+      {
+        id: 9, num: '09', file: 'ch09.html', isAppendix: false,
+        category: '整数运算',
+        title: '整数除法 — Integer Division',
+        desc: '多字除法、从有符号除法实现无符号短除、无符号长除法、双字除法。除法是整数运算最慢的操作。',
+        tags: [{ label: '多字除法', color: '' }, { label: '符号处理', color: 'blue' }, { label: 'long division', color: '' }]
+      },
+      {
+        id: 10, num: '10', file: 'ch10.html', isAppendix: false,
+        category: '整数运算',
+        title: '常数整数除法 — Division by Constants',
+        desc: '用乘以魔法数+移位替代除法指令，编译器优化核心技术。涵盖有符号、无符号、精确除法、余数计算。',
+        tags: [{ label: '魔法数', color: '' }, { label: '编译器', color: 'purple' }, { label: 'multiply-shift', color: 'blue' }]
+      },
+      {
+        id: 11, num: '11', file: 'ch11.html', isAppendix: false,
+        category: '高级算法',
+        title: '初等函数 — Elementary Functions',
+        desc: '整数平方根、立方根、整数幂运算、整数对数（log₂, log₁₀）的高效位操作实现。',
+        tags: [{ label: '整数sqrt', color: '' }, { label: 'integer log', color: 'blue' }, { label: '牛顿迭代', color: 'purple' }]
+      },
+      {
+        id: 12, num: '12', file: 'ch12.html', isAppendix: false,
+        category: '数学应用',
+        title: '非常规数制 — Unusual Number Bases',
+        desc: '负进制（Base -2）、虚进制（Base -1+i）的运算规则与转换。计算理论奇境，理解进制本质。',
+        tags: [{ label: 'negabinary', color: '' }, { label: '复数进制', color: 'purple' }, { label: '数论', color: 'blue' }]
+      },
+      {
+        id: 13, num: '13', file: 'ch13.html', isAppendix: false,
+        category: '高级算法',
+        title: '格雷码 — Gray Code',
+        desc: '反射二进制格雷码的生成、递增、转换算法，单轨格雷码，应用于旋转编码器与汉明路径。',
+        tags: [{ label: 'Gray code', color: '' }, { label: '位翻转', color: 'blue' }, { label: '旋转编码器', color: '' }]
+      },
+      {
+        id: 14, num: '14', file: 'ch14.html', isAppendix: false,
+        category: '高级算法',
+        title: '循环冗余校验 — CRC',
+        desc: 'CRC理论基础（多项式除法）、生成多项式、高效软件实现。数据完整性校验的核心技术。',
+        tags: [{ label: 'CRC-32', color: '' }, { label: '多项式', color: 'blue' }, { label: '数据完整性', color: 'purple' }]
+      },
+      {
+        id: 15, num: '15', file: 'ch15.html', isAppendix: false,
+        category: '高级算法',
+        title: '纠错码 — Error-Correcting Codes',
+        desc: 'Hamming码、SEC-DED（单比特纠错双比特检测）的32位软件实现，编码理论综述。',
+        tags: [{ label: 'Hamming', color: '' }, { label: 'SEC-DED', color: 'blue' }, { label: 'ECC', color: 'purple' }]
+      },
+      {
+        id: 16, num: '16', file: 'ch16.html', isAppendix: false,
+        category: '数学应用',
+        title: 'Hilbert曲线 — Hilbert\'s Curve',
+        desc: '空间填充曲线的递归/非递归生成、坐标与距离互转。图像处理、GIS索引、处理器分配的秘密武器。',
+        tags: [{ label: '空间填充', color: '' }, { label: 'Z-order', color: 'blue' }, { label: '局部性', color: 'purple' }]
+      },
+      {
+        id: 17, num: '17', file: 'ch17.html', isAppendix: false,
+        category: '数学应用',
+        title: '浮点数 — Floating-Point',
+        desc: 'IEEE 754格式解析、浮点/整数转换、用整数操作比较浮点数、近似倒数平方根（Quake算法）。',
+        tags: [{ label: 'IEEE 754', color: '' }, { label: '快速InvSqrt', color: 'purple' }, { label: '浮点比较', color: 'blue' }]
+      },
+      {
+        id: 18, num: '18', file: 'ch18.html', isAppendix: false,
+        category: '数学应用',
+        title: '质数公式 — Formulas for Primes',
+        desc: 'Willans公式、Wormell公式等纯数学构造的质数生成公式。数论奇技，兼论其他难以函数化的函数。',
+        tags: [{ label: '质数', color: '' }, { label: 'Willans', color: 'blue' }, { label: '数学公式', color: 'purple' }]
+      },
+      {
+        id: 19, num: 'A', file: 'appA.html', isAppendix: true,
+        category: '附录',
+        title: '附录A — 4位机算术表',
+        desc: '4位机的加减乘除（有符号/无符号）完整真值表，帮助直观理解溢出、余数与补码行为。',
+        tags: [{ label: '真值表', color: 'purple' }, { label: '4-bit', color: '' }, { label: '补码', color: 'blue' }]
+      },
+      {
+        id: 20, num: 'B', file: 'appB.html', isAppendix: true,
+        category: '附录',
+        title: '附录B — 牛顿迭代法',
+        desc: '整数函数求逆（平方根、除法等）的牛顿迭代数学基础，收敛性分析与精度估计。',
+        tags: [{ label: "Newton's Method", color: 'purple' }, { label: '收敛分析', color: 'blue' }, { label: '数值方法', color: '' }]
+      },
+      {
+        id: 21, num: 'C', file: 'appC.html', isAppendix: true,
+        category: '附录',
+        title: '附录C — 离散函数图谱',
+        desc: '逻辑运算、加减乘除、压缩、Rotate、Popcount、位逆序、洗牌等函数的3D可视化图像画廊。',
+        tags: [{ label: '3D图像', color: 'purple' }, { label: '离散数学', color: 'blue' }, { label: 'Sierpinski', color: '' }]
+      }
+    ],
+
+
+    init() {
+      this.initCanvas();
+      this.initProgress();
+    },
+
+    initProgress() {
+      window.addEventListener('scroll', () => {
+        const scrollTop = document.documentElement.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const p = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
+        document.getElementById('progressBar').style.width = p + '%';
+      });
+    },
+
+    initCanvas() {
+      const canvas = document.getElementById('canvas-bg');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [];
+
+      const resize = () => {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      const CHARS = '01010110100111010001';
+      for (let i = 0; i < 60; i++) {
+        particles.push({
+          x: Math.random() * 1920,
+          y: Math.random() * 1080,
+          vy: 0.3 + Math.random() * 0.7,
+          char: CHARS[Math.floor(Math.random() * CHARS.length)],
+          alpha: 0.05 + Math.random() * 0.2,
+          size: 10 + Math.random() * 8
+        });
+      }
+
+      const draw = () => {
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = '12px JetBrains Mono, monospace';
+        particles.forEach(p => {
+          ctx.fillStyle = `rgba(0, 255, 136, ${p.alpha})`;
+          ctx.font = `${p.size}px monospace`;
+          ctx.fillText(p.char, p.x % W, p.y % H);
+          p.y += p.vy;
+          if (p.y > H) { p.y = -20; p.x = Math.random() * W; }
+          if (Math.random() < 0.02) p.char = CHARS[Math.floor(Math.random() * CHARS.length)];
+        });
+        requestAnimationFrame(draw);
+      };
+      draw();
+    }
+  };
+}
+</script>
+</body>
+</html>

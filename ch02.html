@@ -1,0 +1,1534 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ch.02 — 基础技巧 Basics | Hacker's Delight</title>
+<link rel="stylesheet" href="tailwind.css"/>
+<script src="echarts.min.js"></script>
+<script src="alpine.min.js" defer></script>
+<style>
+:root{
+  --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
+  --dark:#050810;--card:#0d1117;--border:rgba(0,255,136,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;font-size:17px;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:0;}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#app{position:relative;z-index:1;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);text-decoration:none;}
+.nav-links{display:flex;gap:1.5rem;}
+.nav-links a{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--g);}
+
+/* PROGRESS */
+#prog{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,var(--g),var(--b));transition:width .1s;}
+
+/* DOT NAV */
+.dot-nav{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.6rem;}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--g);transform:scale(1.4);}
+@media(max-width:768px){.dot-nav{display:none;}}
+
+/* HERO */
+.hero{padding:7rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
+.chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);border:1px solid var(--g);padding:.3rem 1rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 6px rgba(0,255,136,.4);}50%{box-shadow:0 0 20px rgba(0,255,136,.8);}}
+.hero-title{font-size:clamp(2rem,5vw,3.6rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,var(--g) 55%,var(--b) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:.5rem;}
+.hero-sub{font-family:'JetBrains Mono',monospace;color:#475569;font-size:.9rem;margin-bottom:2rem;}
+.hero-desc{color:#94a3b8;font-size:1rem;line-height:1.85;max-width:720px;margin:0 auto 2rem;}
+
+/* SECTION */
+section{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;}
+.sec-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);padding:.25rem .6rem;border-radius:4px;white-space:nowrap;}
+.sec-title{font-size:1.35rem;font-weight:700;color:#f1f5f9;}
+.sec-divider{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,255,136,.3),transparent);}
+
+/* CARD */
+.card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.5rem;transition:border-color .25s,box-shadow .25s;}
+.card:hover{border-color:rgba(0,255,136,.25);box-shadow:0 4px 24px rgba(0,255,136,.07);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+@media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* CODE */
+.code-block{background:#010409;border:1px solid #1e293b;border-radius:.5rem;padding:1.2rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;line-height:1.8;overflow-x:auto;color:#94a3b8;position:relative;white-space:pre-wrap;}
+.code-block .kw{color:var(--p);}
+.code-block .num{color:var(--o);}
+.code-block .cm{color:#334155;font-style:italic;}
+.code-block .fn{color:var(--g);}
+.code-block .str{color:var(--b);}
+.code-block .hi{color:#fff;background:rgba(0,255,136,.1);border-radius:2px;padding:0 2px;}
+.copy-btn{position:absolute;top:.6rem;right:.6rem;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#334155;border:1px solid #1e293b;background:transparent;padding:.2rem .5rem;border-radius:3px;cursor:pointer;transition:all .2s;}
+.copy-btn:hover{color:var(--g);border-color:rgba(0,255,136,.3);}
+
+/* INSIGHT */
+.insight{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-left:3px solid var(--g);border-radius:.5rem;padding:1.2rem 1.5rem;margin-bottom:1.25rem;font-size:.9rem;line-height:1.8;color:#94a3b8;}
+.insight strong{color:var(--g);}
+.insight .label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--g);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+
+/* TRICK CARD */
+.trick-card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.25rem;cursor:default;transition:all .25s;position:relative;overflow:hidden;}
+.trick-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:0;transition:opacity .25s;}
+.trick-card:hover::before{opacity:1;}
+.trick-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,255,136,.1);}
+.trick-card.green::before{background:linear-gradient(180deg,var(--g),var(--b));}
+.trick-card.blue::before{background:linear-gradient(180deg,var(--b),var(--p));}
+.trick-card.orange::before{background:linear-gradient(180deg,var(--o),var(--r));}
+.trick-card.purple::before{background:linear-gradient(180deg,var(--p),var(--g));}
+.trick-num{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;margin-bottom:.4rem;}
+.trick-title{font-size:.95rem;font-weight:700;color:#f1f5f9;margin-bottom:.5rem;}
+.trick-formula{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--g);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.12);border-radius:.3rem;padding:.4rem .75rem;margin:.5rem 0;display:inline-block;}
+.trick-desc{font-size:.82rem;color:#64748b;line-height:1.7;}
+.trick-example{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#475569;margin-top:.5rem;padding:.4rem .6rem;background:#010409;border-radius:.3rem;}
+
+/* INTERACTIVE BIT */
+.bit-row{display:flex;gap:2px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;}
+.bit-cell{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:3px;border:1px solid #1e293b;cursor:pointer;transition:all .15s;font-size:.8rem;user-select:none;}
+.bit-cell.one{background:rgba(0,255,136,.15);color:var(--g);border-color:rgba(0,255,136,.3);}
+.bit-cell.zero{background:#0d1117;color:#334155;}
+.bit-cell:hover{border-color:var(--g);transform:scale(1.1);}
+.bit-result-row{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px;}
+.bit-result-cell{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:.8rem;font-family:'JetBrains Mono',monospace;}
+
+/* CHART */
+.chart-wrap{width:100%;height:300px;}
+
+/* TAGS */
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:.2rem .5rem;border-radius:3px;margin:.15rem;}
+.tag-g{background:rgba(0,255,136,.1);color:var(--g);border:1px solid rgba(0,255,136,.2);}
+.tag-b{background:rgba(0,212,255,.1);color:var(--b);border:1px solid rgba(0,212,255,.2);}
+.tag-p{background:rgba(177,79,255,.1);color:var(--p);border:1px solid rgba(177,79,255,.2);}
+.tag-o{background:rgba(255,140,0,.1);color:var(--o);border:1px solid rgba(255,140,0,.2);}
+.tag-r{background:rgba(255,68,102,.1);color:var(--r);border:1px solid rgba(255,68,102,.2);}
+
+/* TABS */
+.tab-nav{display:flex;gap:.4rem;margin-bottom:1rem;flex-wrap:wrap;}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.7rem;padding:.35rem .85rem;border-radius:4px;border:1px solid #1e293b;background:transparent;color:#475569;cursor:pointer;transition:all .2s;}
+.tab-btn.active,.tab-btn:hover{border-color:var(--g);color:var(--g);background:rgba(0,255,136,.08);}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:2rem;}
+.timeline::before{content:'';position:absolute;left:.5rem;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--g),var(--p),transparent);}
+.tl-item{position:relative;margin-bottom:2rem;}
+.tl-dot{position:absolute;left:-1.6rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);}
+.tl-year{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);margin-bottom:.2rem;}
+.tl-title{font-size:.95rem;font-weight:600;color:#f1f5f9;margin-bottom:.3rem;}
+.tl-desc{font-size:.83rem;color:#64748b;line-height:1.65;}
+
+/* CRITIC */
+.critic-box{background:linear-gradient(135deg,rgba(177,79,255,.06),rgba(0,212,255,.04));border:1px solid rgba(177,79,255,.25);border-radius:.75rem;padding:1.75rem;position:relative;overflow:hidden;}
+.critic-box::before{content:'🧐 深度点评';font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--p);letter-spacing:.1em;display:block;margin-bottom:1rem;}
+.critic-box h3{font-size:1.05rem;font-weight:700;color:#f1f5f9;margin-bottom:.75rem;}
+.critic-item{margin-bottom:1.1rem;padding-left:1rem;border-left:2px solid rgba(177,79,255,.3);}
+.critic-item .ci-title{font-size:.83rem;font-weight:600;color:var(--p);margin-bottom:.3rem;}
+.critic-item p{font-size:.82rem;line-height:1.72;color:#64748b;}
+
+/* WARN */
+.warn-box{background:rgba(255,68,102,.04);border:1px solid rgba(255,68,102,.2);border-left:3px solid var(--r);border-radius:.5rem;padding:1.1rem 1.4rem;font-size:.85rem;line-height:1.75;color:#94a3b8;}
+.warn-box .label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--r);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+.warn-box strong{color:var(--r);}
+
+/* ANIM */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp .5s ease both;}
+
+/* FOOTER */
+footer{text-align:center;padding:2.5rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#1e293b;border-top:1px solid #0f172a;}
+footer a{color:var(--g);text-decoration:none;}
+
+/* GOSPER ANIM */
+.gosper-step{font-family:'JetBrains Mono',monospace;font-size:.85rem;padding:.5rem;border-radius:.3rem;transition:background .3s;}
+.gosper-step.active{background:rgba(0,255,136,.12);color:var(--g);}
+
+/* MUX VIZ */
+.mux-row{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin:.3rem 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+.mux-label{color:#475569;font-size:.72rem;min-width:60px;}
+.mux-val{color:var(--g);}
+.mux-val.blue{color:var(--b);}
+.mux-val.orange{color:var(--o);}
+.mux-val.red{color:var(--r);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,255,136,.3);}
+
+/* ═══ 左侧章节导航栏 ═══ */
+.sidebar-nav{
+  position:fixed;left:0;top:0;bottom:0;
+  width:180px;z-index:90;
+  background:rgba(5,8,16,.92);
+  backdrop-filter:blur(10px);
+  border-right:1px solid rgba(0,255,136,.12);
+  padding:1rem .5rem;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:transform .25s ease;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar-nav::-webkit-scrollbar{width:3px;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+
+.sidebar-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;color:var(--g);
+  letter-spacing:.08em;
+  padding:.4rem .6rem;
+  border-bottom:1px solid rgba(0,255,136,.15);
+  margin-bottom:.5rem;
+  flex-shrink:0;
+}
+
+.sidebar-section{
+  margin-bottom:.6rem;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar-section-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.58rem;color:#475569;
+  padding:.3rem .6rem;
+  letter-spacing:.05em;
+  flex-shrink:0;
+}
+
+.sidebar-link{
+  display:block;
+  width:100%;
+  clear:both;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;
+  color:#64748b;
+  text-decoration:none;
+  padding:.25rem .6rem .25rem 1rem;
+  border-radius:3px;
+  transition:all .15s;
+  position:relative;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sidebar-link:hover{color:var(--g);background:rgba(0,255,136,.06);}
+.sidebar-link.active{color:var(--g);background:rgba(0,255,136,.1);}
+.sidebar-link.active::before{
+  content:'';position:absolute;left:0;top:50%;
+  transform:translateY(-50%);
+  width:2px;height:14px;
+  background:var(--g);border-radius:1px;
+}
+
+.sidebar-toggle{
+  display:none;
+  position:fixed;left:.5rem;top:.85rem;z-index:95;
+  width:32px;height:32px;
+  background:rgba(5,8,16,.9);
+  border:1px solid rgba(0,255,136,.2);
+  border-radius:4px;
+  color:var(--g);
+  font-size:1.1rem;
+  cursor:pointer;
+}
+
+@media(max-width:1100px){
+  .sidebar-nav{transform:translateX(-100%);}
+  .sidebar-nav.open{transform:translateX(0);}
+  .sidebar-toggle{display:flex;align-items:center;justify-content:center;}
+  body{padding-left:0!important;}
+}
+
+@media(min-width:1101px){body{padding-left:180px;}}
+</style>
+</head>
+<body>
+
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
+  ☰
+</button>
+<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link active">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link">Ch.05 整数除法</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 位计数</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校验</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
+<canvas id="bg"></canvas>
+<div id="prog"></div>
+
+<div class="dot-nav" id="dotNav">
+  <div class="dot active" data-sec="hero"    title="顶部"></div>
+  <div class="dot"        data-sec="rightmost" title="最右位操作"></div>
+  <div class="dot"        data-sec="addsub"  title="加减关系"></div>
+  <div class="dot"        data-sec="abs"     title="绝对值/比较"></div>
+  <div class="dot"        data-sec="special" title="特殊技巧"></div>
+  <div class="dot"        data-sec="gosper"  title="Gosper算法"></div>
+  <div class="dot"        data-sec="history" title="历史点评"></div>
+  <div class="dot"        data-sec="critique" title="深度分析"></div>
+</div>
+
+<nav>
+  <a class="nav-logo" href="index.html">← HACKER'S DELIGHT</a>
+  <div class="nav-links">
+    <a href="#rightmost">最右位</a>
+    <a href="#addsub">加减</a>
+    <a href="#abs">绝对值</a>
+    <a href="#special">特殊</a>
+    <a href="#gosper">Gosper</a>
+    <a href="#history">历史</a>
+    <a href="#critique">点评</a>
+  </div>
+</nav>
+
+<div id="app" x-data="app()" x-init="init()">
+
+<!-- ═══ HERO ═══ -->
+<div class="hero" id="hero">
+  <div class="chapter-badge">CHAPTER 02 · BASICS · 基础技巧</div>
+  <h1 class="hero-title fade-up" style="animation-delay:.1s">基础技巧</h1>
+  <p class="hero-sub fade-up" style="animation-delay:.2s">// Basics — 位操作魔法箱里最常用的二十把钥匙</p>
+  <p class="hero-desc fade-up" style="animation-delay:.3s">
+    这一章是整本书的<strong style="color:var(--g)">核武器库</strong>。Warren 把几十年在 IBM 积累的位运算绝技整整齐齐码在这里：
+    最右位操纵、加减法恒等式、无分支绝对值、整数平均、符号比较、MUX 操作、位域传播……
+    每一个技巧背后都是一个思维方式的升华。看完之后你会发现，
+    过去写的很多"聪明代码"其实还差着好几个数量级。
+  </p>
+  <div class="fade-up" style="animation-delay:.4s">
+    <span class="tag tag-g">rightmost-bit</span>
+    <span class="tag tag-b">branch-free</span>
+    <span class="tag tag-p">abs/min/max</span>
+    <span class="tag tag-o">MUX</span>
+    <span class="tag tag-r">overflow-safe</span>
+    <span class="tag tag-g">Gosper's trick</span>
+    <span class="tag tag-b">Dietz average</span>
+  </div>
+</div>
+
+<!-- ═══ §2-1 最右位操纵 ═══ -->
+<section id="rightmost">
+  <div class="sec-header">
+    <span class="sec-num">§2-1</span>
+    <span class="sec-title">最右位操纵 — Manipulating Rightmost Bits</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// CORE INSIGHT</span>
+    补码的神奇性质：<strong>x - 1</strong> 会把最低位的1清零并把其右边所有0变成1；
+    <strong>x + 1</strong> 会把最低位的0置1并把其右边所有1变成0。
+    利用这两个"级联翻转"性质，可以在不用条件跳转的情况下精确操纵任意一位。
+    这是整个第二章所有技巧的物理基础。
+  </div>
+
+  <!-- 交互演示 -->
+  <div class="card" style="margin-bottom:1.25rem;" x-data="rightmostDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:1rem;">
+      🔬 交互演示 — 点击比特位，观察各公式结果实时变化
+    </div>
+    <div style="margin-bottom:.75rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;margin-bottom:.3rem;">输入 x（点击翻转）:</div>
+      <div class="bit-row">
+        <template x-for="(b,i) in bits" :key="i">
+          <div class="bit-cell" :class="b?'one':'zero'" @click="toggle(i)" x-text="b"></div>
+        </template>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem 1rem;margin-top:.5rem;">
+      <template x-for="r in results" :key="r.name">
+        <div style="padding:.5rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--o);margin-bottom:.2rem;" x-text="r.name"></div>
+          <div class="bit-result-row">
+            <template x-for="(b,j) in r.bits" :key="j">
+              <div class="bit-result-cell" :style="{background: b ? 'rgba(0,255,136,.12)' : 'rgba(0,0,0,.3)', color: b ? 'var(--g)' : '#1e293b', border: '1px solid ' + (b?'rgba(0,255,136,.25)':'#1e293b')}" x-text="b"></div>
+            </template>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#334155;margin-top:.3rem;" x-text="r.desc"></div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 公式网格 -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1.25rem;">
+
+    <div class="trick-card green">
+      <div class="trick-num">TRICK 01</div>
+      <div class="trick-title">清除最右边的1</div>
+      <div class="trick-formula">x &amp; (x - 1)</div>
+      <div class="trick-desc">将最低位的1变为0，其余不变。结果为0则x是2的幂（或0）。</div>
+      <div class="trick-example">01011000 → 01010000</div>
+    </div>
+
+    <div class="trick-card blue">
+      <div class="trick-num">TRICK 02</div>
+      <div class="trick-title">置位最右边的0</div>
+      <div class="trick-formula">x | (x + 1)</div>
+      <div class="trick-desc">将最低位的0变为1，其余不变。全1时产生全1（无变化）。</div>
+      <div class="trick-example">10100111 → 10101111</div>
+    </div>
+
+    <div class="trick-card orange">
+      <div class="trick-num">TRICK 03</div>
+      <div class="trick-title">清除尾部连续的1</div>
+      <div class="trick-formula">x &amp; (x + 1)</div>
+      <div class="trick-desc">将末尾连续的1全部清零。用于检测x是否为2ⁿ−1形式。</div>
+      <div class="trick-example">10100111 → 10100000</div>
+    </div>
+
+    <div class="trick-card purple">
+      <div class="trick-num">TRICK 04</div>
+      <div class="trick-title">置位尾部连续的0</div>
+      <div class="trick-formula">x | (x - 1)</div>
+      <div class="trick-desc">将末尾连续的0全部置1，形成"尾巴"填充效果。</div>
+      <div class="trick-example">10101000 → 10101111</div>
+    </div>
+
+    <div class="trick-card green">
+      <div class="trick-num">TRICK 05</div>
+      <div class="trick-title">提取最右边的0位掩码</div>
+      <div class="trick-formula">~x &amp; (x + 1)</div>
+      <div class="trick-desc">在最低位0处产生单个1，其余为0。全1时结果为0。</div>
+      <div class="trick-example">10100111 → 00001000</div>
+    </div>
+
+    <div class="trick-card blue">
+      <div class="trick-num">TRICK 06</div>
+      <div class="trick-title">提取最右边的1位掩码</div>
+      <div class="trick-formula">x &amp; (-x)</div>
+      <div class="trick-desc">只保留最低位的1，其余清零。等价于 x &amp; (~x+1)。</div>
+      <div class="trick-example">01011000 → 00001000</div>
+    </div>
+
+    <div class="trick-card orange">
+      <div class="trick-num">TRICK 07</div>
+      <div class="trick-title">尾部0的连续掩码</div>
+      <div class="trick-formula">~x &amp; (x - 1)</div>
+      <div class="trick-desc">在所有尾部0的位置产生1，其余为0。也可用 (x&amp;-x)-1。</div>
+      <div class="trick-example">01011000 → 00000111</div>
+    </div>
+
+    <div class="trick-card purple">
+      <div class="trick-num">TRICK 08</div>
+      <div class="trick-title">尾部1的传播（右对齐）</div>
+      <div class="trick-formula">x | (x - 1)</div>
+      <div class="trick-desc">右对齐最低群组的1串，用于子集枚举、内存对齐等。</div>
+      <div class="trick-example">00101100 → 00101111</div>
+    </div>
+
+  </div>
+
+  <!-- 代码实现 -->
+  <div class="card">
+    <div class="tab-nav">
+      <button class="tab-btn active" @click="tab1='c'">C 实现</button>
+      <button class="tab-btn" @click="tab1='usage'">实战用途</button>
+      <button class="tab-btn" @click="tab1='asm'">汇编对比</button>
+    </div>
+    <div class="tab-pane" :class="tab1==='c'?'active':''">
+      <div class="code-block">
+<span class="cm">// 2-1 最右位操作全集 (Warren §2-1)</span>
+<span class="kw">unsigned</span> x = <span class="num">0x5C</span>; <span class="cm">// 01011100</span>
+
+<span class="cm">// 1. 清除最右1 → 判断2的幂</span>
+<span class="kw">int</span> <span class="fn">is_pow2</span>(x) { <span class="kw">return</span> (x &amp; (x-<span class="num">1</span>)) == <span class="num">0</span>; }
+
+<span class="cm">// 2. 提取最右1位（lowest set bit = LSB trick）</span>
+<span class="kw">unsigned</span> lsb = x &amp; (-x);         <span class="cm">// 00000100</span>
+
+<span class="cm">// 3. 清除最右群连续1 (trailing ones)</span>
+<span class="kw">unsigned</span> no_trail1 = x &amp; (x+<span class="num">1</span>);  <span class="cm">// 01011000</span>
+
+<span class="cm">// 4. 尾部0掩码 (创建尾部0的mask)</span>
+<span class="kw">unsigned</span> trail0_mask = ~x &amp; (x-<span class="num">1</span>); <span class="cm">// 00000011</span>
+
+<span class="cm">// 5. 判断 x 是否为 2ⁿ-1 形式</span>
+<span class="kw">int</span> <span class="fn">is_2n_minus1</span>(x) { <span class="kw">return</span> (x &amp; (x+<span class="num">1</span>)) == <span class="num">0</span>; }
+
+<span class="cm">// 6. 右传播最右1位 (smear to the right)</span>
+<span class="kw">unsigned</span> smear = x | (x-<span class="num">1</span>);      <span class="cm">// 01011111</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tab1==='usage'?'active':''">
+      <div class="code-block">
+<span class="cm">// ★ 实战1: 遍历集合中所有1位 (Kernighan法)</span>
+<span class="kw">while</span> (x) {
+  <span class="fn">process_bit</span>(x &amp; -x);   <span class="cm">// 处理最低位1</span>
+  x &amp;= x - <span class="num">1</span>;            <span class="cm">// 清除它</span>
+}  <span class="cm">// popcount(x) 次迭代，不是 32 次</span>
+
+<span class="cm">// ★ 实战2: 内存分配器对齐 (tcmalloc/jemalloc常见)</span>
+<span class="kw">size_t</span> <span class="fn">round_up_pow2</span>(size_t n) {
+  <span class="kw">if</span> ((n &amp; (n-<span class="num">1</span>)) == <span class="num">0</span>) <span class="kw">return</span> n; <span class="cm">// 已是2的幂</span>
+  <span class="cm">// 否则找下一个2的幂 (见 ch03)</span>
+}
+
+<span class="cm">// ★ 实战3: 位棋盘 (Chess engine bitboard)</span>
+<span class="cm">// 提取最低位棋子位置 (LSB = lowest set bit)</span>
+<span class="kw">int</span> <span class="fn">lsb_pos</span>(<span class="kw">uint64_t</span> bb) {
+  <span class="kw">return</span> __builtin_ctzll(bb);  <span class="cm">// 等价 log2(bb &amp; -bb)</span>
+}
+
+<span class="cm">// ★ 实战4: 布隆过滤器哈希探针</span>
+<span class="kw">uint64_t</span> probe = x &amp; (-x);   <span class="cm">// 单bit探针，防止碰撞</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tab1==='asm'?'active':''">
+      <div class="code-block">
+<span class="cm">; x86-64: x & (x-1) → 1条指令 BLSR (BMI1)</span>
+<span class="fn">blsr</span>   eax, edi      <span class="cm">; eax = edi & (edi-1)</span>
+
+<span class="cm">; x86-64: x & (-x) → 1条指令 BLSI (BMI1)</span>
+<span class="fn">blsi</span>   eax, edi      <span class="cm">; 提取最低位1</span>
+
+<span class="cm">; ARM64: 需要2条 (no single blsr equiv)</span>
+<span class="fn">sub</span>    x1, x0, #1
+<span class="fn">and</span>    x0, x0, x1
+
+<span class="cm">; RISC-V: 同样2条</span>
+<span class="fn">addi</span>   t0, a0, -1
+<span class="fn">and</span>    a0, a0, t0
+
+<span class="cm">; 结论: 在BMI1之前(2013年前)所有平台都要2+条</span>
+<span class="cm">; Warren书中这些技巧是BMI1的"前体"</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §2-2 加减法恒等式 ═══ -->
+<section id="addsub">
+  <div class="sec-header">
+    <span class="sec-num">§2-2</span>
+    <span class="sec-title">加减法恒等式 — Addition & Subtraction Identities</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// THE BEAUTIFUL IDENTITIES</span>
+    加法可以分解为"不进位求和"（XOR）和"进位传播"（AND）两部分，
+    这不仅仅是数学游戏——它揭示了<strong>加法器的物理结构</strong>，
+    也是并行前缀加法、无进位乘法（CLMUL）、密码学中无溢出运算的理论基础。
+    Warren 在此给出约 22 个恒等式，是位运算工具箱中最"正交"的一组。
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1.25rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:1rem;">核心恒等式组 (加法)</div>
+      <div class="code-block">
+<span class="cm">// (a) 加法 = XOR + AND进位</span>
+x + y  == (x ^ y) + ((x &amp; y) &lt;&lt; 1)
+
+<span class="cm">// (b) 加法 = OR + AND进位 (等价形式)</span>
+x + y  == (x | y) + (x &amp; y)
+
+<span class="cm">// (c) XOR = 加法 - 进位*2</span>
+x ^ y  == (x + y) - ((x &amp; y) &lt;&lt; 1)
+
+<span class="cm">// (d) OR = 加法 - XOR的半</span>
+x | y  == (x + y) - (x &amp; y)
+
+<span class="cm">// (e) AND = OR - XOR (重要!)</span>
+x &amp; y  == (x | y) - (x ^ y)
+
+<span class="cm">// (f) 无溢出平均 (Dietz公式)</span>
+avg    == (x &amp; y) + ((x ^ y) &gt;&gt; 1)
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--b);margin-bottom:1rem;">核心恒等式组 (减法 / XOR)</div>
+      <div class="code-block">
+<span class="cm">// (g) 减法 = XOR - 借位传播</span>
+x - y  == (x ^ y) - ((~x &amp; y) &lt;&lt; 1)
+
+<span class="cm">// (h) XOR 用 3 条基础指令实现</span>
+x ^ y  == (x | y) - (x &amp; y)
+<span class="cm">// 或: x ^ y == (x + y) - 2*(x&amp;y)</span>
+
+<span class="cm">// (i) AND 用 OR/NOT 实现</span>
+x &amp; y  == ~(~x | ~y)    <span class="cm">// DeMorgan</span>
+
+<span class="cm">// (j) OR 用 AND/NOT 实现</span>
+x | y  == ~(~x &amp; ~y)
+
+<span class="cm">// (k) XOR 只用 AND/OR/NOT (4条)</span>
+x ^ y  == (x | y) &amp; ~(x &amp; y)
+
+<span class="cm">// (l) 加法借位传播概率 ≈ 0.5</span>
+<span class="cm">// 预处理后降为 ≈ 0.25 (理论优化)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ECharts 16种布尔运算 -->
+  <div class="card" style="margin-bottom:1.25rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:.5rem;">
+      📊 16种二元布尔运算的全真值表分布（Warren Table 2-1）
+    </div>
+    <div id="chart-bool" class="chart-wrap" style="height:260px;"></div>
+  </div>
+
+  <!-- 不等式关系 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--b);margin-bottom:.75rem;">§2-3 逻辑与算术不等式</div>
+    <div class="code-block">
+<span class="cm">// 逻辑不等式（按无符号整数解释）</span>
+(x &amp; y) &lt;= x                   <span class="cm">// 恒成立</span>
+(x &amp; y) &lt;= y                   <span class="cm">// 恒成立</span>
+x &lt;= (x | y)                   <span class="cm">// 恒成立</span>
+y &lt;= (x | y)                   <span class="cm">// 恒成立</span>
+(x ^ y) &lt;= (x | y)             <span class="cm">// 恒成立</span>
+
+<span class="cm">// 混合不等式（关键！）</span>
+|x - y| &lt;= (x ^ y)             <span class="cm">// 绝对差 ≤ 异或值</span>
+(x | y) - (x ^ y) == (x &amp; y)   <span class="cm">// 恒等式</span>
+
+<span class="cm">// 注意: 加法不等式不可替换为 OR</span>
+<span class="cm">// x+y≤a && z≤x → z+y≤a  ✓ (arithmetic)</span>
+<span class="cm">// x|y≤a && z≤x → z|y≤a  ✗ (logical!) 反例!</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §2-4/5 绝对值/平均/比较 ═══ -->
+<section id="abs">
+  <div class="sec-header">
+    <span class="sec-num">§2-4 ~ §2-8</span>
+    <span class="sec-title">绝对值 / 平均 / 符号 / 比较 / MUX</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// BRANCH-FREE PHILOSOPHY</span>
+    这一组技巧的<strong>共同主题</strong>是：把所有的条件判断（if/else）转化为
+    纯位操作序列，彻底消灭分支。核心工具是
+    <strong>符号掩码 mask = x &gt;&gt; 31</strong>——它对正数是全0，对负数是全1，
+    可以像开关一样选择两种计算路径。这个思想直接催生了 SIMD 中的 blendv 指令。
+  </div>
+
+  <!-- 交互式 abs/min/max 演示 -->
+  <div class="card" style="margin-bottom:1.25rem;" x-data="absDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:1rem;">
+      🎮 branch-free 绝对值 / min / max 演示
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">x =</div>
+        <input type="range" min="-100" max="100" x-model.number="x" style="width:160px;accent-color:var(--g);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--g);margin-left:.5rem;" x-text="x"></span>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">y =</div>
+        <input type="range" min="-100" max="100" x-model.number="y" style="width:160px;accent-color:var(--b);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--b);margin-left:.5rem;" x-text="y"></span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.6rem;">
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">mask = x >> 31</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;" :style="{color: mask===0?'var(--g)':'var(--r)'}" x-text="mask===0 ? '0x00000000 (x≥0)' : '0xFFFFFFFF (x<0)'"></div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">abs(x) = (x+mask)^mask</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--g);" x-text="absX"></div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">min(x,y) branch-free</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--b);" x-text="minXY"></div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">max(x,y) branch-free</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--o);" x-text="maxXY"></div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">avg(x,y) no-overflow</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--p);" x-text="avgXY"></div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">sign(x)</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.9rem;" :style="{color: signX>0?'var(--g)': signX<0?'var(--r)':'#475569'}" x-text="signX===1?'+1 (正数)':signX===-1?'-1 (负数)':'0 (零)'"></div>
+      </div>
+    </div>
+    <div class="code-block" style="margin-top:.75rem;font-size:.75rem;">
+<span class="cm">// 核心实现 (3~4条指令，无分支)</span>
+<span class="kw">int</span> mask = x &gt;&gt; 31;                    <span class="cm">// 符号掩码</span>
+<span class="kw">int</span> abs_x = (x + mask) ^ mask;          <span class="cm">// abs(x)</span>
+<span class="kw">int</span> min_xy = y + ((x-y) &amp; ((x-y)&gt;&gt;31)); <span class="cm">// min(x,y)</span>
+<span class="kw">int</span> max_xy = x - ((x-y) &amp; ((x-y)&gt;&gt;31)); <span class="cm">// max(x,y)</span>
+<span class="kw">int</span> avg_xy = (x &amp; y) + ((x ^ y) &gt;&gt; 1); <span class="cm">// Dietz平均</span>
+    </div>
+  </div>
+
+  <!-- MUX / 条件移动 -->
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--p);margin-bottom:.75rem;">§2-9 MUX 多路选择器</div>
+      <div class="code-block" style="font-size:.78rem;">
+<span class="cm">// MUX(x,y,mask): mask=1 选 x, mask=0 选 y</span>
+<span class="cm">// 等价于: mask ? x : y</span>
+mux(x,y,m) = (x &amp; m) | (y &amp; ~m)
+
+<span class="cm">// 优化版 (有 ANDC 指令时 3条)</span>
+mux(x,y,m) = ((x ^ y) &amp; m) ^ y
+
+<span class="cm">// 典型用途: 无分支 abs</span>
+t = x &gt;&gt; 31;       <span class="cm">// 全0或全1</span>
+abs = mux(-x, x, t); <span class="cm">// t=1选-x, t=0选x</span>
+
+<span class="cm">// SIMD 等价: SSE4.1 _mm_blendv_epi8</span>
+<span class="cm">// ARM NEON: vbslq_u32</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--o);margin-bottom:.75rem;">§2-10/11 符号比较与无符号比较</div>
+      <div class="code-block" style="font-size:.78rem;">
+<span class="cm">// 有符号 → 无符号转换 (偏移2³¹)</span>
+x &lt;_s y  ≡  (x ^ 0x80000000) &lt;_u (y ^ 0x80000000)
+
+<span class="cm">// 从无符号比较得到有符号比较</span>
+<span class="cm">// 只需翻转两个操作数的符号位</span>
+
+<span class="cm">// 7条指令实现有符号 x≤y (基础RISC)</span>
+t1 = x - y;         <span class="cm">// 差值</span>
+t2 = x ^ y;         <span class="cm">// XOR检测符号差异</span>
+t3 = t1 ^ t2;       <span class="cm">// 修正溢出</span>
+<span class="cm">// t3的符号位即为 x≤y 的结果</span>
+
+<span class="cm">// Java实用技巧 (Java无unsigned):</span>
+x &lt;_u y  ≡  (x + 0x80000000) &lt;_s (y + 0x80000000)
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §2-12~2-20 特殊技巧合集 ═══ -->
+<section id="special">
+  <div class="sec-header">
+    <span class="sec-num">§2-12 ~ §2-20</span>
+    <span class="sec-title">特殊技巧合集 — 溢出检测 / 饱和运算 / Horner / 位域</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1.25rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.6rem;">§2-12 溢出检测</div>
+      <div class="code-block" style="font-size:.75rem;">
+<span class="cm">// 有符号加法溢出检测</span>
+<span class="cm">// 经典错法 (UB in C!):</span>
+<span class="cm">// if (x + y &lt; x) // ← UB</span>
+
+<span class="cm">// ✅ 正确: 符号位检测</span>
+<span class="kw">int</span> sum = x + y;
+<span class="kw">int</span> ov = ((x ^ sum) &amp;
+           (y ^ sum)) &gt;&gt; 31;
+<span class="cm">// ov=-1 溢出, ov=0 不溢出</span>
+
+<span class="cm">// 或用 __builtin_add_overflow()</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.6rem;">§2-13 饱和运算 (Saturating)</div>
+      <div class="code-block" style="font-size:.75rem;">
+<span class="cm">// 饱和加法: 溢出时钳制到MAX/MIN</span>
+<span class="cm">// 用途: 音频/图像处理防截断</span>
+<span class="kw">int</span> <span class="fn">sat_add</span>(<span class="kw">int</span> x, <span class="kw">int</span> y) {
+  <span class="kw">int</span> r = x + y;
+  <span class="cm">// 检测溢出</span>
+  <span class="kw">int</span> ov = ((x ^ r) &amp; (y ^ r)) &gt;&gt; 31;
+  <span class="cm">// ov=0: r; ov=-1: MAX或MIN</span>
+  <span class="kw">int</span> sat = (r &gt;&gt; 31) ^ INT_MAX;
+  <span class="kw">return</span> ov ? sat : r;
+}
+<span class="cm">// ARM: QADD  x86: _mm_adds_epi16</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.6rem;">§2-14/15 位域操作</div>
+      <div class="code-block" style="font-size:.75rem;">
+<span class="cm">// 符号扩展 n位 → 32位</span>
+<span class="kw">int</span> <span class="fn">sign_ext</span>(x, n) {
+  <span class="kw">int</span> shift = 32 - n;
+  <span class="kw">return</span> (x &lt;&lt; shift) &gt;&gt; shift;
+}
+
+<span class="cm">// 插入/提取位域</span>
+<span class="cm">// 从位置p取n位:</span>
+field = (x &gt;&gt; p) &amp; ((1&lt;&lt;n)-1);
+
+<span class="cm">// 在位置p插入n位值v:</span>
+mask = ((1&lt;&lt;n)-1) &lt;&lt; p;
+x = (x &amp; ~mask) | ((v&lt;&lt;p) &amp; mask);
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1.25rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.6rem;">§2-16 Horner规则 — 多项式求值</div>
+      <div class="code-block" style="font-size:.78rem;">
+<span class="cm">// Horner 规则: ax³+bx²+cx+d</span>
+<span class="cm">// = ((ax+b)x+c)x+d</span>
+<span class="cm">// 减少乘法次数: n次乘, n次加</span>
+
+<span class="cm">// 经典用法: 哈希函数</span>
+<span class="kw">uint32_t</span> hash = <span class="num">0</span>;
+<span class="kw">for</span> (<span class="kw">int</span> i = 0; s[i]; i++)
+  hash = hash * <span class="num">31</span> + s[i]; <span class="cm">// Horner</span>
+
+<span class="cm">// 乘以31: 5条指令(移位+减法)</span>
+hash * 31 == (hash &lt;&lt; 5) - hash
+
+<span class="cm">// Java String.hashCode() 就是这个</span>
+<span class="cm">// Reed-Muller分解的代数基础</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.6rem;">§2-17/18 双字移位 / 多字节SIMD</div>
+      <div class="code-block" style="font-size:.78rem;">
+<span class="cm">// 64位左移 (用两个32位寄存器)</span>
+<span class="cm">// shld r, s, n: 等效 (r,s) &lt;&lt; n</span>
+<span class="kw">unsigned</span> hi, lo; <span class="cm">// 64位数</span>
+hi = (hi &lt;&lt; n) | (lo &gt;&gt; (32-n));
+lo = lo &lt;&lt; n;
+<span class="cm">// 注意: n=0或32需特殊处理</span>
+
+<span class="cm">// SIMD多字节加法 (4×byte packed)</span>
+<span class="cm">// Step1: 屏蔽高位防止进位穿透</span>
+lo  = (x &amp; 0x7F7F7F7F) + (y &amp; 0x7F7F7F7F);
+<span class="cm">// Step2: 修复每字节的最高位</span>
+hi  = (x ^ y) &amp; 0x80808080;
+sum = lo ^ hi;
+      </div>
+    </div>
+  </div>
+
+  <!-- 布尔函数分解定理 -->
+  <div class="card">
+    <div style="
+      font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:.75rem;">
+      §2-20 布尔函数分解定理 (Reed-Muller / 正Davio分解)
+    </div>
+    <div class="insight" style="margin-bottom:.75rem;">
+      <span class="label">// THE DECOMPOSITION THEOREM</span>
+      任意 n 元布尔函数都可以用<strong>1条 XOR + 2个 (n-1) 元布尔函数</strong>递归表示：
+      <code style="color:var(--o);">f(x,y,z) = g(x,y) ⊕ z·h(x,y)</code>。
+      这个定理保证了任意布尔函数都可以用 AND/OR/XOR/NOT 的有限组合实现，
+      是编译器布尔优化和硬件综合的理论基础（也称"正Davio分解"或"俄罗斯分解"）。
+    </div>
+    <div class="code-block">
+<span class="cm">// 定理: f(x,y,z) = g(x,y) XOR (z AND h(x,y))</span>
+<span class="cm">// 其中 g(x,y) = f(x,y,0),  h(x,y) = f(x,y,0) XOR f(x,y,1)</span>
+<span class="cm">// 递归展开到1变量: f(x) = f(0) XOR (x AND (f(0) XOR f(1)))</span>
+
+<span class="cm">// 实现任意3变量布尔函数所需最少指令数:</span>
+<span class="cm">// 1条: NOT, 常数0/1</span>
+<span class="cm">// 2条: 大多数标准门(AND/OR/XOR/NAND/NOR)</span>
+<span class="cm">// 3条: 大多数3变量函数(224/256种)</span>
+<span class="cm">// 4条: 剩余32种较复杂函数(含多数表决函数等)</span>
+
+<span class="cm">// 推论: Horner求值 — 把多项式变成嵌套乘加</span>
+<span class="cm">// ax³+bx²+cx+d = ((ax+b)x+c)x+d</span>
+<span class="cm">// → n次乘 + n次加，最优指令数</span>
+<span class="kw">int</span> <span class="fn">horner3</span>(<span class="kw">int</span> x, <span class="kw">int</span> a,<span class="kw">int</span> b,<span class="kw">int</span> c,<span class="kw">int</span> d){
+  <span class="kw">return</span> (((a*x + b)*x + c)*x + d);
+}
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §2 GOSPER 算法 ═══ -->
+<section id="gosper">
+  <div class="sec-header">
+    <span class="sec-num">§2-GOSPER</span>
+    <span class="sec-title">Gosper's Hack — 枚举所有含 k 个1的 n 位数</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// THE CROWN JEWEL OF CHAPTER 2</span>
+    这是第二章最令人击节叫绝的算法。给定一个含 k 个1的 n 位整数 x，
+    求<strong>下一个含同样多1的最小整数</strong>。
+    来自 1972 年 MIT HAKMEM（Bill Gosper），5行代码，0个分支，纯位运算。
+    它是棋盘引擎子集枚举、组合数学搜索、神经网络剪枝掩码枚举的核心引擎。
+  </div>
+
+  <!-- Gosper 交互演示 -->
+  <div class="card" style="margin-bottom:1.25rem;" x-data="gosperDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:1rem;">
+      🌟 Gosper's Hack 逐步可视化 — 点击 NEXT 枚举下一个
+    </div>
+    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;">
+      <div>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;">当前值 x = </span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:1.1rem;color:var(--g);" x-text="'0x'+cur.toString(16).toUpperCase().padStart(8,'0')"></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#475569;margin-left:.5rem;" x-text="'(含'+popcount(cur)+'个1)'"></span>
+      </div>
+      <button @click="next()" class="tab-btn active" style="font-size:.75rem;padding:.4rem 1rem;">NEXT →</button>
+      <button @click="reset()" class="tab-btn" style="font-size:.75rem;padding:.4rem 1rem;">RESET</button>
+    </div>
+
+    <!-- 当前x的位图 -->
+    <div style="margin-bottom:.75rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">x (当前):</div>
+      <div class="bit-row">
+        <template x-for="(b,i) in toBits(cur)" :key="i">
+          <div class="bit-cell" :class="b?'one':'zero'" x-text="b"></div>
+        </template>
+      </div>
+    </div>
+
+    <!-- 分解步骤 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.75rem;">
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.6rem .75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--o);margin-bottom:.2rem;">Step 1: c = x &amp; -x（最低位1）</div>
+        <div class="bit-row" style="gap:2px;">
+          <template x-for="(b,i) in toBits(steps.c)" :key="i">
+            <div class="bit-result-cell" :style="{width:'22px',height:'22px',fontSize:'.7rem',borderRadius:'2px',background:b?'rgba(255,140,0,.15)':'rgba(0,0,0,.3)',color:b?'var(--o)':'#1e293b',border:'1px solid '+(b?'rgba(255,140,0,.3)':'#1e293b')}" x-text="b"></div>
+          </template>
+        </div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.6rem .75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--b);margin-bottom:.2rem;">Step 2: r = x + c（进位传播）</div>
+        <div class="bit-row" style="gap:2px;">
+          <template x-for="(b,i) in toBits(steps.r)" :key="i">
+            <div class="bit-result-cell" :style="{width:'22px',height:'22px',fontSize:'.7rem',borderRadius:'2px',background:b?'rgba(0,212,255,.15)':'rgba(0,0,0,.3)',color:b?'var(--b)':'#1e293b',border:'1px solid '+(b?'rgba(0,212,255,.3)':'#1e293b')}" x-text="b"></div>
+          </template>
+        </div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.6rem .75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--p);margin-bottom:.2rem;">Step 3: ones = (((r^x)/c)>>2)+1（补充低位1）</div>
+        <div class="bit-row" style="gap:2px;">
+          <template x-for="(b,i) in toBits(steps.ones)" :key="i">
+            <div class="bit-result-cell" :style="{width:'22px',height:'22px',fontSize:'.7rem',borderRadius:'2px',background:b?'rgba(177,79,255,.15)':'rgba(0,0,0,.3)',color:b?'var(--p)':'#1e293b',border:'1px solid '+(b?'rgba(177,79,255,.3)':'#1e293b')}" x-text="b"></div>
+          </template>
+        </div>
+      </div>
+      <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.6rem .75rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);margin-bottom:.2rem;">Result: next = r | ones</div>
+        <div class="bit-row" style="gap:2px;">
+          <template x-for="(b,i) in toBits(steps.next)" :key="i">
+            <div class="bit-result-cell" :style="{width:'22px',height:'22px',fontSize:'.7rem',borderRadius:'2px',background:b?'rgba(0,255,136,.15)':'rgba(0,0,0,.3)',color:b?'var(--g)':'#1e293b',border:'1px solid '+(b?'rgba(0,255,136,.3)':'#1e293b')}" x-text="b"></div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- 历史序列 -->
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#334155;margin-bottom:.5rem;">枚举序列（最多显示12个）:</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem;">
+      <template x-for="(v,i) in history.slice(-12)" :key="i">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;padding:.2rem .5rem;border-radius:3px;"
+             :style="{background: i===history.slice(-12).length-1?'rgba(0,255,136,.15)':'rgba(30,41,59,.5)',color:i===history.slice(-12).length-1?'var(--g)':'#475569',border:'1px solid '+(i===history.slice(-12).length-1?'rgba(0,255,136,.3)':'#1e293b')}"
+             x-text="'0x'+v.toString(16).toUpperCase()">
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- Gosper 代码 -->
+  <div class="card">
+    <div class="tab-nav">
+      <button class="tab-btn active" @click="tabGosper='c'">C 实现</button>
+      <button class="tab-btn" @click="tabGosper='explain'">原理解析</button>
+      <button class="tab-btn" @click="tabGosper='apps'">实战用途</button>
+    </div>
+    <div class="tab-pane" :class="tabGosper==='c'?'active':''">
+      <div class="code-block">
+<span class="cm">// Gosper's Hack — 求含相同数量1位的下一个更大整数</span>
+<span class="cm">// 来源: HAKMEM AIM-239, MIT 1972, Bill Gosper</span>
+<span class="kw">unsigned</span> <span class="fn">next_perm</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">unsigned</span> c = x &amp; -x;         <span class="cm">// Step1: 最低位的1 (lowest set bit)</span>
+  <span class="kw">unsigned</span> r = x + c;           <span class="cm">// Step2: 进位传播，清除最低连续1串并进位</span>
+  <span class="cm">// Step3: 计算需要补到低位的1的个数</span>
+  <span class="kw">unsigned</span> ones = (((r ^ x) / c) &gt;&gt; 2) + <span class="num">1</span>;
+  <span class="kw">return</span> r | ones;              <span class="cm">// Step4: 合并高位和低位</span>
+}
+
+<span class="cm">// 更快的版本 (避免除法，用 nlz 指令):</span>
+<span class="kw">unsigned</span> <span class="fn">next_perm_fast</span>(<span class="kw">unsigned</span> x) {
+  <span class="kw">unsigned</span> t = x | (x - <span class="num">1</span>);     <span class="cm">// 尾部0全部填1</span>
+  <span class="kw">return</span> (t + <span class="num">1</span>) | (((~t &amp; -~t) - <span class="num">1</span>) &gt;&gt; (__builtin_ctz(x) + <span class="num">1</span>));
+}
+
+<span class="cm">// 枚举所有8位中含3个1的集合:</span>
+<span class="kw">unsigned</span> x = <span class="num">0b00000111</span>;  <span class="cm">// 起始: 最小的含3个1的数</span>
+<span class="kw">do</span> {
+  <span class="fn">process</span>(x);
+  x = <span class="fn">next_perm</span>(x);
+} <span class="kw">while</span> (x &lt; (1u &lt;&lt; 8));    <span class="cm">// C(8,3) = 56次迭代</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tabGosper==='explain'?'active':''">
+      <div class="code-block">
+<span class="cm">// 以 x = 0b00101100 (含3个1) 为例逐步追踪:</span>
+
+x    = 0b <span class="hi">00101100</span>   <span class="cm">// 原始值</span>
+c    = x &amp; -x
+     = 0b 00000100   <span class="cm">// 最低位1 = bit2</span>
+
+r    = x + c
+     = 0b 00110000   <span class="cm">// 最低连续1串(bits2-3)被清零并进位到bit4</span>
+                     <span class="cm">// 注意: r的popcount比x少了那串1的个数-1</span>
+
+r^x  = 0b 00011100   <span class="cm">// 变化的位 (被清零的连续1 + 新置位的高位)</span>
+
+(r^x)/c              <span class="cm">// 右对齐: 把变化掩码除以最低位1</span>
+     = 0b 00000111   <span class="cm">// 得到 2^(群长度+1) - 1</span>
+
+&gt;&gt;2  = 0b 00000001   <span class="cm">// 去掉高位的进位位和原最低位1</span>
++1   = 0b 00000001   <span class="cm">// 补足低位需要补的1的数量(此处1个)</span>
+
+r|ones= 0b 00110001  <span class="cm">// ✅ 含3个1的下一个更大整数</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tabGosper==='apps'?'active':''">
+      <div class="code-block">
+<span class="cm">// ★ 用途1: 国际象棋引擎 bitboard (Stockfish/Leela)
+// 枚举所有"车能攻击的格子组合"</span>
+<span class="kw">uint64_t</span> subset = <span class="num">0</span>;
+<span class="kw">do</span> {
+  eval_rook_attacks(subset);
+  subset = <span class="fn">next_perm</span>(subset) &amp; attack_mask;
+} <span class="kw">while</span> (subset);
+
+<span class="cm">// ★ 用途2: 组合学 — 枚举 C(n,k) 所有子集</span>
+<span class="cm">// 比递归枚举快 ~10x，因为完全无分支、无递归栈</span>
+<span class="kw">for</span> (<span class="kw">unsigned</span> s=(1&lt;&lt;k)-1; s&lt;(1u&lt;&lt;n); s=<span class="fn">next_perm</span>(s))
+  <span class="fn">process_subset</span>(s, n);
+
+<span class="cm">// ★ 用途3: 神经网络稀疏化掩码搜索
+// 在相同稀疏度约束下搜索最优权重掩码</span>
+
+<span class="cm">// ★ 用途4: 背包问题精确算法的位剪枝
+// 在固定预算下枚举所有"恰好选k件商品"的方案</span>
+
+<span class="cm">// 数量: C(32,k) 最大约 6亿 (k=16)
+// 实际应用一般 n≤20，C(20,10)≈18万，毫秒级</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 历史演变 ═══ -->
+<section id="history">
+  <div class="sec-header">
+    <span class="sec-num">§HIST</span>
+    <span class="sec-title">历史演变 — 这些技巧从哪里来</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1961 — Christopher Strachey</div>
+        <div class="tl-title">《Bitwise Operations》CACM论文</div>
+        <div class="tl-desc">
+          最早正式发表位操作理论的文章，发表于 Communications of the ACM 4(3)。
+          Strachey 是 CPL 语言的发明人，也是指称语义学（denotational semantics）的奠基者。
+          他在这篇3页小文中就给出了用 XOR 实现加法的思路，比书中恒等式早了40年。
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--b);box-shadow:0 0 8px var(--b);"></div>
+        <div class="tl-year">1972 — Bill Gosper, HAKMEM</div>
+        <div class="tl-title">MIT AI Lab AIM-239，位操作圣经</div>
+        <div class="tl-desc">
+          Gosper、Beeler、Schroeppel 在 PDP-10 上积累的技巧，包括本章的 Gosper's Hack、
+          人口计数（popcount）算法、循环检测等。Warren 第2章最亮眼的几个技巧都源自此备忘录。
+          Gosper 后来把 Gosper's Hack 用于 Scheme 的尾递归优化，令人叫绝。
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--p);box-shadow:0 0 8px var(--p);"></div>
+        <div class="tl-year">1986 — Henry Dietz</div>
+        <div class="tl-title">无溢出平均值公式</div>
+        <div class="tl-desc">
+          Dietz 在 aggregate.org/MAGIC/ 发布了大量位运算魔法，其中包括著名的
+          <code style="color:var(--o);">(x&y)+((x^y)>>1)</code>
+          无溢出整数平均公式。这个公式看起来平淡，但它正确地处理了两个大正整数相加超过
+          INT_MAX 的情况，是所有 SIMD 库的基础组件之一。
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--o);box-shadow:0 0 8px var(--o);"></div>
+        <div class="tl-year">1992 — GCC / GNU Superoptimizer</div>
+        <div class="tl-title">编译器开始自动发现位操作技巧</div>
+        <div class="tl-desc">
+          Granlund 和 Kenner 在 PLDI 1992 发表论文，描述如何用超级优化器（GNU Superoptimizer）
+          自动找到等价但更短的指令序列。GCC 为 RS/6000 生成的部分代码已经包含了
+          本章中 abs/min/max 的 branch-free 形式——机器比人先掌握了这些技巧。
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot" style="background:var(--g);box-shadow:0 0 8px var(--g);"></div>
+        <div class="tl-year">2013 — x86 BMI1/BMI2 指令集</div>
+        <div class="tl-title">软件技巧烧进硬件</div>
+        <div class="tl-desc">
+          Intel Haswell 引入 BMI1（BLSR, BLSI, BLSMSK, TZCNT）和 BMI2（PEXT, PDEP），
+          直接把第2章的最右位操作变成单条指令。Warren 这些"5条指令技巧"一夜之间变成"1条指令"。
+          AMD 的 ABM 扩展（LZCNT, POPCNT）同样如此。这种"先软件再硬件"的轨迹，
+          在计算机体系结构史上反复上演。
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <!-- ECharts: 技巧来源分布 -->
+      <div class="card" style="margin-bottom:1.25rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:.5rem;">
+          📊 第2章技巧来源分布
+        </div>
+        <div id="chart-src" style="width:100%;height:220px;"></div>
+      </div>
+
+      <!-- ECharts: 指令数对比 -->
+      <div class="card">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--b);margin-bottom:.5rem;">
+          📊 各技巧在不同平台的指令数对比
+        </div>
+        <div id="chart-instr" style="width:100%;height:240px;"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 深度点评 ═══ -->
+<section id="critique">
+  <div class="sec-header">
+    <span class="sec-num">§CRITIQUE</span>
+    <span class="sec-title">深度点评 — 技术哲学与批判性分析</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="critic-box">
+    <h3>为什么这些"雕虫小技"值得认真对待？</h3>
+
+    <div class="critic-item">
+      <div class="ci-title">branch-free 的本质：把控制流变成数据流</div>
+      <p>
+        Warren 对"无分支代码"的偏爱不是癖好，而是一种<strong style="color:#f1f5f9;">编程范式的转换</strong>。
+        分支意味着"根据数据的值，走不同的路径"；而无分支代码把这个选择本身也变成了数据——
+        用符号掩码 <code style="color:var(--o);">mask = x >> 31</code> 让数据自己决定结果。
+        这正是 GPU/SIMD 编程的哲学：在向量化环境中没有"分支"，只有"掩码选择"。
+        SSE4.1 的 <code>_mm_blendv_epi8</code>、AVX512 的谓词掩码寄存器，都是这个思想的硬件化。
+        Warren 在2002年就用纯软件预演了整个 SIMD 时代的核心编程模型。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">Dietz 平均公式：一个被低估的安全补丁</div>
+      <p>
+        <code style="color:var(--o);">(lo + hi) / 2</code> 是二分搜索的经典写法，也是 Java 标准库里
+        曾经存在的一个 bug（Joshua Bloch 在2006年博客中披露，JDK 的
+        <code>Arrays.binarySearch</code> 在数组极大时会整数溢出，
+        潜伏了将近10年）。<strong style="color:#f1f5f9;">正确写法是 Dietz 公式</strong>：
+        <code style="color:var(--o);">(lo & hi) + ((lo ^ hi) >> 1)</code>，
+        无论输入多大都不溢出。这不是学术游戏——它是一个每年都在真实系统中被重新"发现"的安全陷阱。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">Gosper's Hack：组合爆炸的"低配"解法</div>
+      <p>
+        Gosper's Hack 之所以伟大，是因为它把"枚举含 k 个1的 n 位串"这个 NP 相关问题的
+        <strong style="color:#f1f5f9;">内层循环推进成了 O(1)</strong>，没有任何条件分支，
+        也没有显式的计数器或位位置追踪。每次调用只需4条指令（基础RISC）。
+        在棋盘引擎中，这意味着每秒可以枚举超过 3 亿个子集，而递归实现只能达到 3000万。
+        10倍的差距，来自5行代码里藏着的数学洞见。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">有没有局限性？现代语言怎么看这些技巧？</div>
+      <p>
+        有。在 <strong style="color:#f1f5f9;">Rust</strong> 中，有符号整数的右移行为（算术vs逻辑）
+        是明确分开的（<code style="color:var(--o);">>></code> 是算术移位），但溢出在 debug
+        模式会 panic——Warren 的很多技巧依赖"绕过溢出"的无符号行为，
+        需要显式用 <code style="color:var(--o);">wrapping_add</code>。
+        在 <strong style="color:#f1f5f9;">C23</strong> 标准中，有符号整数溢出不再是 UB 而是
+        well-defined wrap-around——这终于让 C 程序员能安全地使用这些技巧。
+        在 <strong style="color:#f1f5f9;">Java</strong> 里则完全没问题（无 UB 语义），但没有无符号整数，
+        某些技巧要手动偏移 <code>0x80000000</code>。
+        <strong style="color:var(--r);">结论：这些技巧的思想是跨平台的，但实现细节需要按语言校对一遍。</strong>
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">可推广到哪里？</div>
+      <p>
+        <strong style="color:#f1f5f9;">1. SIMD/GPU</strong>：本章所有 branch-free 技巧都可以逐字翻译到
+        AVX2/NEON intrinsics，性能乘以向量宽度（8x/16x）。
+        <strong style="color:#f1f5f9;">2. 密码学</strong>：Constant-time 编程（防 timing 侧信道攻击）
+        的核心就是"把所有分支变成掩码选择"，即本章 MUX 技术。
+        <strong style="color:#f1f5f9;">3. 硬件设计</strong>：Verilog/VHDL 综合器将这些位操作直接映射到 LUT，
+        理解这些公式能让你写出更小面积的 RTL。
+        <strong style="color:#f1f5f9;">4. 量子计算（有限度）</strong>：可逆计算要求所有操作可逆，
+        XOR 门天然可逆，本章恒等式在量子电路综合中有直接应用。
+      </p>
+    </div>
+  </div>
+
+  <!-- 练习题快览 -->
+  <div class="card" style="margin-top:1.25rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--o);margin-bottom:.75rem;">
+      📝 Warren §2 课后练习精选（共12题）
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:.75rem;font-size:.82rem;color:#64748b;line-height:1.7;">
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q3</span>
+        推导 Dietz 无溢出平均值公式
+        <code style="color:var(--o);font-size:.75rem;display:block;margin-top:.2rem;">(x&y)+((x^y)>>1)</code>
+      </div>
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--b);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q8</span>
+        证明 MUX 可以用3条基础RISC指令实现
+        <code style="color:var(--o);font-size:.75rem;display:block;margin-top:.2rem;">((x^y)&m)^y</code>
+      </div>
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--p);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q10</span>
+        给定 x 和两个位置 i、j，把 x 在位 i 的值复制到位 j
+      </div>
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--o);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q11</span>
+        递归分解定理：实现任意 n 元布尔函数最少需要几条二元指令？
+      </div>
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--r);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q5</span>
+        若已知 y₃₁=0，七指令有符号比较可以简化为几条？
+      </div>
+      <div style="padding:.6rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <span style="color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.7rem;">Q4</span>
+        给出四个无符号整数 (a+b+c+d)/4 的无溢出计算方法
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>
+    <a href="ch01.html">← Chapter 1: Laying the Groundwork</a>
+    &nbsp;·&nbsp; Chapter 2 of 18
+    &nbsp;·&nbsp; <a href="ch03.html">Chapter 3: Power-of-2 Boundaries →</a>
+  </p>
+  <p style="margin-top:.5rem;">Hacker's Delight 2nd Ed. · Henry S. Warren, Jr. · Addison-Wesley 2013</p>
+</footer>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════════════════════════════════════
+   Alpine.js 主 App
+═══════════════════════════════════════════ */
+function app() {
+  return {
+    tab1: 'c',
+    tabGosper: 'c',
+    init() {
+      this.initBg();
+      this.initProgress();
+      this.initScrollSpy();
+      this.$nextTick(() => {
+        this.initChartBool();
+        this.initChartSrc();
+        this.initChartInstr();
+      });
+    },
+
+    initProgress() {
+      window.addEventListener('scroll', () => {
+        const s = document.documentElement.scrollTop;
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        document.getElementById('prog').style.width = (h > 0 ? s / h * 100 : 0) + '%';
+      });
+    },
+
+    initScrollSpy() {
+      const secs = ['hero','rightmost','addsub','abs','special','gosper','history','critique'];
+      const dots = document.querySelectorAll('.dot');
+      window.addEventListener('scroll', () => {
+        let cur = 0;
+        secs.forEach((id, i) => {
+          const el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) cur = i;
+        });
+        dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+      });
+      dots.forEach((d, i) => {
+        d.addEventListener('click', () => {
+          document.getElementById(secs[i])?.scrollIntoView({ behavior: 'smooth' });
+        });
+      });
+    },
+
+    /* ── 粒子背景 ── */
+    initBg() {
+      const canvas = document.getElementById('bg');
+      const ctx = canvas.getContext('2d');
+      let W, H;
+      const resize = () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; };
+      resize();
+      window.addEventListener('resize', resize);
+      const chars = ['0','1','&','|','^','~','<','>','+','-'];
+      const particles = Array.from({ length: 55 }, () => ({
+        x: Math.random() * 1920, y: Math.random() * 1080,
+        vy: 0.18 + Math.random() * 0.45,
+        ch: chars[Math.floor(Math.random() * chars.length)],
+        alpha: 0.03 + Math.random() * 0.1,
+        size: 10 + Math.random() * 7
+      }));
+      const draw = () => {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+          ctx.fillStyle = `rgba(0,255,136,${p.alpha})`;
+          ctx.font = `${p.size}px monospace`;
+          ctx.fillText(p.ch, p.x % W, p.y % H);
+          p.y += p.vy;
+          if (p.y > H) { p.y = -20; p.x = Math.random() * W; }
+          if (Math.random() < 0.01) p.ch = chars[Math.floor(Math.random() * chars.length)];
+        });
+        requestAnimationFrame(draw);
+      };
+      draw();
+    },
+
+    /* ── 16种布尔运算图 ── */
+    initChartBool() {
+      const el = document.getElementById('chart-bool');
+      if (!el || !window.echarts) return;
+      const chart = echarts.init(el, 'dark');
+      const ops = ['0','AND','A∧¬B','A','¬A∧B','B','XOR','OR','NOR','XNOR','¬B','A∨¬B','¬A','¬A∨B','NAND','1'];
+      const counts = [0,1,1,2,1,2,2,3,1,2,1,3,1,3,2,4];
+      const colors = counts.map(c => ['#1e293b','rgba(0,255,136,.7)','rgba(0,212,255,.7)','rgba(177,79,255,.7)','rgba(255,140,0,.7)'][Math.min(c,4)]);
+      chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { left: '3%', right: '3%', top: '15%', bottom: '22%' },
+        tooltip: {
+          trigger: 'axis',
+          backgroundColor: '#0d1117',
+          borderColor: 'rgba(0,255,136,.3)',
+          textStyle: { color: '#e2e8f0', fontFamily: 'JetBrains Mono', fontSize: 11 },
+          formatter: p => `${ops[p[0].dataIndex]}<br/>真值表中1的个数: ${counts[p[0].dataIndex]}`
+        },
+        xAxis: {
+          data: ops,
+          axisLabel: { color: '#334155', fontSize: 9, rotate: 35 },
+          axisLine: { lineStyle: { color: '#1e293b' } }
+        },
+        yAxis: {
+          name: '真值表中1的数量',
+          nameTextStyle: { color: '#475569', fontSize: 10 },
+          max: 4, min: 0,
+          axisLabel: { color: '#475569' },
+          splitLine: { lineStyle: { color: 'rgba(30,41,59,.5)' } },
+          axisLine: { lineStyle: { color: '#1e293b' } }
+        },
+        series: [{
+          type: 'bar', data: counts.map((v, i) => ({ value: v, itemStyle: { color: colors[i], borderRadius: 3 } })),
+          barMaxWidth: 28,
+          label: { show: true, position: 'top', color: '#475569', fontSize: 9, fontFamily: 'JetBrains Mono' }
+        }]
+      });
+      window.addEventListener('resize', () => chart.resize());
+    },
+
+    /* ── 技巧来源饼图 ── */
+    initChartSrc() {
+      const el = document.getElementById('chart-src');
+      if (!el || !window.echarts) return;
+      const chart = echarts.init(el, 'dark');
+      chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+          backgroundColor: '#0d1117', borderColor: 'rgba(0,255,136,.3)',
+          textStyle: { color: '#e2e8f0', fontFamily: 'JetBrains Mono', fontSize: 11 }
+        },
+        legend: { bottom: 0, textStyle: { color: '#475569', fontSize: 10 } },
+        series: [{
+          type: 'pie', radius: ['35%', '60%'], center: ['50%', '44%'],
+          data: [
+            { value: 8, name: 'HAKMEM 1972', itemStyle: { color: 'rgba(0,255,136,.7)' } },
+            { value: 5, name: 'IBM 内部积累', itemStyle: { color: 'rgba(0,212,255,.7)' } },
+            { value: 4, name: 'GCC/超级优化器', itemStyle: { color: 'rgba(177,79,255,.7)' } },
+            { value: 3, name: 'Dietz魔法页', itemStyle: { color: 'rgba(255,140,0,.7)' } },
+            { value: 3, name: '编译器社区', itemStyle: { color: 'rgba(255,68,102,.7)' } }
+          ],
+          label: { color: '#475569', fontSize: 10 },
+          itemStyle: { borderRadius: 4, borderColor: '#050810', borderWidth: 2 }
+        }]
+      });
+      window.addEventListener('resize', () => chart.resize());
+    },
+
+    /* ── 指令数对比柱图 ── */
+    initChartInstr() {
+      const el = document.getElementById('chart-instr');
+      if (!el || !window.echarts) return;
+      const chart = echarts.init(el, 'dark');
+      chart.setOption({
+        backgroundColor: 'transparent',
+        grid: { left: '2%', right: '2%', top: '20%', bottom: '20%', containLabel: true },
+        tooltip: {
+          trigger: 'axis', axisPointer: { type: 'shadow' },
+          backgroundColor: '#0d1117', borderColor: 'rgba(0,255,136,.3)',
+          textStyle: { color: '#e2e8f0', fontFamily: 'JetBrains Mono', fontSize: 11 }
+        },
+        legend: { data: ['基础RISC','x86(无BMI)','x86+BMI1','ARM64'], textStyle: { color: '#475569', fontSize: 10 } },
+        xAxis: {
+          data: ['x&(x-1)', 'abs(x)', 'min(x,y)', 'avg(x,y)', 'Gosper'],
+          axisLabel: { color: '#475569', fontSize: 10, fontFamily: 'JetBrains Mono' },
+          axisLine: { lineStyle: { color: '#1e293b' } }
+        },
+        yAxis: {
+          name: '指令数',
+          nameTextStyle: { color: '#475569', fontSize: 10 },
+          axisLabel: { color: '#475569' },
+          splitLine: { lineStyle: { color: 'rgba(30,41,59,.5)' } },
+          axisLine: { lineStyle: { color: '#1e293b' } }
+        },
+        series: [
+          { name: '基础RISC',    type: 'bar', data: [2,4,5,3,5], barMaxWidth:18, itemStyle:{color:'rgba(0,255,136,.65)',borderRadius:2} },
+          { name: 'x86(无BMI)', type: 'bar', data: [2,3,4,3,5], barMaxWidth:18, itemStyle:{color:'rgba(0,212,255,.55)',borderRadius:2} },
+          { name: 'x86+BMI1',   type: 'bar', data: [1,2,3,3,4], barMaxWidth:18, itemStyle:{color:'rgba(177,79,255,.65)',borderRadius:2} },
+          { name: 'ARM64',      type: 'bar', data: [2,3,4,3,5], barMaxWidth:18, itemStyle:{color:'rgba(255,140,0,.55)',borderRadius:2} }
+        ]
+      });
+      window.addEventListener('resize', () => chart.resize());
+    }
+  };
+}
+
+/* ═══════════════════════════════════════════
+   最右位交互演示
+═══════════════════════════════════════════ */
+function rightmostDemo() {
+  return {
+    bits: [0,0,1,0,1,1,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+    toggle(i) { this.bits[i] = this.bits[i] ? 0 : 1; },
+    get x32() {
+      let v = 0;
+      for (let i = 0; i < 32; i++) v = (v * 2 + this.bits[i]) >>> 0;
+      return v;
+    },
+    toBits32(n) {
+      n = n >>> 0;
+      return Array.from({ length: 32 }, (_, i) => (n >> (31 - i)) & 1);
+    },
+    get results() {
+      const x = this.x32;
+      return [
+        { name: 'x & (x-1)  清除最右1', bits: this.toBits32(x & (x - 1)), desc: x === 0 ? '0 → 结果=0' : ((x & (x-1)) === 0 ? '✓ x是2的幂' : '') },
+        { name: 'x | (x+1)  置位最右0', bits: this.toBits32(x | (x + 1)), desc: '' },
+        { name: 'x & (x+1)  清除尾部1', bits: this.toBits32(x & (x + 1)), desc: ((x & (x+1)) === 0 && x !== 0) ? '✓ x是2ⁿ-1' : '' },
+        { name: 'x | (x-1)  填充尾部0', bits: this.toBits32(x | (x - 1)), desc: '' },
+        { name: 'x & (-x)   提取最右1', bits: this.toBits32(x & (-x >>> 0)), desc: x === 0 ? '全0无最右1' : '单bit掩码' },
+        { name: '~x & (x+1) 提取最右0', bits: this.toBits32(~x & (x + 1)), desc: '' },
+        { name: '~x & (x-1) 尾0掩码',  bits: this.toBits32((~x) & (x - 1)), desc: '' },
+        { name: '(x&-x)-1   尾0全1',   bits: this.toBits32(((x & (-x >>> 0)) - 1) >>> 0), desc: '' }
+      ];
+    }
+  };
+}
+
+/* ═══════════════════════════════════════════
+   abs/min/max 演示
+═══════════════════════════════════════════ */
+function absDemo() {
+  return {
+    x: -37, y: 25,
+    get mask() { return (this.x >> 31); },
+    get absX() { const m = this.x >> 31; return (this.x + m) ^ m; },
+    get minXY() { const d = this.x - this.y; return this.y + (d & (d >> 31)); },
+    get maxXY() { const d = this.x - this.y; return this.x - (d & (d >> 31)); },
+    get avgXY() { return (this.x & this.y) + ((this.x ^ this.y) >> 1); },
+    get signX() {
+      if (this.x > 0) return 1;
+      if (this.x < 0) return -1;
+      return 0;
+    }
+  };
+}
+
+/* ═══════════════════════════════════════════
+   Gosper's Hack 演示
+═══════════════════════════════════════════ */
+function gosperDemo() {
+  return {
+    cur: 0b00000111,  // 8位中含3个1，从最小开始
+    history: [0b00000111],
+    tabGosper: 'c',
+    popcount(n) {
+      n = n >>> 0;
+      n = n - ((n >> 1) & 0x55555555);
+      n = (n & 0x33333333) + ((n >> 2) & 0x33333333);
+      n = (n + (n >> 4)) & 0x0f0f0f0f;
+      return ((n * 0x01010101) >>> 24);
+    },
+    toBits(n) {
+      n = (n >>> 0) & 0xFF; // 只显示低8位
+      return Array.from({ length: 8 }, (_, i) => (n >> (7 - i)) & 1);
+    },
+    get steps() {
+      const x = this.cur >>> 0;
+      const c = (x & (-x >>> 0)) >>> 0;
+      const r = (x + c) >>> 0;
+      const xorval = (r ^ x) >>> 0;
+      const ones = c > 0 ? (((xorval / c) >>> 2) + 1) >>> 0 : 0;
+      const next = (r | ones) >>> 0;
+      return { c, r, ones, next };
+    },
+    next() {
+      const { next } = this.steps;
+      if (next > 0xFF || next === 0) {
+        // 循环重置
+        this.cur = 0b00000111;
+        this.history = [this.cur];
+        return;
+      }
+      this.cur = next;
+      this.history.push(this.cur);
+    },
+    reset() {
+      this.cur = 0b00000111;
+      this.history = [this.cur];
+    }
+  };
+}
+</script>
+</body>
+</html>

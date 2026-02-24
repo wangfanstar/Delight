@@ -1,0 +1,1519 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ch.04 — 算术边界 | Hacker's Delight</title>
+<link rel="stylesheet" href="tailwind.css"/>
+<script src="echarts.min.js"></script>
+<script src="alpine.min.js" defer></script>
+<style>
+:root{
+  --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
+  --dark:#050810;--card:#0d1117;--border:rgba(0,255,136,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:#e2e8f0;font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;font-size:17px;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.010) 2px,rgba(0,255,136,.010) 4px);pointer-events:none;z-index:0;}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#app{position:relative;z-index:1;}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.9);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);text-decoration:none;}
+.nav-links{display:flex;gap:1.4rem;}
+.nav-links a{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--g);}
+
+#prog{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,var(--g),var(--b),var(--p));transition:width .12s;}
+
+.dot-nav{position:fixed;right:1.4rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.55rem;}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--g);transform:scale(1.45);box-shadow:0 0 6px var(--g);}
+@media(max-width:768px){.dot-nav{display:none;}}
+
+.hero{padding:7rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
+.chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);border:1px solid var(--g);padding:.28rem .95rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 6px rgba(0,255,136,.35);}50%{box-shadow:0 0 22px rgba(0,255,136,.75);}}
+.hero-title{font-size:clamp(2rem,5vw,3.5rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,var(--g) 50%,var(--b) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:.5rem;}
+.hero-sub{font-family:'JetBrains Mono',monospace;color:#475569;font-size:.88rem;margin-bottom:1.8rem;}
+.hero-desc{color:#94a3b8;font-size:.98rem;line-height:1.88;max-width:720px;margin:0 auto 2rem;}
+
+section{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;}
+.sec-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.18);padding:.22rem .55rem;border-radius:4px;white-space:nowrap;}
+.sec-title{font-size:1.3rem;font-weight:700;color:#f1f5f9;}
+.sec-divider{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,255,136,.28),transparent);}
+
+.card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.4rem;transition:border-color .25s,box-shadow .25s;}
+.card:hover{border-color:rgba(0,255,136,.22);box-shadow:0 4px 22px rgba(0,255,136,.06);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.1rem;}
+@media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.code-block{background:#010409;border:1px solid #1e293b;border-radius:.5rem;padding:1.1rem 1.4rem;font-family:'JetBrains Mono',monospace;font-size:.78rem;line-height:1.85;overflow-x:auto;color:#94a3b8;position:relative;white-space:pre-wrap;}
+.code-block .kw{color:var(--p);}
+.code-block .num{color:var(--o);}
+.code-block .cm{color:#334155;font-style:italic;}
+.code-block .fn{color:var(--g);}
+.code-block .hi{color:#fff;background:rgba(0,255,136,.1);border-radius:2px;padding:0 3px;}
+.code-block .warn{color:var(--r);}
+.code-block .str{color:var(--b);}
+
+.insight{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.14);border-left:3px solid var(--g);border-radius:.5rem;padding:1.15rem 1.4rem;margin-bottom:1.2rem;font-size:.88rem;line-height:1.82;color:#94a3b8;}
+.insight strong{color:var(--g);}
+.insight .label{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--g);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+
+.warn-box{background:rgba(255,68,102,.04);border:1px solid rgba(255,68,102,.18);border-left:3px solid var(--r);border-radius:.5rem;padding:1.05rem 1.3rem;font-size:.84rem;line-height:1.78;color:#94a3b8;margin-bottom:1.1rem;}
+.warn-box .label{font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--r);letter-spacing:.1em;display:block;margin-bottom:.35rem;}
+.warn-box strong{color:var(--r);}
+
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.62rem;padding:.18rem .48rem;border-radius:3px;margin:.12rem;}
+.tag-g{background:rgba(0,255,136,.09);color:var(--g);border:1px solid rgba(0,255,136,.18);}
+.tag-b{background:rgba(0,212,255,.09);color:var(--b);border:1px solid rgba(0,212,255,.18);}
+.tag-p{background:rgba(177,79,255,.09);color:var(--p);border:1px solid rgba(177,79,255,.18);}
+.tag-o{background:rgba(255,140,0,.09);color:var(--o);border:1px solid rgba(255,140,0,.18);}
+.tag-r{background:rgba(255,68,102,.09);color:var(--r);border:1px solid rgba(255,68,102,.18);}
+
+.tab-nav{display:flex;gap:.4rem;margin-bottom:.9rem;flex-wrap:wrap;}
+.tab-btn{font-family:'JetBrains Mono',monospace;font-size:.68rem;padding:.32rem .8rem;border-radius:4px;border:1px solid #1e293b;background:transparent;color:#475569;cursor:pointer;transition:all .2s;}
+.tab-btn.active,.tab-btn:hover{border-color:var(--g);color:var(--g);background:rgba(0,255,136,.07);}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+
+/* 数轴可视化 */
+.range-vis{position:relative;height:72px;margin:1rem 0;}
+.rv-track{position:absolute;bottom:28px;left:0;right:0;height:2px;background:#1e293b;}
+.rv-range{position:absolute;bottom:24px;height:10px;border-radius:3px;}
+.rv-label{position:absolute;bottom:0;font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;transform:translateX(-50%);}
+.rv-tick{position:absolute;bottom:22px;width:1px;height:14px;}
+.rv-marker{position:absolute;bottom:18px;width:3px;height:22px;border-radius:2px;transform:translateX(-50%);}
+
+/* bit-box */
+.bit-row{display:flex;gap:2px;flex-wrap:wrap;margin:.3rem 0;}
+.bit-cell{width:20px;height:20px;display:flex;align-items:center;justify-content:center;border-radius:2px;font-family:'JetBrains Mono',monospace;font-size:.65rem;border:1px solid #1e293b;transition:all .2s;}
+.bit-cell.one{background:rgba(0,255,136,.18);color:var(--g);border-color:rgba(0,255,136,.3);}
+.bit-cell.zero{background:#010409;color:#1e293b;}
+.bit-cell.hi{background:rgba(0,212,255,.18);color:var(--b);border-color:rgba(0,212,255,.3);}
+.bit-cell.warn{background:rgba(255,68,102,.18);color:var(--r);border-color:rgba(255,68,102,.3);}
+
+/* critic */
+.critic-box{background:linear-gradient(135deg,rgba(177,79,255,.05),rgba(0,212,255,.03));border:1px solid rgba(177,79,255,.22);border-radius:.75rem;padding:1.65rem;position:relative;overflow:hidden;}
+.critic-box::before{content:'// 深度点评';font-family:'JetBrains Mono',monospace;font-size:.63rem;color:var(--p);letter-spacing:.1em;display:block;margin-bottom:.9rem;}
+.critic-box h3{font-size:1rem;font-weight:700;color:#f1f5f9;margin-bottom:.7rem;}
+.critic-item{margin-bottom:1rem;padding-left:.9rem;border-left:2px solid rgba(177,79,255,.28);}
+.critic-item .ci-title{font-size:.81rem;font-weight:600;color:var(--p);margin-bottom:.28rem;}
+.critic-item p{font-size:.8rem;line-height:1.74;color:#64748b;}
+
+/* overflow demo */
+.ov-cell{padding:.55rem .75rem;border-radius:.3rem;font-family:'JetBrains Mono',monospace;font-size:.75rem;border:1px solid #1e293b;text-align:center;transition:all .2s;}
+.ov-cell.ok{background:rgba(0,255,136,.07);border-color:rgba(0,255,136,.22);color:var(--g);}
+.ov-cell.bad{background:rgba(255,68,102,.07);border-color:rgba(255,68,102,.22);color:var(--r);}
+.ov-cell.neutral{color:#64748b;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp .5s ease both;}
+
+footer{text-align:center;padding:2.5rem;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#1e293b;border-top:1px solid #0f172a;}
+footer a{color:var(--g);text-decoration:none;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,255,136,.28);}
+
+/* ═══ 左侧章节导航栏 ═══ */
+.sidebar-nav{
+  position:fixed;left:0;top:0;bottom:0;
+  width:180px;z-index:90;
+  background:rgba(5,8,16,.92);
+  backdrop-filter:blur(10px);
+  border-right:1px solid rgba(0,255,136,.12);
+  padding:1rem .5rem;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:transform .25s ease;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar-nav::-webkit-scrollbar{width:3px;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+
+.sidebar-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;color:var(--g);
+  letter-spacing:.08em;
+  padding:.4rem .6rem;
+  border-bottom:1px solid rgba(0,255,136,.15);
+  margin-bottom:.5rem;
+  flex-shrink:0;
+}
+
+.sidebar-section{
+  margin-bottom:.6rem;
+  display:flex;
+  flex-direction:column;
+}
+.sidebar-section-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.58rem;color:#475569;
+  padding:.3rem .6rem;
+  letter-spacing:.05em;
+  flex-shrink:0;
+}
+
+.sidebar-link{
+  display:block;
+  width:100%;
+  clear:both;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.68rem;
+  color:#64748b;
+  text-decoration:none;
+  padding:.25rem .6rem .25rem 1rem;
+  border-radius:3px;
+  transition:all .15s;
+  position:relative;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.sidebar-link:hover{color:var(--g);background:rgba(0,255,136,.06);}
+.sidebar-link.active{color:var(--g);background:rgba(0,255,136,.1);}
+.sidebar-link.active::before{
+  content:'';position:absolute;left:0;top:50%;
+  transform:translateY(-50%);
+  width:2px;height:14px;
+  background:var(--g);border-radius:1px;
+}
+
+.sidebar-toggle{
+  display:none;
+  position:fixed;left:.5rem;top:.85rem;z-index:95;
+  width:32px;height:32px;
+  background:rgba(5,8,16,.9);
+  border:1px solid rgba(0,255,136,.2);
+  border-radius:4px;
+  color:var(--g);
+  font-size:1.1rem;
+  cursor:pointer;
+}
+
+@media(max-width:1100px){
+  .sidebar-nav{transform:translateX(-100%);}
+  .sidebar-nav.open{transform:translateX(0);}
+  .sidebar-toggle{display:flex;align-items:center;justify-content:center;}
+  body{padding-left:0!important;}
+}
+
+@media(min-width:1101px){body{padding-left:180px;}}
+</style>
+</head>
+<body>
+
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
+  ☰
+</button>
+<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link active">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link">Ch.05 整数除法</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 位计数</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校验</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
+<canvas id="bg"></canvas>
+<div id="prog"></div>
+
+<div class="dot-nav" id="dotNav">
+  <div class="dot active"  data-sec="hero"     title="顶部"></div>
+  <div class="dot"         data-sec="bounds"   title="边界检查"></div>
+  <div class="dot"         data-sec="addprop"  title="加减传播"></div>
+  <div class="dot"         data-sec="logprop"  title="逻辑传播"></div>
+  <div class="dot"         data-sec="overflow" title="溢出检测"></div>
+  <div class="dot"         data-sec="history"  title="历史背景"></div>
+  <div class="dot"         data-sec="critique" title="深度点评"></div>
+</div>
+
+<nav>
+  <a class="nav-logo" href="index.html">← HACKER'S DELIGHT</a>
+  <div class="nav-links">
+    <a href="#bounds">边界检查</a>
+    <a href="#addprop">加减传播</a>
+    <a href="#logprop">逻辑传播</a>
+    <a href="#overflow">溢出检测</a>
+    <a href="#history">历史</a>
+    <a href="#critique">点评</a>
+  </div>
+</nav>
+
+<div id="app" x-data="app()" x-init="init()">
+
+<!-- ═══ HERO ═══ -->
+<div class="hero" id="hero">
+  <div class="chapter-badge">CHAPTER 04 · ARITHMETIC BOUNDS · 算术边界</div>
+  <h1 class="hero-title fade-up" style="animation-delay:.1s">算术边界</h1>
+  <p class="hero-sub fade-up" style="animation-delay:.2s">// 边界检查 · 加减传播 · 逻辑操作对范围的影响</p>
+  <p class="hero-desc fade-up" style="animation-delay:.3s">
+    第4章是全书中最具数学味道的一章，也是最容易被低估的一章。
+    Warren 在这里回答了一个核心问题：<strong style="color:var(--g)">当你对一个有界的整数做运算，
+    结果的范围是什么？</strong>
+    这听起来像是简单的算术，但在有符号/无符号的边界切换、溢出、位运算混用的环境下，
+    答案出人意料地微妙。编译器的值范围分析（Value Range Propagation）、
+    安全检查的边界推导、整型提升规则——都建立在这一章的数学基础上。
+  </p>
+  <div class="fade-up" style="animation-delay:.4s">
+    <span class="tag tag-g">bounds checking</span>
+    <span class="tag tag-b">range propagation</span>
+    <span class="tag tag-p">overflow detection</span>
+    <span class="tag tag-o">signed / unsigned</span>
+    <span class="tag tag-r">array index safety</span>
+    <span class="tag tag-g">compiler VRP</span>
+    <span class="tag tag-b">saturating arithmetic</span>
+  </div>
+</div>
+
+<!-- ═══ §4-1 边界检查 ═══ -->
+<section id="bounds">
+  <div class="sec-header">
+    <span class="sec-num">§4-1</span>
+    <span class="sec-title">整数边界检查 — Checking Bounds of Integers</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// THE CLASSIC TRICK: 两次比较 → 一次比较</span>
+    判断 <code style="color:var(--o)">a ≤ x ≤ b</code> 通常需要两次比较（两次分支）。
+    Warren 给出了一种将其合并为<strong>一次无符号比较</strong>的技巧：
+    <code style="color:var(--o)">(unsigned)(x - a) ≤ (unsigned)(b - a)</code>。
+    这在数组边界检查中极为常用——Java JVM 和现代 C 编译器的边界检查消除（BCE）
+    都依赖类似的变换，它把两次有符号比较压缩成一次无符号比较，减少了一次分支预测的代价。
+  </div>
+
+  <!-- 交互演示 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="boundsDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.9rem;">
+      🔬 边界检查优化演示 — 调整 a、x、b 观察两种方法的等价性
+    </div>
+    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem;align-items:flex-end;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">下界 a =</div>
+        <input type="range" min="-20" max="20" x-model.number="a" style="width:120px;accent-color:var(--g);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--g);margin-left:.4rem;" x-text="a"></span>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">测试值 x =</div>
+        <input type="range" min="-30" max="30" x-model.number="x" style="width:140px;accent-color:var(--b);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--b);margin-left:.4rem;" x-text="x"></span>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">上界 b =</div>
+        <input type="range" min="-20" max="30" x-model.number="b" style="width:120px;accent-color:var(--o);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--o);margin-left:.4rem;" x-text="b"></span>
+      </div>
+    </div>
+
+    <!-- 数轴可视化 -->
+    <div style="position:relative;height:56px;margin-bottom:1rem;background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:0 1.5rem;">
+      <div style="position:absolute;bottom:22px;left:1.5rem;right:1.5rem;height:2px;background:#1e293b;"></div>
+      <!-- 范围高亮 -->
+      <div :style="{
+        position:'absolute', bottom:'18px', height:'10px', borderRadius:'3px',
+        background:'rgba(0,255,136,.25)',
+        left: 'calc(1.5rem + '+Math.max(0,(a+30)/60*100)+'%)',
+        width: Math.max(0,(b-a)/60*100)+'%'
+      }"></div>
+      <!-- a marker -->
+      <div :style="{position:'absolute',bottom:'14px',left:'calc(1.5rem + '+((a+30)/60*100)+'%)',width:'2px',height:'18px',background:'var(--g)',borderRadius:'1px',transform:'translateX(-50%)'}"></div>
+      <div :style="{position:'absolute',bottom:'2px',left:'calc(1.5rem + '+((a+30)/60*100)+'%)',fontFamily:'JetBrains Mono',fontSize:'.55rem',color:'var(--g)',transform:'translateX(-50%)'}" x-text="'a='+a"></div>
+      <!-- b marker -->
+      <div :style="{position:'absolute',bottom:'14px',left:'calc(1.5rem + '+((b+30)/60*100)+'%)',width:'2px',height:'18px',background:'var(--o)',borderRadius:'1px',transform:'translateX(-50%)'}"></div>
+      <div :style="{position:'absolute',bottom:'2px',left:'calc(1.5rem + '+((b+30)/60*100)+'%)',fontFamily:'JetBrains Mono',fontSize:'.55rem',color:'var(--o)',transform:'translateX(-50%)'}" x-text="'b='+b"></div>
+      <!-- x marker -->
+      <div :style="{position:'absolute',bottom:'10px',left:'calc(1.5rem + '+((x+30)/60*100)+'%)',width:'3px',height:'26px',background: inBounds ? 'var(--b)' : 'var(--r)',borderRadius:'2px',transform:'translateX(-50%)',transition:'background .2s'}"></div>
+      <div :style="{position:'absolute',top:'4px',left:'calc(1.5rem + '+((x+30)/60*100)+'%)',fontFamily:'JetBrains Mono',fontSize:'.55rem',color: inBounds ? 'var(--b)' : 'var(--r)',transform:'translateX(-50%)'}" x-text="'x='+x"></div>
+    </div>
+
+    <!-- 两种方法对比 -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.7rem;">
+      <div :class="'ov-cell '+(inBounds?'ok':'bad')">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.3rem;">传统双重比较</div>
+        <div style="font-size:.78rem;" x-text="'a ≤ x ≤ b  →  '+a+' ≤ '+x+' ≤ '+b"></div>
+        <div style="font-size:.85rem;font-weight:700;margin-top:.2rem;" x-text="inBounds ? '✓ 在范围内' : '✗ 越界'"></div>
+      </div>
+      <div :class="'ov-cell '+(inBounds?'ok':'bad')">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.3rem;">单次无符号比较（Warren优化）</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.76rem;" x-text="'(uint)(x-a) ≤ (uint)(b-a)'"></div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#475569;margin-top:.2rem;" x-text="'= '+(x-a)+'u ≤ '+(b-a)+'u → '+(uBoundsOk?'true':'false')"></div>
+        <div style="font-size:.85rem;font-weight:700;margin-top:.1rem;" x-text="uBoundsOk ? '✓ 在范围内' : '✗ 越界'"></div>
+      </div>
+    </div>
+
+    <div class="insight" style="margin-top:.75rem;margin-bottom:0;">
+      <span class="label">// 原理</span>
+      将 x 平移使 a 成为原点：令 <code style="color:var(--o)">x' = x - a</code>，
+      则 <code style="color:var(--o)">a ≤ x ≤ b</code> 等价于 <code style="color:var(--o)">0 ≤ x' ≤ b-a</code>。
+      将 x' 解释为<strong>无符号数</strong>，负数变成很大的正数（>b-a），自然就越界了。
+      因此一次无符号比较即可完成双重判断。前提：<code style="color:var(--o)">b ≥ a</code>（合法区间）。
+    </div>
+  </div>
+
+  <!-- 代码实现 -->
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.7rem;">C 实现：有符号边界检查</div>
+      <div class="code-block">
+<span class="cm">// §4-1 边界检查: a ≤ x ≤ b (有符号整数)</span>
+<span class="cm">// 传统方法: 2次比较 2次分支</span>
+<span class="kw">int</span> <span class="fn">in_range_naive</span>(<span class="kw">int</span> x, <span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> (x &gt;= a) &amp;&amp; (x &lt;= b);
+}
+
+<span class="cm">// Warren 优化: 1次无符号比较</span>
+<span class="kw">int</span> <span class="fn">in_range</span>(<span class="kw">int</span> x, <span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">return</span> (<span class="kw">unsigned</span>)(x - a) &lt;= (<span class="kw">unsigned</span>)(b - a);
+}
+<span class="cm">// 注意: 要求 b >= a (合法区间)</span>
+<span class="cm">// x < a 时: x-a 是负数 → 无符号很大 → > b-a ✓</span>
+<span class="cm">// x > b 时: x-a > b-a → 越界 ✓</span>
+<span class="cm">// a ≤ x ≤ b: 0 ≤ x-a ≤ b-a ✓</span>
+
+<span class="cm">// 数组下标检查 (Java JVM 常用方式):</span>
+<span class="cm">// if ((unsigned)index >= (unsigned)length) throw AIOOBE</span>
+<span class="cm">// → 同时检测了 index<0 和 index>=length</span>
+<span class="cm">// → 减少一次分支, 对分支预测器更友好</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.7rem;">汇编对比 (x86-64, GCC -O2)</div>
+      <div class="code-block">
+<span class="cm">; 传统方法: in_range_naive(x, a, b)</span>
+<span class="cm">; edi=x, esi=a, edx=b</span>
+<span class="fn">cmp</span>   edi, esi        <span class="cm">; x >= a ?</span>
+<span class="fn">jl</span>    .out_of_range   <span class="cm">; 分支1</span>
+<span class="fn">cmp</span>   edi, edx        <span class="cm">; x <= b ?</span>
+<span class="fn">jg</span>    .out_of_range   <span class="cm">; 分支2</span>
+<span class="cm">; → 2次跳转, 2次分支预测</span>
+
+<span class="cm">; Warren 优化: in_range(x, a, b)</span>
+<span class="fn">sub</span>   edi, esi        <span class="cm">; x - a (有符号减)</span>
+<span class="fn">sub</span>   edx, esi        <span class="cm">; b - a</span>
+<span class="fn">cmp</span>   edi, edx        <span class="cm">; 无符号比较</span>
+<span class="fn">ja</span>    .out_of_range   <span class="cm">; 分支1 (jnbe/ja = unsigned >)</span>
+<span class="cm">; → 1次跳转, 1次分支预测</span>
+<span class="cm">; 节省: 1次CMP + 1次Jcc ≈ 2 cycles on Skylake</span>
+
+<span class="cm">; 完全无分支版本 (SIMD-friendly):</span>
+<span class="fn">sub</span>   edi, esi        <span class="cm">; x - a</span>
+<span class="fn">sub</span>   edx, esi        <span class="cm">; b - a</span>
+<span class="fn">xor</span>   eax, eax
+<span class="fn">cmp</span>   edi, edx
+<span class="fn">setbe</span> al              <span class="cm">; al = (x-a ≤ b-a) ? 1 : 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用场景表 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.75rem;">§4-1 边界检查的工业级应用场景</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.65rem;">
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);margin-bottom:.3rem;">Java JVM — 数组访问</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">每次 <code style="color:var(--o)">array[i]</code> 访问都插入 <code style="color:var(--o)">(unsigned)i >= length</code> 检查。JIT 通过循环不变量分析消除冗余检查（Bounds Check Elimination, BCE），但底层检查正是 Warren 的单次无符号比较。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--b);margin-bottom:.3rem;">Rust — 切片边界</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">Rust 切片的 <code style="color:var(--o)">index()</code 实现中, <code style="color:var(--o)">SliceIndex::index</code> 使用等价于 <code style="color:var(--o)">index >= len</code> 的无符号比较 panic，避免了有符号溢出 UB。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--o);margin-bottom:.3rem;">GCC/LLVM — 值范围分析</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;">编译器的 VRP（Value Range Propagation）Pass 在 SSA 形式上追踪每个变量的范围区间，利用 §4-1 的数学消除不可达的边界检查，减少代码体积和分支数量。</div>
+      </div>
+      <div style="padding:.65rem;background:#010409;border:1px solid #1e293b;border-radius:.35rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--p);margin-bottom:.3rem;">Linux 内核 — 用户空间指针</div>
+        <div style="font-size:.78rem;color:#64748b;line-height:1.65;"><code style="color:var(--o)">access_ok(addr, size)</code> 检查用户空间地址是否合法，内部用 <code style="color:var(--o)">(unsigned long)(addr + size) > TASK_SIZE</code>，与 Warren §4-1 同构，同时检查了地址溢出和越界。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ §4-2 加减法的范围传播 ═══ -->
+<section id="addprop">
+  <div class="sec-header">
+    <span class="sec-num">§4-2</span>
+    <span class="sec-title">加减法的范围传播 — Propagating Bounds through Add/Subtract</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// RANGE PROPAGATION: 结果的范围取决于操作数的范围</span>
+    如果已知 <code style="color:var(--o)">a ≤ x ≤ b</code> 且 <code style="color:var(--o)">c ≤ y ≤ d</code>，
+    那么 <code style="color:var(--o)">x + y</code> 的范围是什么？直觉告诉我们是 <code style="color:var(--o)">[a+c, b+d]</code>，
+    这对实数是正确的，但对有界整数有<strong>溢出的陷阱</strong>。
+    Warren §4-2 系统地给出了有符号和无符号整数在加法和减法下的范围传播规则，
+    以及如何检测传播过程中是否发生了溢出——这是编译器优化和静态分析工具的理论基础。
+  </div>
+
+  <!-- 交互：范围传播计算器 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="rangeCalc()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.9rem;">
+      🔬 范围传播计算器 — 输入 x 和 y 的范围，计算 x+y 和 x-y 的结果范围
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--g);margin-bottom:.5rem;">x 的范围 [a, b]</div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;">a =</div>
+            <input type="number" x-model.number="xa" style="width:70px;background:#010409;border:1px solid #1e293b;color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.25rem .4rem;border-radius:3px;">
+          </div>
+          <span style="color:#334155;font-family:'JetBrains Mono',monospace;">~</span>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;">b =</div>
+            <input type="number" x-model.number="xb" style="width:70px;background:#010409;border:1px solid #1e293b;color:var(--g);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.25rem .4rem;border-radius:3px;">
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--b);margin-bottom:.5rem;">y 的范围 [c, d]</div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;">c =</div>
+            <input type="number" x-model.number="yc" style="width:70px;background:#010409;border:1px solid #1e293b;color:var(--b);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.25rem .4rem;border-radius:3px;">
+          </div>
+          <span style="color:#334155;font-family:'JetBrains Mono',monospace;">~</span>
+          <div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:.6rem;color:#475569;">d =</div>
+            <input type="number" x-model.number="yd" style="width:70px;background:#010409;border:1px solid #1e293b;color:var(--b);font-family:'JetBrains Mono',monospace;font-size:.78rem;padding:.25rem .4rem;border-radius:3px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 结果 -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.6rem;">
+      <div class="ov-cell" :class="addOverflow?'bad':'ok'">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">x + y 的范围</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;" x-text="'[' + (xa+yc) + ', ' + (xb+yd) + ']'"></div>
+        <div style="font-size:.7rem;margin-top:.2rem;" :style="{color: addOverflow?'var(--r)':'var(--g)'}" x-text="addOverflow ? '⚠ 可能溢出 (超过INT_MAX/MIN)' : '✓ 安全范围内'"></div>
+      </div>
+      <div class="ov-cell" :class="subOverflow?'bad':'ok'">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">x - y 的范围</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;" x-text="'[' + (xa-yd) + ', ' + (xb-yc) + ']'"></div>
+        <div style="font-size:.7rem;margin-top:.2rem;" :style="{color: subOverflow?'var(--r)':'var(--g)'}" x-text="subOverflow ? '⚠ 可能溢出' : '✓ 安全范围内'"></div>
+      </div>
+      <div class="ov-cell neutral">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">32位有符号 INT 范围</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#475569;">[-2147483648, 2147483647]</div>
+        <div style="font-size:.7rem;margin-top:.2rem;color:#334155;">= [-2³¹, 2³¹-1]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 规则代码 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div class="tab-nav">
+      <button class="tab-btn active" @click="tabAdd='signed'">有符号规则</button>
+      <button class="tab-btn" @click="tabAdd='unsigned'">无符号规则</button>
+      <button class="tab-btn" @click="tabAdd='overflow'">溢出检测</button>
+    </div>
+    <div class="tab-pane" :class="tabAdd==='signed'?'active':''">
+      <div class="code-block">
+<span class="cm">// §4-2 有符号整数加减法的范围传播</span>
+<span class="cm">// 设 x ∈ [a,b], y ∈ [c,d], 全为有符号32位整数</span>
+
+<span class="cm">// ★ 加法: x + y ∈ [a+c, b+d]</span>
+<span class="cm">// 前提: 不发生溢出!</span>
+<span class="cm">// 溢出条件: a+c < INT_MIN 或 b+d > INT_MAX</span>
+<span class="cm">// 检测方法 (Warren):</span>
+<span class="kw">int</span> add_lo = a + c;
+<span class="kw">int</span> add_hi = b + d;
+<span class="kw">bool</span> add_overflow =
+    (c &lt; <span class="num">0</span> &amp;&amp; add_lo &gt; a) ||    <span class="cm">// 下界负溢出</span>
+    (d &gt; <span class="num">0</span> &amp;&amp; add_hi &lt; b);     <span class="cm">// 上界正溢出</span>
+<span class="cm">// 若溢出: 结果范围退化为 [INT_MIN, INT_MAX] (最保守估计)</span>
+
+<span class="cm">// ★ 减法: x - y ∈ [a-d, b-c]</span>
+<span class="cm">// (减去y, y越大结果越小, y越小结果越大)</span>
+<span class="kw">int</span> sub_lo = a - d;
+<span class="kw">int</span> sub_hi = b - c;
+<span class="kw">bool</span> sub_overflow =
+    (d &gt; <span class="num">0</span> &amp;&amp; sub_lo &gt; a) ||    <span class="cm">// 下界负溢出</span>
+    (c &lt; <span class="num">0</span> &amp;&amp; sub_hi &lt; b);     <span class="cm">// 上界正溢出</span>
+
+<span class="cm">// 重要推论: 若 x ∈ [a,b] 且 a,b ≥ 0，则:</span>
+<span class="cm">//   x+y ≥ 0 当 y ≥ -a (即 y ≥ -(MIN_OF_X))</span>
+<span class="cm">//   这是编译器消除溢出检查的关键依据</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tabAdd==='unsigned'?'active':''">
+      <div class="code-block">
+<span class="cm">// §4-2 无符号整数加减法的范围传播</span>
+<span class="cm">// 设 x ∈ [a,b], y ∈ [c,d], 全为无符号32位整数</span>
+
+<span class="cm">// ★ 加法: x + y ∈ [a+c, b+d] (模2³²)</span>
+<span class="cm">// 无符号溢出检测 (Warren §4-2):</span>
+<span class="kw">unsigned</span> add_lo = a + c;
+<span class="kw">unsigned</span> add_hi = b + d;
+<span class="kw">bool</span> lo_wrapped = add_lo &lt; a;   <span class="cm">// 进位 → 模2³²回绕</span>
+<span class="kw">bool</span> hi_wrapped = add_hi &lt; b;   <span class="cm">// 进位 → 模2³²回绕</span>
+
+<span class="cm">// 若 lo 回绕但 hi 未回绕: 范围跨越 UINT_MAX</span>
+<span class="cm">// → 保守估计为 [0, UINT_MAX] (全范围)</span>
+<span class="cm">// 若两者都回绕: 结果仍然是连续区间 [a+c, b+d] (均wrap)</span>
+<span class="cm">// 若两者都不回绕: 正常 [a+c, b+d]</span>
+
+<span class="cm">// ★ 减法: x - y ∈ [a-d, b-c] (模2³²)</span>
+<span class="cm">// 无符号借位检测:</span>
+<span class="kw">unsigned</span> sub_lo = a - d;
+<span class="kw">unsigned</span> sub_hi = b - c;
+<span class="kw">bool</span> sub_wrapped = (a &lt; d) || (b &lt; c);
+<span class="cm">// 若 a < d: a-d 借位 → 模2³² 很大</span>
+<span class="cm">// 这在 Linux 内核的指针差值计算中必须小心!</span>
+
+<span class="cm">// 关键应用: 证明 (x & mask) 不溢出</span>
+<span class="cm">// 因为 AND 永远不增大操作数 → AND 结果永远 ≤ 两个操作数</span>
+<span class="cm">// → 无符号加法 (x&m) + (y&n) ≤ m + n</span>
+      </div>
+    </div>
+    <div class="tab-pane" :class="tabAdd==='overflow'?'active':''">
+      <div class="code-block">
+<span class="cm">// §4-2 溢出检测: 确保范围传播后结果仍有意义</span>
+<span class="cm">// 这些方法同时也是 §2-13 Overflow Detection 的延伸</span>
+
+<span class="cm">// ★ 有符号加法溢出检测 (3种等价方法):</span>
+
+<span class="cm">// 方法1: 检查结果符号 (Warren §2-13, 最经典)</span>
+<span class="kw">int</span> s = a + b;
+<span class="kw">bool</span> ov1 = (~(a ^ b) &amp; (a ^ s)) &lt; <span class="num">0</span>;
+<span class="cm">// 原理: 只有当 a,b 同号且结果异号时才溢出</span>
+<span class="cm">// ~(a^b): a,b 同号时最高位为1</span>
+<span class="cm">// (a^s):  a,结果异号时最高位为1</span>
+<span class="cm">// AND 后最高位 = 两者都满足 = 溢出</span>
+
+<span class="cm">// 方法2: C++20 标准库 (最推荐)</span>
+<span class="kw">bool</span> ov2 = __builtin_add_overflow(a, b, &amp;s);
+
+<span class="cm">// 方法3: 扩展到64位计算后检查</span>
+<span class="kw">long long</span> s64 = (<span class="kw">long long</span>)a + (<span class="kw">long long</span>)b;
+<span class="kw">bool</span> ov3 = s64 &gt; INT_MAX || s64 &lt; INT_MIN;
+
+<span class="cm">// 方法4: 利用 LLVM/GCC 产生的 ADDO 指令</span>
+<span class="cm">// x86: ADD + INTO/JO (overflow flag)</span>
+<span class="cm">// ARM: ADDS + BVS (V flag)</span>
+
+<span class="cm">// ★ 无符号加法溢出 (进位检测):</span>
+<span class="kw">unsigned</span> u = a + b;
+<span class="kw">bool</span> uov = u &lt; a;  <span class="cm">// 若进位则 u < a ✓ (1条指令)</span>
+
+<span class="cm">// ★ Rust: checked_add / saturating_add / wrapping_add</span>
+<span class="cm">// → 把溢出行为显式化, 彻底消除 UB</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 范围传播图 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.5rem;">
+      📊 有符号整数加法范围传播示意（x ∈ [-10,20], y 范围变化）
+    </div>
+    <div id="chart-range" style="width:100%;height:260px;"></div>
+  </div>
+</section>
+
+<!-- ═══ §4-3 逻辑操作的范围传播 ═══ -->
+<section id="logprop">
+  <div class="sec-header">
+    <span class="sec-num">§4-3</span>
+    <span class="sec-title">逻辑操作的范围传播 — Propagating Bounds through Logical Ops</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// THE HARDER PROBLEM: 位运算不保持线性结构</span>
+    加法的范围传播是线性的（区间加区间还是区间），但 AND/OR/XOR 的范围传播
+    <strong>不遵守线性规则</strong>。例如：x ∈ [3, 5]（即 011 ~ 101），
+    y ∈ [0, 15]（即 0000 ~ 1111），则 x & y 的上界是多少？
+    直觉说是 min(5,15) = 5，但实际上需要逐位分析。
+    Warren §4-3 给出了基于"位掩码"的上下界计算方法——这是编译器做
+    <strong>位运算结果范围推断</strong>的理论根基，也是 eBPF 验证器的核心算法之一。
+  </div>
+
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.7rem;">AND 的范围传播</div>
+      <div class="code-block">
+<span class="cm">// §4-3 AND 操作: z = x & y</span>
+<span class="cm">// x ∈ [a,b], y ∈ [c,d] (无符号)</span>
+
+<span class="cm">// 上界: z_max = min(b, d)</span>
+<span class="cm">// AND 永远不增大操作数，所以结果 ≤ 两者中的较小者</span>
+<span class="kw">unsigned</span> z_max = <span class="fn">min</span>(b, d);
+
+<span class="cm">// 下界: 更复杂，Warren 给出以下方法:</span>
+<span class="cm">// 对于无符号: z_min = 0 (保守估计，总是正确的)</span>
+<span class="cm">// 精确下界需要逐位分析 (见 §4-3 详细推导)</span>
+<span class="kw">unsigned</span> z_min_conservative = <span class="num">0</span>;
+
+<span class="cm">// Warren 精确算法 (基于区间的位传播):</span>
+<span class="cm">// 令 m = ~(b & d): 找出 b 和 d 中最高的不同位</span>
+<span class="kw">unsigned</span> m = ~(b &amp; d);
+<span class="cm">// m 的最高位标识了需要"退一步"的位置</span>
+<span class="cm">// 这个算法的完整版见Warren原书图4-2</span>
+
+<span class="cm">// 关键性质:</span>
+<span class="cm">// (x & C) ∈ [0, C]  — AND 常数时上界就是常数</span>
+<span class="cm">// (x & x) = x       — 平凡情况</span>
+<span class="cm">// (x & 0) = 0       — AND零得零</span>
+
+<span class="cm">// eBPF 验证器 (Linux 5.x) 的 AND 范围推断:</span>
+<span class="cm">// dst_reg.umax_value = min(dst_reg.umax, src_reg.umax)</span>
+<span class="cm">// dst_reg.umin_value = 0 (保守)</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.7rem;">OR / XOR 的范围传播</div>
+      <div class="code-block">
+<span class="cm">// §4-3 OR 操作: z = x | y</span>
+<span class="cm">// x ∈ [a,b], y ∈ [c,d] (无符号)</span>
+
+<span class="cm">// 下界: z_min = max(b, d) (OR只会置位, 不清位)</span>
+<span class="cm">// 更精确: z_min = max(a, c) (但 max(b,d) 不对!)</span>
+<span class="cm">// 实际: z_min = a | c  (两者的"已知1位"都保留)</span>
+<span class="kw">unsigned</span> or_min = a | c;   <span class="cm">// 下界: 两者都是1的位必然是1</span>
+
+<span class="cm">// 上界: Warren §4-3 精确算法</span>
+<span class="cm">// 令 m = 找到 b|d 中使区间"向上扩展"的最高位</span>
+<span class="kw">unsigned</span> m_or = b | d;
+<span class="cm">// 保守上界: 两者可置位的所有位都置1</span>
+<span class="kw">unsigned</span> or_max = b | d;   <span class="cm">// 简单保守估计</span>
+
+<span class="cm">// XOR 操作: z = x ^ y</span>
+<span class="cm">// XOR 的范围传播最难精确, 通常用保守估计:</span>
+<span class="cm">// z_min = 0  (两者相同时XOR=0)</span>
+<span class="cm">// z_max = b | d  (所有可能置位的位)</span>
+<span class="kw">unsigned</span> xor_min = <span class="num">0</span>;
+<span class="kw">unsigned</span> xor_max = b | d;
+
+<span class="cm">// 关键性质:</span>
+<span class="cm">// (x | C) ∈ [C, C | UINT_MAX] — OR 常数时下界是常数</span>
+<span class="cm">// (x | 0) = x   — OR零不变</span>
+<span class="cm">// (x ^ x) = 0   — XOR自身得零</span>
+<span class="cm">// (x ^ ~x) = UINT_MAX</span>
+
+<span class="cm">// LLVM ConstantRange::binaryOr / binaryAnd</span>
+<span class="cm">// 实现了 Warren §4-3 的完整算法</span>
+      </div>
+    </div>
+  </div>
+  <!-- eBPF 验证器 -->
+  <div class="card" style="margin-bottom:1.2rem;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.75rem;">📦 真实案例：eBPF 验证器的位范围分析</div>
+    <div class="insight" style="margin-bottom:.7rem;">
+      <span class="label">// LINUX KERNEL eBPF VERIFIER — kernel/bpf/verifier.c</span>
+      Linux eBPF 程序在加载时必须通过内核验证器的<strong>静态分析</strong>，
+      确保每条指令不会产生越界内存访问、非法指针运算等危险操作。
+      验证器对每个寄存器维护一个"值范围"结构体（<code style="color:var(--o)">struct bpf_reg_state</code>），
+      包含 <code style="color:var(--o)">smin/smax</code>（有符号）和 <code style="color:var(--o)">umin/umax</code>（无符号）四个边界，
+      在每条 AND/OR/ADD/SUB 指令后用 §4-2/§4-3 的算法更新这些边界。
+      如果验证器无法证明某次内存访问是安全的，程序加载失败。
+    </div>
+    <div class="code-block">
+<span class="cm">// 简化版 eBPF 寄存器状态 (参考 linux/bpf.h)</span>
+<span class="kw">struct</span> bpf_reg_state {
+    <span class="kw">s64</span> smin_value;   <span class="cm">// 有符号下界</span>
+    <span class="kw">s64</span> smax_value;   <span class="cm">// 有符号上界</span>
+    <span class="kw">u64</span> umin_value;   <span class="cm">// 无符号下界</span>
+    <span class="kw">u64</span> umax_value;   <span class="cm">// 无符号上界</span>
+    <span class="kw">u64</span> var_off.mask; <span class="cm">// 未知位的掩码 (tnum)</span>
+    <span class="kw">u64</span> var_off.value;<span class="cm">// 已知位的值  (tnum)</span>
+};
+
+<span class="cm">// AND 指令后更新 (scalar_min_max_and):</span>
+<span class="kw">void</span> <span class="fn">scalar_min_max_and</span>(reg1, reg2, dst) {
+    dst.umax_value = <span class="fn">min</span>(reg1.umax_value, reg2.umax_value); <span class="cm">// Warren §4-3</span>
+    dst.umin_value = <span class="num">0</span>;   <span class="cm">// 保守下界</span>
+    <span class="cm">// 若两者都非负: 有符号边界同无符号</span>
+    <span class="kw">if</span> (reg1.smin_value &gt;= <span class="num">0</span> &amp;&amp; reg2.smin_value &gt;= <span class="num">0</span>) {
+        dst.smax_value = dst.umax_value;
+        dst.smin_value = <span class="num">0</span>;
+    }
+}
+
+<span class="cm">// 典型验证场景:</span>
+<span class="cm">// r1 = map_value_ptr (已知指向合法内存)</span>
+<span class="cm">// r2 = user_input    (未知, smin=-∞, smax=+∞)</span>
+<span class="cm">// r2 &= 0xFF         → 验证器更新: r2 ∈ [0, 255] (§4-3 AND常数)</span>
+<span class="cm">// r1 += r2           → 验证器更新: r1偏移 ∈ [0, 255] (§4-2 加法传播)</span>
+<span class="cm">// 读 [r1]            → 偏移已证明在界内, 允许! ✓</span>
+    </div>
+  </div>
+
+  <!-- 逻辑传播交互演示 -->
+  <div class="card" x-data="bitwiseRangeDemo()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--p);margin-bottom:.9rem;">
+      🔬 位运算范围传播演示 — 8位无符号数
+    </div>
+    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-bottom:.9rem;align-items:flex-end;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">x 的上界 b (8bit)</div>
+        <input type="range" min="0" max="255" x-model.number="xb" style="width:130px;accent-color:var(--g);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--g);margin-left:.4rem;" x-text="xb+' (0b'+xb.toString(2).padStart(8,'0')+')'"></span>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">y 的上界 d (8bit)</div>
+        <input type="range" min="0" max="255" x-model.number="yd" style="width:130px;accent-color:var(--b);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--b);margin-left:.4rem;" x-text="yd+' (0b'+yd.toString(2).padStart(8,'0')+')'"></span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;">
+      <div class="ov-cell ok">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">x AND y 上界</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;" x-text="Math.min(xb,yd)"></div>
+        <div style="font-size:.68rem;color:#475569;margin-top:.2rem;" x-text="'= min('+xb+','+yd+')'"></div>
+      </div>
+      <div class="ov-cell" style="border-color:rgba(0,212,255,.22);background:rgba(0,212,255,.06);">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">x OR y 上界</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--b);" x-text="(xb|yd)"></div>
+        <div style="font-size:.68rem;color:#475569;margin-top:.2rem;" x-text="'= '+xb+'|'+yd+' = 0b'+(xb|yd).toString(2).padStart(8,'0')"></div>
+      </div>
+      <div class="ov-cell" style="border-color:rgba(177,79,255,.22);background:rgba(177,79,255,.06);">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.25rem;">x XOR y 上界</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--p);" x-text="(xb|yd)"></div>
+        <div style="font-size:.68rem;color:#475569;margin-top:.2rem;" x-text="'(保守: '+xb+'|'+yd+')'"></div>
+      </div>
+    </div>
+    <div class="insight" style="margin-top:.75rem;margin-bottom:0;font-size:.78rem;">
+      <span class="label">// 位视图</span>
+      <div style="display:flex;gap:.35rem;flex-direction:column;margin-top:.3rem;">
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--g);width:60px;">b (x上界)</span>
+          <div class="bit-row" style="margin:0;">
+            <template x-for="(bit,i) in xb.toString(2).padStart(8,'0').split('')" :key="i">
+              <div class="bit-cell" :class="bit==='1'?'one':'zero'" x-text="bit"></div>
+            </template>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--b);width:60px;">d (y上界)</span>
+          <div class="bit-row" style="margin:0;">
+            <template x-for="(bit,i) in yd.toString(2).padStart(8,'0').split('')" :key="i">
+              <div class="bit-cell" :class="bit==='1'?'hi':'zero'" x-text="bit"></div>
+            </template>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--o);width:60px;">b|d (OR上界)</span>
+          <div class="bit-row" style="margin:0;">
+            <template x-for="(bit,i) in (xb|yd).toString(2).padStart(8,'0').split('')" :key="i">
+              <div class="bit-cell" :class="bit==='1'?'warn':'zero'" x-text="bit"></div>
+            </template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══ §4-4 溢出检测与饱和算术 ═══ -->
+<section id="overflow">
+  <div class="sec-header">
+    <span class="sec-num">§4-4</span>
+    <span class="sec-title">溢出检测与饱和算术 — Overflow Detection & Saturating Arithmetic</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">// OVERFLOW: THE ROOT OF ALL EVIL IN INTEGER ARITHMETIC</span>
+    §4-2 的范围传播告诉我们结果范围，但当实际计算发生时，溢出可能已经造成了破坏。
+    Warren §4-4 在传播理论之上给出了<strong>运行时溢出检测</strong>的高效实现，
+    以及一种优雅的替代：<strong>饱和算术（Saturating Arithmetic）</strong>——
+    溢出时把结果夹在 [INT_MIN, INT_MAX]，而不是回绕。
+    这在图像/音频/DSP处理中极为重要（像素值溢出不应该从 255 回绕到 0）。
+  </div>
+
+  <!-- 溢出可视化 -->
+  <div class="card" style="margin-bottom:1.2rem;" x-data="overflowVis()">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--r);margin-bottom:.9rem;">
+      🔬 溢出 vs 饱和 对比演示 — 8位有符号整数 [-128, 127]
+    </div>
+
+    <div style="display:flex;gap:1.2rem;flex-wrap:wrap;margin-bottom:.9rem;align-items:flex-end;">
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">操作数 a =</div>
+        <input type="range" min="-128" max="127" x-model.number="a"
+               style="width:140px;accent-color:var(--r);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--r);margin-left:.4rem;"
+              x-text="a"></span>
+      </div>
+      <div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#475569;margin-bottom:.3rem;">操作数 b =</div>
+        <input type="range" min="-128" max="127" x-model.number="b"
+               style="width:140px;accent-color:var(--o);">
+        <span style="font-family:'JetBrains Mono',monospace;color:var(--o);margin-left:.4rem;"
+              x-text="b"></span>
+      </div>
+    </div>
+
+    <!-- 四格结果 -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.6rem;margin-bottom:.8rem;">
+      <div class="ov-cell" :class="(a+b)<-128||(a+b)>127 ? 'bad':'ok'">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.2rem;">回绕加法 (C 默认)</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;" x-text="wrappedAdd"></div>
+        <div style="font-size:.7rem;margin-top:.15rem;"
+             x-text="((a+b)<-128||(a+b)>127) ? '⚠ 溢出回绕!' : '✓ 正常'"></div>
+      </div>
+      <div class="ov-cell ok">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.2rem;">饱和加法 (clamp)</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--g);"
+             x-text="saturatedAdd"></div>
+        <div style="font-size:.7rem;color:var(--g);margin-top:.15rem;">✓ 夹在 [-128, 127]</div>
+      </div>
+      <div class="ov-cell" :class="(a-b)<-128||(a-b)>127 ? 'bad':'ok'">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.2rem;">回绕减法</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;" x-text="wrappedSub"></div>
+        <div style="font-size:.7rem;margin-top:.15rem;"
+             x-text="((a-b)<-128||(a-b)>127) ? '⚠ 溢出回绕!' : '✓ 正常'"></div>
+      </div>
+      <div class="ov-cell ok">
+        <div style="font-size:.65rem;color:#475569;margin-bottom:.2rem;">饱和减法 (clamp)</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:1rem;color:var(--b);"
+             x-text="saturatedSub"></div>
+        <div style="font-size:.7rem;color:var(--b);margin-top:.15rem;">✓ 夹在 [-128, 127]</div>
+      </div>
+    </div>
+
+    <!-- 数轴可视化 -->
+    <div style="background:#010409;border:1px solid #1e293b;border-radius:.4rem;padding:.75rem 1.2rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;margin-bottom:.5rem;">
+        8位有符号数轴 [-128 ... 0 ... 127]
+      </div>
+      <div style="position:relative;height:48px;">
+        <!-- 轨道 -->
+        <div style="position:absolute;top:18px;left:0;right:0;height:2px;background:#1e293b;"></div>
+        <!-- INT_MIN 刻度 -->
+        <div style="position:absolute;top:11px;left:0;width:1px;height:14px;background:var(--r);"></div>
+        <div style="position:absolute;bottom:2px;left:0;
+                    font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--r);">-128</div>
+        <!-- 0 刻度 -->
+        <div style="position:absolute;top:13px;left:50%;width:1px;height:10px;background:#334155;"></div>
+        <div style="position:absolute;bottom:2px;left:50%;transform:translateX(-50%);
+                    font-family:'JetBrains Mono',monospace;font-size:.55rem;color:#334155;">0</div>
+        <!-- INT_MAX 刻度 -->
+        <div style="position:absolute;top:11px;right:0;width:1px;height:14px;background:var(--r);"></div>
+        <div style="position:absolute;bottom:2px;right:0;
+                    font-family:'JetBrains Mono',monospace;font-size:.55rem;color:var(--r);">127</div>
+
+        <!-- 回绕结果指针（仅在未越界时显示） -->
+        <div :style="{
+               position:'absolute', top:'8px',
+               left:'calc('+(((wrappedAdd+128)/255)*100)+'%)',
+               width:'3px', height:'20px',
+               background:'var(--r)', borderRadius:'2px',
+               transform:'translateX(-50%)',
+               opacity: ((a+b)<-128||(a+b)>127) ? 0 : 1,
+               transition:'left .15s'
+             }"></div>
+        <!-- 回绕结果标签 -->
+        <div :style="{
+               position:'absolute', top:'0px',
+               left:'calc('+(((wrappedAdd+128)/255)*100)+'%)',
+               fontFamily:'JetBrains Mono', fontSize:'.52rem',
+               color:'var(--r)', transform:'translateX(-50%)',
+               opacity: ((a+b)<-128||(a+b)>127) ? 0 : 1
+             }" x-text="'w:'+wrappedAdd"></div>
+
+        <!-- 饱和结果指针 -->
+        <div :style="{
+               position:'absolute', top:'6px',
+               left:'calc('+(((saturatedAdd+128)/255)*100)+'%)',
+               width:'3px', height:'24px',
+               background:'var(--g)', borderRadius:'2px',
+               transform:'translateX(-50%)',
+               transition:'left .15s'
+             }"></div>
+        <!-- 饱和结果标签 -->
+        <div :style="{
+               position:'absolute', top:'-1px',
+               left:'calc('+(((saturatedAdd+128)/255)*100)+'%)',
+               fontFamily:'JetBrains Mono', fontSize:'.52rem',
+               color:'var(--g)', transform:'translateX(-50%)'
+             }" x-text="'s:'+saturatedAdd"></div>
+      </div>
+    </div>
+
+    <div class="insight" style="margin-top:.75rem;margin-bottom:0;">
+      <span class="label">// 关键差异</span>
+      当 <code style="color:var(--o)">a + b</code> 超出 <code style="color:var(--o)">[-128, 127]</code> 时：
+      <strong>回绕</strong>（红色指针）会消失——结果越界无意义；
+      <strong>饱和</strong>（绿色指针）会停在边界 ±127，始终是一个有意义的值。
+      调整滑块令 <code style="color:var(--o)">a = 100, b = 100</code> 可直观看到差异。
+    </div>
+  </div><!-- /card overflowVis -->
+
+  <!-- 饱和算术代码 -->
+  <div class="grid-2" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.7rem;">
+        饱和加法实现 (多种方法)
+      </div>
+      <div class="code-block">
+<span class="cm">// §4-4 饱和加法: 溢出时夹到边界</span>
+
+<span class="cm">// 方法1: 朴素方法 (有分支, 最慢)</span>
+<span class="kw">int</span> <span class="fn">sadd_naive</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">long long</span> r = (<span class="kw">long long</span>)a + b;
+  <span class="kw">if</span> (r &gt; INT_MAX) <span class="kw">return</span> INT_MAX;
+  <span class="kw">if</span> (r &lt; INT_MIN) <span class="kw">return</span> INT_MIN;
+  <span class="kw">return</span> (<span class="kw">int</span>)r;
+}
+
+<span class="cm">// 方法2: Warren §4-4 无分支 (位操作)</span>
+<span class="kw">int</span> <span class="fn">sadd_branchless</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">unsigned</span> ua = a, ub = b;
+  <span class="kw">unsigned</span> s  = ua + ub;
+  <span class="cm">// 溢出检测: 同号相加且结果异号</span>
+  <span class="kw">unsigned</span> ov = (~(ua ^ ub) &amp; (ua ^ s)) &gt;&gt; <span class="num">31</span>;
+  <span class="cm">// ov=1 → 溢出;  ov=0 → 正常</span>
+  <span class="cm">// 构造饱和边界值:</span>
+  <span class="cm">// a<0  → sat = INT_MIN = 0x80000000</span>
+  <span class="cm">// a>=0 → sat = INT_MAX = 0x7FFFFFFF</span>
+  <span class="kw">unsigned</span> sat = (ua &gt;&gt; <span class="num">31</span>) + (<span class="kw">unsigned</span>)INT_MAX;
+  <span class="kw">return</span> (<span class="kw">int</span>)(ov ? sat : s);
+  <span class="cm">// 完全无分支: SELECT(ov, sat, s)</span>
+  <span class="cm">// 编译器会生成 CMOV (条件移动) 指令</span>
+}
+
+<span class="cm">// 方法3: GCC/Clang 内建 (推荐)</span>
+<span class="kw">int</span> <span class="fn">sadd_builtin</span>(<span class="kw">int</span> a, <span class="kw">int</span> b) {
+  <span class="kw">int</span> s;
+  <span class="kw">if</span> (__builtin_add_overflow(a, b, &s))
+    <span class="kw">return</span> a > <span class="num">0</span> ? INT_MAX : INT_MIN;
+  <span class="kw">return</span> s;
+}
+
+<span class="cm">// 方法4: x86 SIMD 饱和加法 (最快)</span>
+<span class="cm">// _mm_adds_epi16 — SSE2 饱和加法 (8个16位)</span>
+<span class="cm">// _mm_adds_epu8  — SSE2 无符号饱和加法 (16个8位)</span>
+<span class="cm">// → 音频/图像处理的标准选择</span>
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.7rem;">饱和减法 / 无符号饱和算术</div>
+      <div class="code-block">
+<span class="cm">// §4-4 无符号饱和加法</span>
+<span class="kw">unsigned</span> <span class="fn">usadd</span>(<span class="kw">unsigned</span> a, <span class="kw">unsigned</span> b) {
+  <span class="kw">unsigned</span> s = a + b;
+  <span class="cm">// 无符号加法溢出检测: s < a (进位)</span>
+  <span class="kw">return</span> s | -(s &lt; a);
+  <span class="cm">// s < a 时: -(1) = 0xFFFFFFFF → s|0xFFFF = UINT_MAX</span>
+  <span class="cm">// s >= a 时: -(0) = 0        → s|0     = s</span>
+  <span class="cm">// 巧妙: 1条减法+1条OR, 完全无分支!</span>
+}
+
+<span class="cm">// 无符号饱和减法 (下界为0)</span>
+<span class="kw">unsigned</span> <span class="fn">ussub</span>(<span class="kw">unsigned</span> a, <span class="kw">unsigned</span> b) {
+  <span class="kw">unsigned</span> d = a - b;
+  <span class="cm">// a < b 时: d借位 → 很大, 应返回0</span>
+  <span class="kw">return</span> d &amp; -(a &gt;= b);
+  <span class="cm">// a >= b: -(1) = 0xFFFF → d & 0xFFFF = d ✓</span>
+  <span class="cm">// a <  b: -(0) = 0      → d & 0     = 0 ✓</span>
+}
+
+<span class="cm">// ARM 架构原生支持:</span>
+<span class="cm">// QADD  — 有符号饱和加 (Q flag)</span>
+<span class="cm">// QSUB  — 有符号饱和减</span>
+<span class="cm">// UQADD — 无符号饱和加</span>
+<span class="cm">// UQSUB — 无符号饱和减</span>
+<span class="cm">// → DSP/音频处理器标配, 1周期完成</span>
+
+<span class="cm">// 应用: 音频混音 (16位样本)</span>
+<span class="cm">// mixed = sadd16(track1, track2)</span>
+<span class="cm">// 避免: 255+255=510 回绕到 254 (爆音!)</span>
+<span class="cm">// 饱和: 255+255=255 (正确截幅)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图表: 饱和 vs 回绕 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--o);margin-bottom:.5rem;">
+      📊 饱和算术 vs 回绕算术 — 加法结果对比（a 固定为 100，b 从 -128 到 127）
+    </div>
+    <div id="chart-sat" style="width:100%;height:260px;"></div>
+  </div>
+</section>
+
+<!-- ═══ §4-5 历史与背景 ═══ -->
+<section id="history">
+  <div class="sec-header">
+    <span class="sec-num">§4-5</span>
+    <span class="sec-title">历史背景与跨语言对比</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1.2rem;">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--g);margin-bottom:.55rem;">🕰 Ada (1983)</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        Ada 是最早将<strong style="color:#94a3b8">整数子范围类型</strong>内置到语言规范的语言。
+        <code style="color:var(--o)">subtype Index is Integer range 0..99;</code>
+        编译器自动在边界处插入检查，越界抛出
+        <code style="color:var(--r)">Constraint_Error</code>。
+        Warren §4-1 的"单次无符号比较"正是此类运行时检查的高效实现。
+        Ada 至今仍是航空航天软件（DO-178C）的首选语言，其整数语义被精确定义到比特级别。
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--b);margin-bottom:.55rem;">🦀 Rust (2015)</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        Rust 的整数类型在 <strong style="color:#94a3b8">debug 模式</strong>下默认检测溢出（panic），
+        release 模式下回绕（与 C 无符号行为一致）。
+        标准库提供四族方法：
+        <code style="color:var(--o)">checked_add</code>（返回 Option），
+        <code style="color:var(--o)">saturating_add</code>（§4-4 饱和语义），
+        <code style="color:var(--o)">wrapping_add</code>（显式回绕），
+        <code style="color:var(--o)">overflowing_add</code>（返回 (结果, 是否溢出)）。
+        彻底消除了 C/C++ 中有符号溢出 UB 的安全隐患。
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--p);margin-bottom:.55rem;">☕ Java (1995)</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        Java 整数<strong style="color:#94a3b8">始终回绕</strong>（两种补码，无 UB），
+        但数组越界抛 <code style="color:var(--r)">ArrayIndexOutOfBoundsException</code>。
+        JVM 的 JIT（HotSpot C2）用 Warren §4-1 的无符号单次比较实现数组越界检查，
+        并通过<strong style="color:#94a3b8">循环无关量提升（Loop Invariant Code Motion）</strong>和
+        <strong style="color:#94a3b8">边界检查消除（BCE）</strong>将热循环中的检查从 O(n) 降到 O(1)。
+        JDK 16+ 加入了 <code style="color:var(--o)">Math.clamp()</code> 实现饱和语义。
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--o);margin-bottom:.55rem;">🛡 C (UB 地雷区)</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        C 标准规定<strong style="color:#94a3b8">有符号整数溢出是未定义行为（UB）</strong>，
+        这允许编译器在 -O2 下删除溢出检查代码（认为溢出不会发生）。
+        著名案例：Linux 内核曾因 <code style="color:var(--r)">i+1 &lt; i</code> 检查被 GCC 优化删除
+        导致安全漏洞（CVE-2009-1897）。
+        <code style="color:var(--o)">-fsanitize=undefined</code>（UBSan）可在运行时检测，
+        但生产环境开销较大。Warren §4-4 的无分支位操作方案是在 C 中安全处理溢出的最优解。
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--r);margin-bottom:.55rem;">🔥 Swift (2014)</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        Swift 默认对所有整数运算进行溢出检查，溢出时 <strong style="color:#94a3b8">trap（崩溃）</strong>而非 UB。
+        提供溢出操作符 <code style="color:var(--o)">&+</code>、<code style="color:var(--o)">&-</code>、<code style="color:var(--o)">&*</code>
+        用于显式允许回绕（性能敏感路径）。
+        Swift 的整数溢出语义经过 ABI 稳定化（Swift 5），
+        底层实现完全依赖 LLVM 的 <code style="color:var(--o)">@llvm.sadd.with.overflow</code> 内建函数，
+        对应 x86 的 <code style="color:var(--o)">ADD + JO</code> 双指令，性能接近无检查版本。
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--g);margin-bottom:.55rem;">🔧 DSP / 嵌入式</div>
+      <div style="font-size:.8rem;line-height:1.72;color:#64748b;">
+        数字信号处理器（DSP）将<strong style="color:#94a3b8">饱和算术</strong>作为硬件原生特性。
+        TI C55x、Qualcomm Hexagon、ARM Cortex-M 的 DSP 扩展
+        均提供单周期饱和加减乘指令。
+        音频编解码（MP3/AAC/Opus）、图像滤波（卷积核运算）和
+        神经网络量化（INT8 推理）大量依赖饱和语义，
+        避免回绕导致的信号失真和模型精度损失。
+      </div>
+    </div>
+  </div>
+
+  <!-- 时间线 -->
+  <div class="card">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:1rem;">📅 整数算术安全的演进时间线</div>
+    <div style="position:relative;padding-left:1.5rem;">
+      <div style="position:absolute;left:.65rem;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--g),var(--b),var(--p));opacity:.35;"></div>
+      <template x-for="(ev, i) in timeline" :key="i">
+        <div style="position:relative;margin-bottom:1rem;padding-left:.5rem;">
+          <div style="position:absolute;left:-1.2rem;top:.3rem;width:8px;height:8px;border-radius:50%;background:var(--g);box-shadow:0 0 6px var(--g);"></div>
+          <div style="display:flex;align-items:baseline;gap:.5rem;flex-wrap:wrap;">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);" x-text="ev.year"></span>
+            <span style="font-size:.82rem;font-weight:600;color:#e2e8f0;" x-text="ev.title"></span>
+          </div>
+          <div style="font-size:.78rem;color:#64748b;line-height:1.65;margin-top:.2rem;" x-text="ev.desc"></div>
+        </div>
+      </template>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 深度点评 ═══ -->
+<section id="critique">
+  <div class="sec-header">
+    <span class="sec-num">§CRIT</span>
+    <span class="sec-title">深度点评 — 第4章的价值与局限</span>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="critic-box" style="margin-bottom:1.2rem;">
+    <h3>第4章：被低估的理论基石</h3>
+    <div class="critic-item">
+      <div class="ci-title">✦ 数学严谨性远超同类书籍</div>
+      <p>Warren 在本章给出了完整的<strong>区间算术（Interval Arithmetic）</strong>框架，
+      区别于一般的"经验技巧"，这是有数学证明支撑的系统性理论。
+      每一个传播规则都附有溢出条件的精确描述，这在同类位操作书籍中极为罕见。
+      LLVM 的 <code>ConstantRange</code> 类（约 3000 行 C++）和 GCC 的 VRP Pass
+      本质上就是对这一框架的工程实现。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ §4-1 的"单次无符号比较"影响深远</div>
+      <p>这个看似简单的技巧渗透到了 JVM 字节码验证器、eBPF 安全检查、
+      Rust 切片索引、WebAssembly 线性内存访问等几乎所有现代运行时的安全基础设施中。
+      本质是将"有界性判断"从代数域转换到模算术域，
+      利用无符号整数的"负数即大数"特性一次完成双重检查。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ 逻辑操作传播的精确性有所保守</div>
+      <p>§4-3 对 XOR 的处理采用了保守估计（下界为0，上界为 b|d），
+      这在编译器优化中会导致精度损失。现代编译器（LLVM 14+）已引入
+      <strong>tnum（tristate number）</strong>表示，用三态位（0/1/unknown）
+      追踪每一位的已知状态，精度远超区间方法。
+      Warren 的区间方法更适合理解原理，tnum 更适合工程实践。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">✦ 饱和算术一节是 DSP 工程师的必读内容</div>
+      <p>§4-4 的无分支饱和加法 <code>s | -(s &lt; a)</code> 是教科书级别的技巧——
+      利用无符号溢出检测（s&lt;a）生成全1或全0掩码，与结果 OR 实现饱和。
+      整个操作在现代 CPU 上只需 2-3 条指令，比 if-else 分支快约 3 倍。
+      这对实时音频（44.1kHz × 32声道的混音引擎）的性能至关重要。</p>
+    </div>
+    <div class="critic-item">
+      <div class="ci-title">⚠ 时代局限：未覆盖 C/C++ UB 语义</div>
+      <p>第一版写于 2002 年，彼时编译器对有符号溢出 UB 的激进优化尚不普遍。
+      现代 GCC/Clang 在 -O2 下可能删除基于溢出假设的代码，
+      使部分示例在实际编译时行为不符合预期。
+      建议配合 <code>-fwrapv</code>（GCC）或 <code>-fsanitize=undefined</code> 使用，
+      或改写为无符号操作（UB-free）。这是本章最大的工程陷阱。</p>
+    </div>
+  </div>
+
+  <!-- 雷达图 -->
+  <div class="grid-2">
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--g);margin-bottom:.5rem;">
+        📊 第4章各小节实用价值评估
+      </div>
+      <div id="chart-radar" style="width:100%;height:280px;"></div>
+    </div>
+    <div class="card">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--b);margin-bottom:.5rem;">
+        📊 §4-2 加法范围传播：结果区间随 y 上界变化
+      </div>
+      <div id="chart-range" style="width:100%;height:280px;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ 章节导航 ═══ -->
+<div style="max-width:1100px;margin:0 auto;padding:0 1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">
+  <a href="ch03.html" style="display:flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;background:var(--card);border:1px solid #1e293b;border-radius:.6rem;text-decoration:none;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:.78rem;transition:all .2s;" onmouseover="this.style.borderColor='rgba(0,255,136,.35)';this.style.color='var(--g)'" onmouseout="this.style.borderColor='#1e293b';this.style.color='#94a3b8'">
+    ← Ch.03 · 能力计数
+  </a>
+  <div style="font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#1e293b;">Chapter 04 / Hacker's Delight</div>
+  <a href="ch05.html" style="display:flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;background:var(--card);border:1px solid #1e293b;border-radius:.6rem;text-decoration:none;color:#94a3b8;font-family:'JetBrains Mono',monospace;font-size:.78rem;transition:all .2s;" onmouseover="this.style.borderColor='rgba(0,255,136,.35)';this.style.color='var(--g)'" onmouseout="this.style.borderColor='#1e293b';this.style.color='#94a3b8'">
+    Ch.05 · 整数除法 →
+  </a>
+</div>
+
+<footer>
+  <div>// HACKER'S DELIGHT — Chapter 04 · Arithmetic Bounds</div>
+  <div style="margin-top:.4rem;">Interactive Study Notes · Built with Alpine.js + ECharts · <a href="index.html">返回目录</a></div>
+</footer>
+
+</div><!-- #app -->
+
+<script>
+/* ═══════════════════════════════════
+   全局 Alpine 根组件
+═══════════════════════════════════ */
+function app() {
+  return {
+    tabAdd: 'signed',
+    timeline: [
+      { year: '1957', title: 'FORTRAN — 整数溢出静默回绕', desc: 'IBM 704 上 FORTRAN I 的整数运算发生溢出时结果回绕，无任何检测机制。这一"传统"沿用至今成为 C 无符号语义的根基。' },
+      { year: '1983', title: 'Ada — 范围子类型与运行时检查', desc: 'Ada 83 引入 subtype range，编译器自动插入边界检查，溢出抛 Constraint_Error。是最早系统化处理整数边界的主流语言。' },
+      { year: '1990', title: 'GNU C — -ftrapv 旗标', desc: 'GCC 引入 -ftrapv，使有符号整数溢出产生 SIGABRT 而非 UB。但性能开销使其几乎不用于生产环境。' },
+      { year: '2002', title: "Hacker's Delight 第一版", desc: 'Warren 系统整理边界检查、范围传播、溢出检测和饱和算术的位技巧，奠定了后来编译器优化和运行时安全检查的理论基础。' },
+      { year: '2009', title: 'CVE-2009-1897 — GCC 优化删除溢出检查', desc: 'Linux 内核因有符号溢出 UB 被 GCC -O2 删除边界检查代码，引发本地提权漏洞。正式敲响 C 整数 UB 安全的警钟。' },
+      { year: '2012', title: 'LLVM ConstantRange 成熟', desc: 'LLVM 的 ConstantRange 类实现完整的 §4-2/4-3 区间算术，支持加减乘除、AND/OR/XOR 的精确范围传播，成为现代编译器 VRP 的基础设施。' },
+      { year: '2015', title: 'Rust 1.0 — checked/saturating/wrapping 三族 API', desc: 'Rust 将溢出行为显式化为四种 API，彻底消除有符号整数 UB。debug 模式 panic, release 模式 wrapping，可显式选择 saturating。' },
+      { year: '2020', title: 'C++20 — std::bit_cast, __builtin_add_overflow 标准化', desc: 'C++20 提供 std::bit_cast 安全类型双关，GCC/Clang 的 __builtin_*_overflow 被广泛采用为跨平台溢出检测标准方案。' },
+      { year: '2022', title: 'eBPF 验证器 — 基于 §4-3 的 tnum 位分析', desc: 'Linux eBPF 验证器整合 tristate number (tnum) 和区间范围双轨追踪，精确推断每条 AND/OR 指令后的寄存器值域，保证内核安全。' },
+    ],
+    init() {
+      this.$nextTick(() => {
+        this.initBg();
+        this.initProgress();
+        this.initDotNav();
+        this.initScrollFade();
+        this.initCharts();
+      });
+    },
+    initBg() {
+      const canvas = document.getElementById('bg');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [], mouse = {x:0, y:0};
+      const resize = () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+      for (let i = 0; i < 55; i++) {
+        particles.push({
+          x: Math.random()*2000, y: Math.random()*1200,
+          vx: (Math.random()-.5)*.28, vy: (Math.random()-.5)*.28,
+          r: Math.random()*1.5+.3,
+          c: ['rgba(0,255,136,', 'rgba(0,212,255,', 'rgba(177,79,255,'][Math.floor(Math.random()*3)],
+          a: Math.random()*.35+.06
+        });
+      }
+      const draw = () => {
+        ctx.clearRect(0,0,W,H);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x<0) p.x=W; if (p.x>W) p.x=0;
+          if (p.y<0) p.y=H; if (p.y>H) p.y=0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+          ctx.fillStyle = p.c + p.a + ')';
+          ctx.fill();
+        });
+        particles.forEach((p,i) => {
+          particles.slice(i+1).forEach(q => {
+            const dx=p.x-q.x, dy=p.y-q.y, d=Math.sqrt(dx*dx+dy*dy);
+            if (d<130) {
+              ctx.beginPath();
+              ctx.moveTo(p.x,p.y); ctx.lineTo(q.x,q.y);
+              ctx.strokeStyle=p.c+((.12*(1-d/130)))+')';
+              ctx.lineWidth=.5; ctx.stroke();
+            }
+          });
+        });
+        requestAnimationFrame(draw);
+      };
+      draw();
+    },
+    initProgress() {
+      const bar = document.getElementById('prog');
+      window.addEventListener('scroll', () => {
+        const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+        bar.style.width = pct + '%';
+      });
+    },
+    initDotNav() {
+      const dots = document.querySelectorAll('.dot');
+      const secs = ['hero','bounds','addprop','logprop','overflow','history','critique'];
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          if (en.isIntersecting) {
+            const idx = secs.indexOf(en.target.id);
+            if (idx>=0) {
+              dots.forEach(d=>d.classList.remove('active'));
+              dots[idx]?.classList.add('active');
+            }
+          }
+        });
+      }, { threshold: 0.3 });
+      secs.forEach(id => { const el=document.getElementById(id); if(el) obs.observe(el); });
+      dots.forEach((d,i) => {
+        d.addEventListener('click', () => {
+          const el = document.getElementById(secs[i]);
+          if(el) el.scrollIntoView({behavior:'smooth'});
+        });
+      });
+    },
+    initScrollFade() {
+      const obs = new IntersectionObserver(entries => {
+        entries.forEach(en => {
+          if (en.isIntersecting) {
+            en.target.style.opacity='1';
+            en.target.style.transform='translateY(0)';
+            obs.unobserve(en.target);
+          }
+        });
+      }, {threshold:.1});
+      document.querySelectorAll('.card,.insight,.warn-box,.critic-box').forEach(el=>{
+        el.style.transition='opacity .45s ease, transform .45s ease';
+        el.style.opacity='0'; el.style.transform='translateY(16px)';
+        obs.observe(el);
+      });
+    },
+    initCharts() {
+      this.$nextTick(() => {
+        this.initRadarChart();
+        this.initRangeChart();
+        this.initSatChart();
+      });
+    },
+    initRadarChart() {
+      const el = document.getElementById('chart-radar');
+      if (!el || typeof echarts === 'undefined') return;
+      const chart = echarts.init(el, 'dark');
+      chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { backgroundColor:'#0d1117', borderColor:'rgba(0,255,136,.3)', textStyle:{color:'#e2e8f0',fontFamily:'JetBrains Mono',fontSize:11} },
+        radar: {
+          indicator: [
+            {name:'实用性', max:10}, {name:'数学严谨性', max:10},
+            {name:'工程影响力', max:10}, {name:'可读性', max:10},
+            {name:'现代相关性', max:10}, {name:'独特性', max:10}
+          ],
+          axisLine: {lineStyle:{color:'rgba(0,255,136,.15)'}},
+          splitLine: {lineStyle:{color:'rgba(0,255,136,.08)'}},
+          splitArea: {areaStyle:{color:['rgba(0,255,136,.03)','rgba(0,212,255,.02)']}},
+          nameTextStyle: {color:'#64748b', fontFamily:'JetBrains Mono', fontSize:11}
+        },
+        series: [{
+          type: 'radar',
+          data: [
+            { value:[9,9,10,7,9,8], name:'§4-1 边界检查',
+              areaStyle:{color:'rgba(0,255,136,.1)'}, lineStyle:{color:'rgba(0,255,136,.8)'}, itemStyle:{color:'rgba(0,255,136,1)'} },
+            { value:[8,9,8,7,9,7], name:'§4-2 加减传播',
+              areaStyle:{color:'rgba(0,212,255,.08)'}, lineStyle:{color:'rgba(0,212,255,.7)'}, itemStyle:{color:'rgba(0,212,255,1)'} },
+            { value:[7,9,9,6,9,9], name:'§4-3 逻辑传播',
+              areaStyle:{color:'rgba(177,79,255,.08)'}, lineStyle:{color:'rgba(177,79,255,.7)'}, itemStyle:{color:'rgba(177,79,255,1)'} },
+            { value:[9,8,9,8,10,8], name:'§4-4 饱和算术',
+              areaStyle:{color:'rgba(255,140,0,.08)'}, lineStyle:{color:'rgba(255,140,0,.7)'}, itemStyle:{color:'rgba(255,140,0,1)'} }
+          ]
+        }],
+        legend: { bottom:0, textStyle:{color:'#475569',fontSize:10,fontFamily:'JetBrains Mono'} }
+      });
+      window.addEventListener('resize', ()=>chart.resize());
+    },
+    initRangeChart() {
+      const el = document.getElementById('chart-range');
+      if (!el || typeof echarts === 'undefined') return;
+      const chart = echarts.init(el, 'dark');
+      const yVals = Array.from({length:41}, (_,i) => i-20);
+      const loVals = yVals.map(y => -10 + y);
+      const hiVals = yVals.map(y =>  20 + y);
+      chart.setOption({
+        backgroundColor:'transparent',
+        tooltip:{trigger:'axis', backgroundColor:'#0d1117', borderColor:'rgba(0,255,136,.3)', textStyle:{color:'#e2e8f0',fontFamily:'JetBrains Mono',fontSize:11}},
+        grid:{left:'12%',right:'5%',top:'12%',bottom:'14%'},
+        xAxis:{type:'category', data:yVals, axisLine:{lineStyle:{color:'#1e293b'}}, axisLabel:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10}, name:'y 的下界 c (x∈[-10,20])', nameTextStyle:{color:'#334155',fontSize:10}},
+        yAxis:{axisLine:{lineStyle:{color:'#1e293b'}}, splitLine:{lineStyle:{color:'#0f172a'}}, axisLabel:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10}, name:'x+y 范围', nameTextStyle:{color:'#334155',fontSize:10}},
+        series:[
+          {name:'x+y 下界', type:'line', data:loVals, smooth:true, lineStyle:{color:'rgba(0,255,136,.8)',width:2}, areaStyle:{color:'rgba(0,255,136,.06)'}, symbol:'none'},
+          {name:'x+y 上界', type:'line', data:hiVals, smooth:true, lineStyle:{color:'rgba(0,212,255,.8)',width:2}, areaStyle:{color:'rgba(0,212,255,.06)'}, symbol:'none'},
+          {name:'INT_MAX', type:'line', data:yVals.map(()=>2147483647), lineStyle:{color:'rgba(255,68,102,.4)',width:1,type:'dashed'}, symbol:'none'},
+          {name:'INT_MIN', type:'line', data:yVals.map(()=>-2147483648), lineStyle:{color:'rgba(255,68,102,.4)',width:1,type:'dashed'}, symbol:'none'}
+        ],
+        legend:{bottom:0, textStyle:{color:'#475569',fontSize:10,fontFamily:'JetBrains Mono'}}
+      });
+      window.addEventListener('resize', ()=>chart.resize());
+    },
+    initSatChart() {
+      const el = document.getElementById('chart-sat');
+      if (!el || typeof echarts === 'undefined') return;
+      const chart = echarts.init(el, 'dark');
+      const bVals = Array.from({length:256},(_,i)=>i-128);
+      const a = 100;
+      const wrapped = bVals.map(b => {
+        let r = a + b;
+        if (r > 127) r -= 256;
+        if (r < -128) r += 256;
+        return r;
+      });
+      const saturated = bVals.map(b => Math.max(-128, Math.min(127, a + b)));
+      chart.setOption({
+        backgroundColor:'transparent',
+        tooltip:{trigger:'axis', backgroundColor:'#0d1117', borderColor:'rgba(0,255,136,.3)', textStyle:{color:'#e2e8f0',fontFamily:'JetBrains Mono',fontSize:11}},
+        grid:{left:'12%',right:'5%',top:'12%',bottom:'14%'},
+        xAxis:{type:'category', data:bVals.filter((_,i)=>i%16===0), axisLine:{lineStyle:{color:'#1e293b'}}, axisLabel:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10}, name:'b 的值', nameTextStyle:{color:'#334155',fontSize:10}},
+        yAxis:{min:-128,max:127, axisLine:{lineStyle:{color:'#1e293b'}}, splitLine:{lineStyle:{color:'#0f172a'}}, axisLabel:{color:'#334155',fontFamily:'JetBrains Mono',fontSize:10}, name:'a+b 结果 (a=100)', nameTextStyle:{color:'#334155',fontSize:10}},
+        series:[
+          {name:'回绕加法', type:'line', data:wrapped, smooth:false, lineStyle:{color:'rgba(255,68,102,.75)',width:1.5}, symbol:'none'},
+          {name:'饱和加法', type:'line', data:saturated, smooth:false, lineStyle:{color:'rgba(0,255,136,.85)',width:2}, symbol:'none'}
+        ],
+        legend:{bottom:0, textStyle:{color:'#475569',fontSize:10,fontFamily:'JetBrains Mono'}}
+      });
+      window.addEventListener('resize', ()=>chart.resize());
+    }
+  };
+}
+
+/* ═══ 子组件 ═══ */
+function boundsDemo() {
+  return {
+    a: -5, x: 3, b: 10,
+    get inBounds() { return this.x >= this.a && this.x <= this.b; },
+    get uBoundsOk() {
+      const xu = (this.x - this.a) >>> 0;
+      const bu = (this.b - this.a) >>> 0;
+      return xu <= bu;
+    }
+  };
+}
+
+function rangeCalc() {
+  return {
+    xa: -10, xb: 20, yc: -5, yd: 15,
+    get addOverflow() {
+      const lo = this.xa + this.yc, hi = this.xb + this.yd;
+      return lo < -2147483648 || hi > 2147483647;
+    },
+    get subOverflow() {
+      const lo = this.xa - this.yd, hi = this.xb - this.yc;
+      return lo < -2147483648 || hi > 2147483647;
+    }
+  };
+}
+
+function bitwiseRangeDemo() {
+  return { xb: 93, yd: 154 };
+}
+
+function overflowVis() {
+  return {
+    a: 100, b: 50,
+    get wrappedAdd() {
+      let r = this.a + this.b;
+      if (r > 127) r -= 256;
+      if (r < -128) r += 256;
+      return r;
+    },
+    get saturatedAdd() { return Math.max(-128, Math.min(127, this.a + this.b)); },
+    get wrappedSub() {
+      let r = this.a - this.b;
+      if (r > 127) r -= 256;
+      if (r < -128) r += 256;
+      return r;
+    },
+    get saturatedSub() { return Math.max(-128, Math.min(127, this.a - this.b)); }
+  };
+}
+</script>
+</body>
+</html>

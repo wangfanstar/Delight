@@ -1,0 +1,1467 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ch.01 — 奠定基础 | Hacker's Delight</title>
+  <link rel="stylesheet" href="tailwind.css"/>
+  <script src="alpine.min.js" defer></script>
+  <script src="echarts.min.js"></script>
+  <style>
+
+    :root {
+      --green:  #00ff88;
+      --blue:   #00d4ff;
+      --purple: #b14fff;
+      --orange: #ff8c00;
+      --red:    #ff4466;
+      --dark:   #050810;
+      --card:   #0d1117;
+      --border: rgba(0,255,136,.18);
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html{scroll-behavior:smooth;}
+
+    body{
+      background:var(--dark);
+      color:#e2e8f0;
+      font-family:'Inter',sans-serif;
+      min-height:100vh;
+      overflow-x:hidden;
+      font-size:17px;
+    }
+
+    /* scanlines */
+    body::after{
+      content:'';position:fixed;inset:0;
+      background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);
+      pointer-events:none;z-index:0;
+    }
+
+    canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+    #app{position:relative;z-index:1;}
+
+    /* ── NAV ── */
+    nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;
+      background:rgba(5,8,16,.85);
+      backdrop-filter:blur(12px);
+      border-bottom:1px solid var(--border);
+      padding:.75rem 2rem;
+      display:flex;align-items:center;justify-content:space-between;
+    }
+    .nav-logo{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.8rem;color:var(--green);
+      text-decoration:none;
+    }
+    .nav-links{display:flex;gap:1.5rem;}
+    .nav-links a{
+      font-family:'JetBrains Mono',monospace;font-size:.72rem;
+      color:#475569;text-decoration:none;
+      transition:color .2s;
+    }
+    .nav-links a:hover{color:var(--green);}
+
+    /* ── HERO ── */
+    .hero{
+      padding:7rem 2rem 3rem;
+      text-align:center;
+      max-width:900px;margin:0 auto;
+    }
+    .chapter-badge{
+      display:inline-block;
+      font-family:'JetBrains Mono',monospace;font-size:.7rem;
+      color:var(--green);border:1px solid var(--green);
+      padding:.3rem 1rem;border-radius:999px;
+      letter-spacing:.15em;margin-bottom:1.5rem;
+      animation:badge-pulse 2.5s ease-in-out infinite;
+    }
+    @keyframes badge-pulse{
+      0%,100%{box-shadow:0 0 6px rgba(0,255,136,.4);}
+      50%{box-shadow:0 0 20px rgba(0,255,136,.8);}
+    }
+    .hero-num{
+      font-size:clamp(5rem,14vw,11rem);
+      font-weight:900;
+      font-family:'JetBrains Mono',monospace;
+      background:linear-gradient(135deg,#1e293b 0%,var(--green) 60%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;
+      line-height:1;
+      opacity:.15;
+      position:absolute;left:50%;transform:translateX(-50%);
+      pointer-events:none;user-select:none;
+    }
+    .hero-title{
+      font-size:clamp(2rem,5vw,3.8rem);
+      font-weight:900;
+      background:linear-gradient(135deg,#fff 0%,var(--green) 55%,var(--blue) 100%);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+      background-clip:text;line-height:1.15;
+      margin-bottom:.5rem;position:relative;
+    }
+    .hero-sub{
+      font-family:'JetBrains Mono',monospace;
+      color:#475569;font-size:.95rem;
+      margin-bottom:2rem;
+    }
+    .hero-desc{
+      color:#94a3b8;font-size:1.05rem;line-height:1.8;
+      max-width:700px;margin:0 auto 3rem;
+    }
+
+    /* ── SECTION ── */
+    section{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;}
+
+    .sec-header{
+      display:flex;align-items:center;gap:.75rem;
+      margin-bottom:1.75rem;
+    }
+    .sec-num{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.7rem;color:var(--green);
+      background:rgba(0,255,136,.08);
+      border:1px solid rgba(0,255,136,.2);
+      padding:.25rem .6rem;border-radius:4px;
+      white-space:nowrap;
+    }
+    .sec-title{
+      font-size:1.4rem;font-weight:700;color:#f1f5f9;
+    }
+    .sec-divider{
+      flex:1;height:1px;
+      background:linear-gradient(90deg,rgba(0,255,136,.3),transparent);
+    }
+
+    /* ── CARDS ── */
+    .card{
+      background:var(--card);
+      border:1px solid #1e293b;
+      border-radius:.75rem;
+      padding:1.5rem;
+      transition:border-color .25s,box-shadow .25s;
+    }
+    .card:hover{
+      border-color:rgba(0,255,136,.3);
+      box-shadow:0 4px 24px rgba(0,255,136,.08);
+    }
+
+    /* ── GRID ── */
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+    @media(max-width:768px){
+      .grid-2,.grid-3{grid-template-columns:1fr;}
+    }
+
+    /* ── CODE ── */
+    .code-block{
+      background:#010409;
+      border:1px solid #1e293b;
+      border-radius:.5rem;
+      padding:1.25rem 1.5rem;
+      font-family:'JetBrains Mono',monospace;
+      font-size:.82rem;
+      line-height:1.75;
+      overflow-x:auto;
+      color:#94a3b8;
+      white-space:pre-wrap;
+    }
+    .code-block .kw{color:var(--purple);}
+    .code-block .num{color:var(--orange);}
+    .code-block .cm{color:#334155;font-style:italic;}
+    .code-block .fn{color:var(--green);}
+    .code-block .str{color:var(--blue);}
+    .code-block .op{color:var(--red);}
+
+    /* ── BIT VIZ ── */
+    .bit-row{
+      display:flex;gap:3px;flex-wrap:wrap;
+      font-family:'JetBrains Mono',monospace;
+      font-size:.85rem;
+    }
+    .bit-cell{
+      width:32px;height:32px;
+      display:flex;align-items:center;justify-content:center;
+      border-radius:4px;
+      border:1px solid #1e293b;
+      cursor:pointer;
+      transition:all .15s;
+      user-select:none;
+    }
+    .bit-cell.one{background:rgba(0,255,136,.15);color:var(--green);border-color:rgba(0,255,136,.3);}
+    .bit-cell.zero{background:#0d1117;color:#334155;}
+    .bit-cell:hover{transform:scale(1.1);}
+
+    /* ── TIMELINE ── */
+    .timeline{
+      position:relative;
+      padding-left:2rem;
+    }
+    .timeline::before{
+      content:'';
+      position:absolute;left:.5rem;top:0;bottom:0;
+      width:1px;
+      background:linear-gradient(180deg,var(--green),var(--purple),transparent);
+    }
+    .tl-item{
+      position:relative;
+      margin-bottom:2rem;
+    }
+    .tl-dot{
+      position:absolute;left:-1.6rem;top:.35rem;
+      width:10px;height:10px;border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 8px var(--green);
+    }
+    .tl-year{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.72rem;color:var(--green);
+      margin-bottom:.2rem;
+    }
+    .tl-title{font-size:.95rem;font-weight:600;color:#f1f5f9;margin-bottom:.35rem;}
+    .tl-desc{font-size:.85rem;color:#64748b;line-height:1.65;}
+
+    /* ── OPERATOR TABLE ── */
+    .op-table{
+      width:100%;
+      border-collapse:collapse;
+      font-family:'JetBrains Mono',monospace;
+      font-size:.8rem;
+    }
+    .op-table th{
+      text-align:left;padding:.5rem .75rem;
+      background:#0d1117;
+      color:var(--green);
+      border-bottom:1px solid #1e293b;
+      letter-spacing:.05em;
+      font-size:.7rem;
+    }
+    .op-table td{
+      padding:.5rem .75rem;
+      border-bottom:1px solid rgba(30,41,59,.6);
+      color:#94a3b8;
+    }
+    .op-table tr:hover td{background:rgba(0,255,136,.04);}
+    .op-table .prec-high td:first-child{color:var(--orange);}
+    .op-table .prec-med  td:first-child{color:var(--blue);}
+    .op-table .prec-low  td:first-child{color:var(--purple);}
+
+    /* ── INSIGHT CALLOUT ── */
+    .insight{
+      background:rgba(0,255,136,.04);
+      border:1px solid rgba(0,255,136,.15);
+      border-left:3px solid var(--green);
+      border-radius:.5rem;
+      padding:1.25rem 1.5rem;
+      margin-bottom:1.25rem;
+      font-size:.9rem;line-height:1.75;
+      color:#94a3b8;
+    }
+    .insight strong{color:var(--green);}
+    .insight .label{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.68rem;color:var(--green);
+      letter-spacing:.1em;
+      display:block;margin-bottom:.5rem;
+    }
+
+    /* ── CRITIC ── */
+    .critic-box{
+      background:linear-gradient(135deg,rgba(177,79,255,.06),rgba(0,212,255,.04));
+      border:1px solid rgba(177,79,255,.25);
+      border-radius:.75rem;
+      padding:1.75rem;
+      position:relative;
+      overflow:hidden;
+    }
+    .critic-box::before{
+      content:'🧐 深度点评';
+      font-family:'JetBrains Mono',monospace;
+      font-size:.68rem;
+      color:var(--purple);
+      letter-spacing:.1em;
+      display:block;margin-bottom:1rem;
+    }
+    .critic-box h3{
+      font-size:1.1rem;font-weight:700;
+      color:#f1f5f9;margin-bottom:.75rem;
+    }
+    .critic-item{
+      margin-bottom:1rem;
+      padding-left:1rem;
+      border-left:2px solid rgba(177,79,255,.3);
+    }
+    .critic-item .ci-title{
+      font-size:.85rem;font-weight:600;
+      color:var(--purple);margin-bottom:.3rem;
+    }
+    .critic-item p{
+      font-size:.83rem;line-height:1.7;color:#64748b;
+    }
+
+    /* ── CHART ── */
+    .chart-wrap{
+      width:100%;height:320px;
+    }
+
+    /* ── TABS ── */
+    .tabs-nav{
+      display:flex;gap:.5rem;
+      margin-bottom:1rem;
+      flex-wrap:wrap;
+    }
+    .tab-btn{
+      font-family:'JetBrains Mono',monospace;font-size:.72rem;
+      padding:.35rem .9rem;border-radius:4px;
+      border:1px solid #1e293b;
+      background:transparent;color:#475569;
+      cursor:pointer;transition:all .2s;
+    }
+    .tab-btn.active,.tab-btn:hover{
+      border-color:var(--green);color:var(--green);
+      background:rgba(0,255,136,.08);
+    }
+    .tab-pane{display:none;}
+    .tab-pane.active{display:block;}
+
+    /* ── BADGE TAGS ── */
+    .tag{
+      display:inline-block;
+      font-family:'JetBrains Mono',monospace;font-size:.65rem;
+      padding:.2rem .5rem;border-radius:3px;
+      margin:.15rem;
+    }
+    .tag-g{background:rgba(0,255,136,.1);color:var(--green);border:1px solid rgba(0,255,136,.2);}
+    .tag-b{background:rgba(0,212,255,.1);color:var(--blue);border:1px solid rgba(0,212,255,.2);}
+    .tag-p{background:rgba(177,79,255,.1);color:var(--purple);border:1px solid rgba(177,79,255,.2);}
+    .tag-o{background:rgba(255,140,0,.1);color:var(--orange);border:1px solid rgba(255,140,0,.2);}
+
+    /* ── PROGRESS ── */
+    #progress{
+      position:fixed;top:0;left:0;height:2px;z-index:200;
+      background:linear-gradient(90deg,var(--green),var(--blue));
+      transition:width .1s;
+    }
+
+    /* ── FOOTER ── */
+    footer{
+      text-align:center;padding:2rem;
+      font-family:'JetBrains Mono',monospace;font-size:.72rem;
+      color:#1e293b;border-top:1px solid #0f172a;
+    }
+    footer a{color:var(--green);text-decoration:none;}
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp{
+      from{opacity:0;transform:translateY(24px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+    .fade-up{opacity:0;animation:fadeUp .55s ease both;}
+
+    /* ── RISC TABLE ── */
+    .risc-badge{
+      display:inline-flex;align-items:center;gap:.4rem;
+      background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);
+      border-radius:4px;padding:.3rem .7rem;
+      font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--blue);
+      margin:.2rem;
+    }
+
+    /* number representations interactive */
+    .numrep-input{
+      background:#010409;border:1px solid rgba(0,255,136,.3);
+      color:var(--green);font-family:'JetBrains Mono',monospace;
+      font-size:1rem;padding:.5rem 1rem;border-radius:.4rem;
+      outline:none;width:100%;max-width:280px;
+    }
+    .numrep-input:focus{box-shadow:0 0 0 2px rgba(0,255,136,.2);}
+    .numrep-output{
+      display:grid;grid-template-columns:100px 1fr;gap:.4rem .75rem;
+      align-items:center;
+      font-family:'JetBrains Mono',monospace;font-size:.82rem;
+      margin-top:1rem;
+    }
+    .numrep-label{color:#475569;font-size:.72rem;letter-spacing:.05em;}
+    .numrep-value{color:var(--green);word-break:break-all;}
+    .numrep-value.neg{color:var(--red);}
+    .numrep-value.hex{color:var(--orange);}
+    .numrep-value.bin{color:var(--blue);font-size:.72rem;}
+
+    /* scroll nav dots */
+    .dot-nav{
+      position:fixed;right:1.5rem;top:50%;
+      transform:translateY(-50%);z-index:50;
+      display:flex;flex-direction:column;gap:.6rem;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:50%;
+      background:#1e293b;cursor:pointer;
+      transition:background .2s,transform .2s;
+    }
+    .dot.active{background:var(--green);transform:scale(1.4);}
+    @media(max-width:768px){.dot-nav{display:none;}}
+
+    /* ═══ 左侧章节导航栏 ═══ */
+    .sidebar-nav{
+      position:fixed;left:0;top:0;bottom:0;
+      width:180px;z-index:90;
+      background:rgba(5,8,16,.92);
+      backdrop-filter:blur(10px);
+      border-right:1px solid rgba(0,255,136,.12);
+      padding:1rem .5rem;
+      overflow-y:auto;
+      overflow-x:hidden;
+      transition:transform .25s ease;
+      display:flex;
+      flex-direction:column;
+    }
+    .sidebar-nav::-webkit-scrollbar{width:3px;}
+    .sidebar-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+    
+    .sidebar-title{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.62rem;color:var(--green);
+      letter-spacing:.08em;
+      padding:.4rem .6rem;
+      border-bottom:1px solid rgba(0,255,136,.15);
+      margin-bottom:.5rem;
+      flex-shrink:0;
+    }
+    
+    .sidebar-section{
+      margin-bottom:.6rem;
+      display:flex;
+      flex-direction:column;
+    }
+    .sidebar-section-title{
+      font-family:'JetBrains Mono',monospace;
+      font-size:.58rem;color:#475569;
+      padding:.3rem .6rem;
+      letter-spacing:.05em;
+      flex-shrink:0;
+    }
+    
+    .sidebar-link{
+      display:block;
+      width:100%;
+      clear:both;
+      font-family:'JetBrains Mono',monospace;
+      font-size:.68rem;
+      color:#64748b;
+      text-decoration:none;
+      padding:.25rem .6rem .25rem 1rem;
+      border-radius:3px;
+      transition:all .15s;
+      position:relative;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .sidebar-link:hover{
+      color:var(--green);
+      background:rgba(0,255,136,.06);
+    }
+    .sidebar-link.active{
+      color:var(--green);
+      background:rgba(0,255,136,.1);
+    }
+    .sidebar-link.active::before{
+      content:'';
+      position:absolute;left:0;top:50%;
+      transform:translateY(-50%);
+      width:2px;height:14px;
+      background:var(--green);
+      border-radius:1px;
+    }
+    
+    .sidebar-toggle{
+      display:none;
+      position:fixed;left:.5rem;top:.85rem;z-index:95;
+      width:32px;height:32px;
+      background:rgba(5,8,16,.9);
+      border:1px solid rgba(0,255,136,.2);
+      border-radius:4px;
+      color:var(--green);
+      font-size:1.1rem;
+      cursor:pointer;
+    }
+    
+    @media(max-width:1100px){
+      .sidebar-nav{transform:translateX(-100%);}
+      .sidebar-nav.open{transform:translateX(0);}
+      .sidebar-toggle{display:flex;align-items:center;justify-content:center;}
+      body{padding-left:0!important;}
+    }
+    
+    body.sidebar-open{padding-left:180px;}
+    @media(min-width:1101px){body{padding-left:180px;}}
+  </style>
+</head>
+<body>
+
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
+  ☰
+</button>
+<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link active">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link">Ch.05 整数除法</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 位计数</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校验</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
+<canvas id="bg"></canvas>
+<div id="progress"></div>
+
+<!-- Dot nav -->
+<div class="dot-nav" id="dotNav">
+  <div class="dot active" data-sec="hero"     title="顶部"></div>
+  <div class="dot"         data-sec="notation" title="记号系统"></div>
+  <div class="dot"         data-sec="risc"     title="RISC指令集"></div>
+  <div class="dot"         data-sec="twos"     title="补码系统"></div>
+  <div class="dot"         data-sec="numrep"   title="数值表示"></div>
+  <div class="dot"         data-sec="history"  title="历史演变"></div>
+  <div class="dot"         data-sec="ops"      title="运算符表"></div>
+  <div class="dot"         data-sec="critique" title="深度点评"></div>
+</div>
+
+<nav>
+  <a class="nav-logo" href="index.html">← HACKER'S DELIGHT</a>
+  <div class="nav-links">
+    <a href="#notation">记号</a>
+    <a href="#risc">RISC</a>
+    <a href="#twos">补码</a>
+    <a href="#numrep">数制</a>
+    <a href="#history">历史</a>
+    <a href="#ops">运算符</a>
+    <a href="#critique">点评</a>
+  </div>
+</nav>
+
+<div id="app" x-data="app()" x-init="init()">
+
+  <!-- ═══════════════ HERO ═══════════════ -->
+  <div class="hero" id="hero">
+    <div class="chapter-badge">CHAPTER 01 · LAYING THE GROUNDWORK · 奠定基础</div>
+    <div class="hero-title fade-up" style="animation-delay:.1s">
+      奠定基础
+    </div>
+    <p class="hero-sub fade-up" style="animation-delay:.2s">
+      // Laying the Groundwork — 所有位运算技巧的地基
+    </p>
+    <p class="hero-desc fade-up" style="animation-delay:.3s">
+      在钻进那些令人叫绝的位操作技巧之前，Warren 先把舞台搭好：
+      计算机代数记号、RISC 指令集约定、二进制/十六进制、补码系统、
+      C 语言运算符优先级——这些看似无聊的准备工作，
+      却是整本书所有魔法得以成立的前提条件。
+    </p>
+    <div class="fade-up" style="animation-delay:.4s">
+      <span class="tag tag-g">computer algebra</span>
+      <span class="tag tag-b">RISC ISA</span>
+      <span class="tag tag-p">two's complement</span>
+      <span class="tag tag-o">operator precedence</span>
+      <span class="tag tag-g">branch-free code</span>
+      <span class="tag tag-b">notation</span>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SECTION 1: 记号系统 ═══════════════ -->
+  <section id="notation">
+    <div class="sec-header">
+      <span class="sec-num">§1-1</span>
+      <span class="sec-title">记号系统 — Notation</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="insight">
+      <span class="label">// CORE CONCEPT</span>
+      本书区分两套数学体系：<strong>普通算术</strong>（数学上的加减乘除）和<strong>计算机算术</strong>（比特串的有限域运算）。
+      计算机算术的结果总是被 mod 2ⁿ 截断，n 为机器字长。默认 32 位，有符号整数用<strong>二进制补码</strong>表示。
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.85rem;margin-bottom:1rem;">
+          📐 粗体变量 = 寄存器内容
+        </h3>
+        <p style="font-size:.88rem;color:#64748b;line-height:1.7;margin-bottom:1rem;">
+          书中用<strong style="color:#f1f5f9;">粗体 x</strong> 表示寄存器中的比特串（无类型解释），
+          用<strong style="color:#94a3b8;">细体 x</strong> 表示其在某种解释（有符号/无符号）下的算术值。
+          这个区分极其重要——同一个 32 位模式 <code style="color:var(--orange);">0xFFFFFFFF</code>，
+          有符号解释是 −1，无符号解释是 4,294,967,295。
+        </p>
+        <div class="code-block">
+<span class="cm">// 同一比特串，两种人格</span>
+<span class="kw">unsigned</span> u = 0xFFFFFFFF;  <span class="cm">// u = 4294967295</span>
+<span class="kw">int</span>      s = 0xFFFFFFFF;  <span class="cm">// s = -1</span>
+<span class="cm">// 两者底层 bits 完全一样！</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:.85rem;margin-bottom:1rem;">
+          🔢 常数记法约定
+        </h3>
+        <table class="op-table">
+          <thead>
+            <tr><th>前缀</th><th>意义</th><th>示例</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>0x</td><td>十六进制</td><td style="color:var(--orange);">0xFF = 255</td></tr>
+            <tr><td>0b</td><td>二进制</td><td style="color:var(--blue);">0b1010 = 10</td></tr>
+            <tr><td>无</td><td>十进制</td><td style="color:var(--green);">255</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:.8rem;color:#475569;margin-top:.75rem;line-height:1.6;">
+          书中还大量使用计算机代数符号（如 ⌊x⌋ 表示 floor，rem 表示余数），
+          与 C 语言运算符对照见 §1-运算符表。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 2: RISC 指令集 ═══════════════ -->
+  <section id="risc">
+    <div class="sec-header">
+      <span class="sec-num">§1-2</span>
+      <span class="sec-title">虚构 RISC 指令集</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="insight">
+      <span class="label">// WHY RISC?</span>
+      Warren 选用一套<strong>虚构 RISC 指令集</strong>（三地址格式），而非真实的 x86/ARM 汇编。
+      原因很务实：RISC 指令集干净、规则，便于计算"这个操作需要几条指令"，
+      也便于读者把技巧移植到任何真实平台。书中所有"N 条指令"的计数都基于这套规则。
+    </div>
+
+    <div class="grid-3" style="margin-bottom:1.25rem;">
+      <div class="card">
+        <div style="color:var(--green);font-family:'JetBrains Mono',monospace;font-size:.8rem;margin-bottom:.75rem;">基础指令集</div>
+        <div>
+          <div class="risc-badge">add  r, s, t</div>
+          <div class="risc-badge">sub  r, s, t</div>
+          <div class="risc-badge">and  r, s, t</div>
+          <div class="risc-badge">or   r, s, t</div>
+          <div class="risc-badge">xor  r, s, t</div>
+          <div class="risc-badge">shl  r, s, t</div>
+          <div class="risc-badge">shr  r, s, t</div>
+          <div class="risc-badge">sar  r, s, t</div>
+          <div class="risc-badge">not  r, s</div>
+          <div class="risc-badge">neg  r, s</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--blue);font-family:'JetBrains Mono',monospace;font-size:.8rem;margin-bottom:.75rem;">完整指令集额外支持</div>
+        <div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">mul  r, s, t</div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">div  r, s, t</div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">cmov r, s, t</div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">rlw  r, s, t</div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">nlz  r, s</div>
+          <div class="risc-badge" style="color:var(--blue);border-color:rgba(0,212,255,.2);">pop  r, s</div>
+        </div>
+      </div>
+      <div class="card">
+        <div style="color:var(--purple);font-family:'JetBrains Mono',monospace;font-size:.8rem;margin-bottom:.75rem;">⚡ 无分支优先原则</div>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          书中偏爱<strong style="color:#f1f5f9;">branch-free</strong> 代码。
+          分支（if/else）会：
+        </p>
+        <ul style="font-size:.8rem;color:#475569;line-height:1.8;padding-left:1rem;list-style:disc;margin-top:.5rem;">
+          <li>打断指令流水线</li>
+          <li>阻碍 CPU 乱序执行</li>
+          <li>妨碍编译器做指令调度</li>
+          <li>引起分支预测失败惩罚</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- RISC 指令可视化 -->
+    <div class="card" style="margin-bottom:1.25rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);margin-bottom:1rem;">
+        🎮 三地址指令演示 — <span style="color:#475569;">r = s OP t</span>
+      </div>
+      <div class="code-block">
+<span class="cm">// 三地址 RISC 格式: 目标, 操作数1, 操作数2</span>
+<span class="fn">add</span>   <span class="num">r3</span>, <span class="num">r1</span>, <span class="num">r2</span>    <span class="cm">// r3 = r1 + r2</span>
+<span class="fn">xor</span>   <span class="num">r4</span>, <span class="num">r1</span>, <span class="num">r2</span>    <span class="cm">// r4 = r1 ^ r2</span>
+<span class="fn">shr</span>   <span class="num">r5</span>, <span class="num">r3</span>, <span class="num">1</span>     <span class="cm">// r5 = r3 >> 1 (逻辑右移)</span>
+<span class="fn">sar</span>   <span class="num">r6</span>, <span class="num">r3</span>, <span class="num">31</span>    <span class="cm">// r6 = r3 >> 31 (算术右移，复制符号位)</span>
+<span class="cm">// 等价于 C: int mask = x >> 31;</span>
+<span class="cm">// 如果 x≥0 则 mask=0x00000000，否则 mask=0xFFFFFFFF</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 3: 补码系统 ═══════════════ -->
+  <section id="twos">
+    <div class="sec-header">
+      <span class="sec-num">§1-3</span>
+      <span class="sec-title">补码系统 — Two's Complement</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="insight">
+      <span class="label">// THE MAGIC OF TWO'S COMPLEMENT</span>
+      所有技巧的<strong>最底层基础</strong>。补码系统最美妙的性质：
+      加法器电路对有符号/无符号整数完全通用，硬件不需要区分符号。
+      负数 <strong>-x = ~x + 1</strong>，这个等式在整本书中被反复使用。
+    </div>
+
+    <!-- 交互式比特可视化 -->
+    <div class="card" style="margin-bottom:1.25rem;" x-data="bitDemo()">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);margin-bottom:1rem;">
+        🔬 交互式补码演示 — 点击比特位翻转
+      </div>
+      <div class="bit-row" style="margin-bottom:.75rem;">
+        <template x-for="(b, i) in bits" :key="i">
+          <div
+            class="bit-cell"
+            :class="b ? 'one' : 'zero'"
+            @click="toggle(i)"
+            x-text="b"
+            :title="`位${31-i} (权重 ${i===0 ? '-2³¹' : '2^'+(31-i)})`"
+          ></div>
+        </template>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.5rem;margin-top:.5rem;">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
+          <span style="color:#475569;">十进制(有符号):</span>
+          <span :style="{color: signed < 0 ? 'var(--red)' : 'var(--green)'}" x-text="signed"></span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
+          <span style="color:#475569;">十进制(无符号):</span>
+          <span style="color:var(--orange);" x-text="unsigned_val"></span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
+          <span style="color:#475569;">十六进制:</span>
+          <span style="color:var(--blue);" x-text="hex"></span>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:.82rem;">
+          <span style="color:#475569;">取反后+1:</span>
+          <span style="color:var(--purple);" x-text="neg_val"></span>
+        </div>
+      </div>
+      <div style="margin-top:.75rem;font-family:'JetBrains Mono',monospace;font-size:.72rem;color:#334155;">
+        💡 试试: 全1(−1) / 只有最高位=1(最小负数) / 全0 / 只有最低位=1
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3 style="color:var(--green);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.75rem;">
+          关键恒等式
+        </h3>
+        <div class="code-block">
+<span class="cm">// 补码核心公式 (Warren 全书反复使用)</span>
+-x  == ~x + 1         <span class="cm">// 取反定义</span>
+~x  == -x - 1         <span class="cm">// 逆推</span>
+x+y == (x|y) + (x&y)  <span class="cm">// 加法分解</span>
+x-y == x + ~y + 1     <span class="cm">// 减法转加法</span>
+x^y == (x|y) - (x&y)  <span class="cm">// XOR 关系</span>
+
+<span class="cm">// 符号传播: 算术右移31位</span>
+<span class="kw">int</span> mask = x >> 31;   <span class="cm">// x≥0: 0x00000000</span>
+                      <span class="cm">// x&lt;0: 0xFFFFFFFF</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--orange);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.75rem;">
+          溢出陷阱
+        </h3>
+        <p style="font-size:.85rem;color:#64748b;line-height:1.7;margin-bottom:.75rem;">
+          本书<strong style="color:#f1f5f9;">假设整数溢出中断已屏蔽</strong>（C/Java 正常行为），
+          Pascal/Ada 用户需要特别小心。溢出时结果按 mod 2³² 截断，
+          这正是位操作技巧能奏效的物理基础。
+        </p>
+        <div class="code-block">
+<span class="cm">// 危险! 这在 C 中是 UB (未定义行为)</span>
+<span class="kw">int</span> x = INT_MAX + 1;  <span class="cm">// ← UB in C</span>
+
+<span class="cm">// 安全: 用无符号运算</span>
+<span class="kw">unsigned</span> u = UINT_MAX + 1; <span class="cm">// u = 0 ✓</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ECharts: 补码数轴 -->
+    <div class="card" style="margin-top:1.25rem;">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);margin-bottom:.5rem;">
+        📊 4位机补码数值分布
+      </div>
+      <div class="chart-wrap" id="chart-twos"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 4: 数值表示转换器 ═══════════════ -->
+  <section id="numrep">
+    <div class="sec-header">
+      <span class="sec-num">§1-4</span>
+      <span class="sec-title">数值表示 — Number Representations</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="card" x-data="numConverter()">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);margin-bottom:1rem;">
+        🔄 多进制转换器 — 输入任意整数（32位有符号范围）
+      </div>
+      <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+        <input
+          type="number"
+          class="numrep-input"
+          x-model.number="val"
+          @input="convert()"
+          placeholder="输入整数，如 -42"
+          min="-2147483648"
+          max="4294967295"
+        />
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button @click="val=-1;convert()"  class="tab-btn active" style="font-size:.68rem;">-1</button>
+          <button @click="val=-2147483648;convert()" class="tab-btn" style="font-size:.68rem;">INT_MIN</button>
+          <button @click="val=2147483647;convert()"  class="tab-btn" style="font-size:.68rem;">INT_MAX</button>
+          <button @click="val=42;convert()"          class="tab-btn" style="font-size:.68rem;">42</button>
+          <button @click="val=255;convert()"         class="tab-btn" style="font-size:.68rem;">0xFF</button>
+        </div>
+      </div>
+      <div class="numrep-output" x-show="result">
+        <span class="numrep-label">十进制(有符号)</span>
+        <span class="numrep-value" :class="result.signed < 0 ? 'neg' : ''" x-text="result.signed"></span>
+        <span class="numrep-label">十进制(无符号)</span>
+        <span class="numrep-value hex" x-text="result.unsigned"></span>
+        <span class="numrep-label">十六进制</span>
+        <span class="numrep-value hex" x-text="result.hex"></span>
+        <span class="numrep-label">二进制(32位)</span>
+        <span class="numrep-value bin" x-text="result.bin"></span>
+        <span class="numrep-label">八进制</span>
+        <span class="numrep-value" style="color:var(--purple);" x-text="result.oct"></span>
+        <span class="numrep-label">~x (按位取反)</span>
+        <span class="numrep-value" style="color:var(--orange);" x-text="result.not_val"></span>
+        <span class="numrep-label">-x (补码取负)</span>
+        <span class="numrep-value neg" x-text="result.neg_val"></span>
+        <span class="numrep-label">x & (x-1)</span>
+        <span class="numrep-value" style="color:var(--blue);" x-text="result.xandxm1" :title="'清除最低位的1'"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 5: 历史演变 ═══════════════ -->
+  <section id="history">
+    <div class="sec-header">
+      <span class="sec-num">§HIST</span>
+      <span class="sec-title">历史演变 — 位运算技术的前世今生</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="grid-2" style="margin-bottom:1.25rem;">
+      <div>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-year">1940s</div>
+            <div class="tl-title">冯·诺依曼时代</div>
+            <div class="tl-desc">
+              EDVAC 首份草案（1945）确立了二进制、固定字长整数的基础。
+              Bell Labs 的 Stibitz 已在使用复数计算机，位操作从硬件层面诞生。
+              有符号数表示在原码、反码、补码之间争论不休。
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-year">1950s–60s</div>
+            <div class="tl-title">IBM 360 统一补码</div>
+            <div class="tl-desc">
+              IBM System/360 用补码作为唯一有符号整数表示，
+              终结了三种表示并存的混乱局面。Christopher Strachey 1961 年在 CACM
+              发表 "Bitwise Operations"，是位运算理论的早期奠基论文。
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-year">1972</div>
+            <div class="tl-title">HAKMEM — 位操作圣经诞生</div>
+            <div class="tl-desc">
+              MIT AI 实验室 Gosper、Beeler、Schroeppel 在 PDP-10 上写出 HAKMEM（AIM-239），
+              那是一本奇异的"位操作技巧大全"。Guy Steele Jr. 读到它如获至宝，
+              后来他推动 Warren 把这类技巧系统整理成书。
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot"></div>
+            <div class="tl-year">1980s–90s</div>
+            <div class="tl-title">RISC 革命与编译器时代</div>
+            <div class="tl-desc">
+              MIPS、SPARC、PowerPC 等 RISC 架构普及，
+              "每条指令都计数"的设计哲学催生了大量位操作优化。
+              GCC 编译器开始自动生成魔法数除法（magic number division）。
+              Martin Hopkins（"Mr. Compiler"）在 IBM 将每一个时钟周期都变成竞赛。
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--blue);box-shadow:0 0 8px var(--blue);"></div>
+            <div class="tl-year">2002 / 2013</div>
+            <div class="tl-title">Hacker's Delight 第一/二版</div>
+            <div class="tl-desc">
+              Warren 在 IBM 工作数十年积累的技巧终于成书。
+              Guy Steele Jr. 撰写了 50 页书评并贡献了大量算法。
+              第二版（2013）新增了比特洗牌、SAG 操作、浮点技巧等内容。
+            </div>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot" style="background:var(--purple);box-shadow:0 0 8px var(--purple);"></div>
+            <div class="tl-year">2010s+</div>
+            <div class="tl-title">硬件指令化</div>
+            <div class="tl-desc">
+              x86 POPCNT、LZCNT、TZCNT、BMI1/BMI2 指令集把许多软件技巧直接烧进硬件。
+              ARM 的 CLZ、RBIT 同样如此。书中的"软件技巧"很多已经有了硬件快捷路径，
+              但算法思想永不过时。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <!-- ECharts: 各年代影响力时间线 -->
+        <div class="card" style="margin-bottom:1.25rem;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--green);margin-bottom:.5rem;">
+            📈 位运算技术发展脉络
+          </div>
+          <div class="chart-wrap" id="chart-history" style="height:260px;"></div>
+        </div>
+
+        <div class="insight" style="border-color:rgba(0,212,255,.2);background:rgba(0,212,255,.04);">
+          <span class="label" style="color:var(--blue);">// WHY C? 为什么用 C 而不是汇编？</span>
+          Warren 选择 C 语言展示算法，而非汇编，原因是：
+          <strong>C 直接暴露整数和位操作</strong>，同时可跨平台编译。
+          Java 虽然也可以，但缺乏无符号整数（Java 8 之前），很多技巧需要额外处理。
+          Rust 是现代替代品，但 Warren 写书时还是 C 的天下。
+        </div>
+
+        <div class="insight" style="border-color:rgba(177,79,255,.2);background:rgba(177,79,255,.04);">
+          <span class="label" style="color:var(--purple);">// 为什么要 branch-free？</span>
+          分支预测失败（branch misprediction）在现代 CPU 上代价是 15–20 个时钟周期。
+          对于内循环中的条件判断，用位操作消除分支可以将性能提升 2–5 倍。
+          书中"branch-free 绝活"来自这个性能现实。
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 6: 运算符表 ═══════════════ -->
+  <section id="ops">
+    <div class="sec-header">
+      <span class="sec-num">§1-5</span>
+      <span class="sec-title">运算符优先级表 — Operator Precedence</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="insight">
+      <span class="label">// OPERATOR TABLE 1-1</span>
+      书中的计算机代数语言与 C 具有相同的优先级和结合性。
+      <strong>最常踩的坑</strong>：<code style="color:var(--orange);">a & b == c</code>
+      在 C 中实际是 <code style="color:var(--red);">a & (b == c)</code>，
+      因为 <code>==</code> 优先级高于 <code>&</code>。这个 bug 已经导致无数安全漏洞。
+    </div>
+
+    <div class="card">
+      <div class="tabs-nav">
+        <button class="tab-btn active" @click="opsTab='c'">C 运算符</button>
+        <button class="tab-btn" @click="opsTab='algebra'">计算机代数</button>
+        <button class="tab-btn" @click="opsTab='pitfalls'">⚠️ 常见陷阱</button>
+      </div>
+
+      <!-- C 运算符 -->
+      <div class="tab-pane" :class="opsTab==='c' ? 'active' : ''">
+        <table class="op-table">
+          <thead>
+            <tr><th>优先级</th><th>C 运算符</th><th>描述</th><th>结合性</th></tr>
+          </thead>
+          <tbody>
+            <tr class="prec-high"><td>16</td><td style="color:var(--green);">() [] f()</td><td>括号/下标/函数调用</td><td>L</td></tr>
+            <tr class="prec-high"><td>15</td><td style="color:var(--green);">++ --</td><td>后增/后减</td><td>L</td></tr>
+            <tr class="prec-high"><td>14</td><td style="color:var(--green);">~ ! - (cast) xᵏ</td><td>一元运算符</td><td>R</td></tr>
+            <tr class="prec-high"><td>13</td><td style="color:var(--green);">* / %</td><td>乘除余</td><td>L</td></tr>
+            <tr class="prec-high"><td>12</td><td style="color:var(--green);">+ -</td><td>加减</td><td>L</td></tr>
+            <tr class="prec-med"><td>11</td><td style="color:var(--blue);"><< >></td><td>移位</td><td>L</td></tr>
+            <tr class="prec-med"><td>10</td><td style="color:var(--blue);">< <= > >= &lt;u ≤ᵤ ≥ᵤ >ᵤ</td><td>比较</td><td>L</td></tr>
+            <tr class="prec-med"><td>9</td><td style="color:var(--blue);">== !=</td><td>等于/不等于</td><td>L</td></tr>
+            <tr class="prec-med"><td>8</td><td style="color:var(--blue);">&</td><td>按位与</td><td>L</td></tr>
+            <tr class="prec-med"><td>7</td><td style="color:var(--blue);">^</td><td>按位异或</td><td>L</td></tr>
+            <tr class="prec-med"><td>6</td><td style="color:var(--blue);">|</td><td>按位或</td><td>L</td></tr>
+            <tr class="prec-low"><td>5</td><td style="color:var(--purple);">&&</td><td>逻辑与</td><td>L</td></tr>
+            <tr class="prec-low"><td>4</td><td style="color:var(--purple);">||</td><td>逻辑或</td><td>L</td></tr>
+            <tr class="prec-low"><td>3</td><td style="color:var(--purple);">?:</td><td>三目运算符</td><td>R</td></tr>
+            <tr class="prec-low"><td>2</td><td style="color:var(--purple);">= += -= etc.</td><td>赋值</td><td>R</td></tr>
+            <tr class="prec-low"><td>1</td><td style="color:var(--purple);">,</td><td>逗号</td><td>L</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 计算机代数 -->
+      <div class="tab-pane" :class="opsTab==='algebra' ? 'active' : ''">
+        <table class="op-table">
+          <thead>
+            <tr><th>C 写法</th><th>计算机代数</th><th>说明</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>x & y</td><td style="color:var(--green);">x ∧ y 或 x AND y</td><td>按位与</td></tr>
+            <tr><td>x | y</td><td style="color:var(--green);">x ∨ y 或 x OR y</td><td>按位或</td></tr>
+            <tr><td>x ^ y</td><td style="color:var(--green);">x ⊕ y</td><td>按位异或</td></tr>
+            <tr><td>~x</td><td style="color:var(--blue);">x̄ 或 NOT x</td><td>按位取反（一's补）</td></tr>
+            <tr><td>x << n</td><td style="color:var(--blue);">x ≪ n</td><td>逻辑左移</td></tr>
+            <tr><td>x >> n (unsigned)</td><td style="color:var(--blue);">x ≫ n</td><td>逻辑右移</td></tr>
+            <tr><td>x >> n (signed)</td><td style="color:var(--orange);">x ≫ₐ n</td><td>算术右移（符号扩展）</td></tr>
+            <tr><td>abs(x)</td><td style="color:var(--purple);">|x|</td><td>绝对值（但 |INT_MIN|=INT_MIN）</td></tr>
+            <tr><td>floor(x)</td><td style="color:var(--purple);">⌊x⌋</td><td>向下取整</td></tr>
+            <tr><td>ceil(x)</td><td style="color:var(--purple);">⌈x⌉</td><td>向上取整</td></tr>
+            <tr><td>x % y (mod)</td><td style="color:var(--green);">x rem y</td><td>余数（截断除法）</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- 陷阱 -->
+      <div class="tab-pane" :class="opsTab==='pitfalls' ? 'active' : ''">
+        <div class="grid-2">
+          <div>
+            <div class="code-block" style="margin-bottom:.75rem;">
+<span class="cm">// ❌ 陷阱1: & 优先级低于 ==</span>
+<span class="kw">if</span> (x & mask == 0) { ... }
+<span class="cm">// 实际是: if (x & (mask==0)) !</span>
+<span class="cm">// ✅ 正确写法:</span>
+<span class="kw">if</span> ((x & mask) == 0) { ... }
+            </div>
+            <div class="code-block" style="margin-bottom:.75rem;">
+<span class="cm">// ❌ 陷阱2: 有符号整数右移不可移植</span>
+<span class="kw">int</span> x = -1;
+x >> 1;  <span class="cm">// ISO C 未定义!</span>
+<span class="cm">// 可能是 0x7FFFFFFF 也可能是 0xFFFFFFFF</span>
+<span class="cm">// Warren 书中假设是算术右移(符号扩展)</span>
+            </div>
+          </div>
+          <div>
+            <div class="code-block" style="margin-bottom:.75rem;">
+<span class="cm">// ❌ 陷阱3: 移位量≥字长</span>
+1 << 32;  <span class="cm">// UB in C (32-bit int)</span>
+<span class="cm">// 在某些 CPU 上结果是 1，有些是 0</span>
+<span class="cm">// 书中所有算法都回避这个情况</span>
+            </div>
+            <div class="code-block">
+<span class="cm">// ❌ 陷阱4: 有符号溢出是 UB</span>
+<span class="kw">int</span> x = INT_MAX;
+x + 1;    <span class="cm">// UB, 编译器可以假设不发生!</span>
+<span class="cm">// ✅ 要用无符号或 __builtin_add_overflow</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 7: 应用场景 ═══════════════ -->
+  <section id="apps">
+    <div class="sec-header">
+      <span class="sec-num">§APP</span>
+      <span class="sec-title">应用场景 — Where This Matters</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">🔧</div>
+        <h3 style="color:var(--green);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">编译器后端</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          GCC/LLVM 的代码生成器大量使用这些技巧——常数除法变乘法、
+          分支消除、bit count 内联、对齐计算等。
+          理解这章知识才能看懂编译器生成的汇编。
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">🎮</div>
+        <h3 style="color:var(--blue);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">游戏引擎 / 实时系统</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          游戏引擎的碰撞检测、标志位操作、内存分配器（对齐到2的幂）
+          都直接依赖这些基础。Unreal/Unity 内部代码处处可见这本书的影子。
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">🔐</div>
+        <h3 style="color:var(--purple);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">密码学实现</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          AES/SHA/ChaCha 等算法的高效实现，constant-time 编程（防侧信道攻击），
+          都需要精确理解位操作的底层行为。
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">🤖</div>
+        <h3 style="color:var(--orange);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">AI/ML 推理引擎</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          量化神经网络（INT8/INT4 推理）、位向量相似度（Hamming distance）、
+          SIMD 向量化——这些都建立在本章概念之上。
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">🗄️</div>
+        <h3 style="color:var(--green);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">数据库 / 存储引擎</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          位图索引（Roaring Bitmap）、布隆过滤器、B+树节点压缩，
+          都依赖精确的位操作语义和 CPU 指令计数分析。
+        </p>
+      </div>
+      <div class="card">
+        <div style="font-size:1.5rem;margin-bottom:.75rem;">📡</div>
+        <h3 style="color:var(--blue);font-size:.9rem;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">嵌入式 / FPGA</h3>
+        <p style="font-size:.83rem;color:#64748b;line-height:1.7;">
+          MCU 上资源极度受限，每个字节都珍贵。
+          RISC-V/ARM Cortex-M 程序员必须精通这些基础操作才能写出高效固件。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ SECTION 8: 深度点评 ═══════════════ -->
+  <section id="critique">
+    <div class="sec-header">
+      <span class="sec-num">§CRITIQUE</span>
+      <span class="sec-title">深度点评 — 技术哲学与批判性思考</span>
+      <div class="sec-divider"></div>
+    </div>
+
+    <div class="critic-box">
+      <h3>补码：一个"偶然的完美"设计</h3>
+      <div class="critic-item">
+        <div class="ci-title">为什么选补码，而非原码/反码？</div>
+        <p>
+          1960 年代 IBM 360 选择补码并非偶然。补码让<strong style="color:#f1f5f9;">加法器不需要区分符号</strong>——
+          同一套电路可以处理有符号和无符号整数，硬件成本直接砍半。
+          原码需要符号位单独处理，有两个零（+0 和 -0），反码同样有两个零且进位规则复杂。
+          补码的"意外收获"是让位操作技巧如此优雅：<code style="color:var(--orange);">-x = ~x + 1</code>
+          这个公式简单到像个数学笑话，但它是整本书所有魔法的物理基础。
+        </p>
+      </div>
+      <div class="critic-item">
+        <div class="ci-title">有没有其他实现方式？</div>
+        <p>
+          现代量子计算探索了超越二进制的三值逻辑（ternary）；
+          Google 的 Brain Float（bfloat16）把精度和范围重新权衡。
+          但对于通用整数运算，补码在<strong style="color:#f1f5f9;">硬件简单性 × 数学完备性 × 工程实用性</strong>
+          三维度上的综合得分无出其右。唯一的"副作用"是 INT_MIN 的绝对值等于自身——
+          这个边界条件在本书中反复出现，是很多技巧的细节注意点。
+        </p>
+      </div>
+      <div class="critic-item">
+        <div class="ci-title">RISC vs CISC：这套书对 CISC 程序员还有用吗？</div>
+        <p>
+          有，而且非常有用。即使在 x86 上，CPU 内部执行的也是微操作（µops），
+          本质上是 RISC。更重要的是，<strong style="color:#f1f5f9;">算法思想不依赖具体ISA</strong>——
+          理解"清除最低位1比特"的逻辑，无论你用 x86 的 <code style="color:var(--orange);">BLSR</code>
+          还是 RISC 的 <code style="color:var(--orange);">and r, x, x-1</code>，都是同一个道理。
+          CISC 指令集只是把常见模式封装成单条指令，不妨碍从算法层面理解问题。
+        </p>
+      </div>
+      <div class="critic-item">
+        <div class="ci-title">可推广到什么地方？</div>
+        <p>
+          <strong style="color:#f1f5f9;">模块化思维</strong>：Warren 把整个计算机世界抽象成"字长为 n 的有限域上的位操作"，
+          这套思维可以直接迁移到：密码学（有限域 GF(2ⁿ)）、
+          信号处理（定点数运算）、AI 量化（低比特推理）、硬件描述语言（VHDL/Verilog）。
+          凡是"有限精度整数"的地方，这本书就有用。
+          凡是"想要快速但不知道为什么"的地方，先把这章读透再说。
+        </p>
+      </div>
+      <div class="critic-item">
+        <div class="ci-title">⚠️ 注意事项与局限性</div>
+        <p>
+          这本书的前提假设是<strong style="color:#f1f5f9;">补码、32位字长、整数溢出不中断</strong>。
+          在 Rust 中 debug 模式整数溢出会 panic；在某些嵌入式平台字长不是32位；
+          在 C23 标准中有符号整数溢出的 UB 语义正在规范化。
+          此外，随着 SIMD/GPU 计算普及，"逐字操作"的假设正在被"向量化"取代——
+          很多技巧需要适配 AVX-512 或 CUDA kernel 才能发挥最大价值。
+          <strong style="color:var(--red);">读这本书时，脑子里要始终有一个问号：在我的目标平台上，这个假设成立吗？</strong>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>
+      <a href="index.html">← 返回目录</a>
+      &nbsp;·&nbsp; Chapter 1 of 18
+      &nbsp;·&nbsp; <a href="ch02.html">Chapter 2: Basics →</a>
+    </p>
+    <p style="margin-top:.5rem;">Hacker's Delight 2nd Ed. · Henry S. Warren, Jr. · Addison-Wesley 2013</p>
+  </footer>
+
+</div>
+
+<script>
+/* ─── Alpine.js 主 App ─── */
+function app() {
+  return {
+    opsTab: 'c',
+    init() {
+      this.initCanvas();
+      this.initProgress();
+      this.initScrollSpy();
+      this.$nextTick(() => {
+        this.initChartTwos();
+        this.initChartHistory();
+      });
+    },
+    initProgress() {
+      window.addEventListener('scroll', () => {
+        const s = document.documentElement.scrollTop;
+        const h = document.documentElement.scrollHeight - window.innerHeight;
+        document.getElementById('progress').style.width = (h > 0 ? s/h*100 : 0) + '%';
+      });
+    },
+    initScrollSpy() {
+      const secs = ['hero','notation','risc','twos','numrep','history','ops','critique'];
+      const dots = document.querySelectorAll('.dot');
+      window.addEventListener('scroll', () => {
+        let cur = 0;
+        secs.forEach((id, i) => {
+          const el = document.getElementById(id);
+          if (el && el.getBoundingClientRect().top < window.innerHeight * 0.5) cur = i;
+        });
+        dots.forEach((d, i) => d.classList.toggle('active', i === cur));
+      });
+      dots.forEach((d, i) => {
+        d.addEventListener('click', () => {
+          document.getElementById(secs[i])?.scrollIntoView({behavior:'smooth'});
+        });
+      });
+    },
+    initChartTwos() {
+      const el = document.getElementById('chart-twos');
+      if (!el || !window.echarts) return;
+      const chart = echarts.init(el, 'dark');
+      // 4位补码: -8 到 7
+      const labels = [], uvals = [], svals = [];
+      for (let bits = 0; bits < 16; bits++) {
+        const s = bits >= 8 ? bits - 16 : bits;
+        labels.push('0b' + bits.toString(2).padStart(4,'0'));
+        uvals.push(bits);
+        svals.push(s);
+      }
+      chart.setOption({
+        backgroundColor: 'transparent',
+        grid: {left:'5%', right:'5%', top:'15%', bottom:'18%'},
+        tooltip: {
+          trigger:'axis',
+          backgroundColor:'#0d1117',
+          borderColor:'rgba(0,255,136,.3)',
+          textStyle:{color:'#e2e8f0', fontFamily:'JetBrains Mono'}
+        },
+        legend: {data:['无符号值','有符号值'], textStyle:{color:'#475569',fontSize:11}},
+        xAxis: {
+          data: labels,
+          axisLabel:{color:'#334155', fontSize:9, interval:0, rotate:45},
+          axisLine:{lineStyle:{color:'#1e293b'}}
+        },
+        yAxis: {
+          axisLabel:{color:'#475569'},
+          splitLine:{lineStyle:{color:'rgba(30,41,59,.5)'}},
+          axisLine:{lineStyle:{color:'#1e293b'}}
+        },
+        series: [
+          {
+            name:'无符号值', type:'bar',
+            data: uvals,
+            barMaxWidth: 20,
+            itemStyle:{color:'rgba(0,212,255,.7)', borderRadius:2}
+          },
+          {
+            name:'有符号值', type:'line',
+            data: svals,
+            smooth: true,
+            lineStyle:{color:'#00ff88', width:2},
+            itemStyle:{color:'#00ff88'},
+            areaStyle:{color:'rgba(0,255,136,.08)'},
+            symbol:'circle', symbolSize:5
+          }
+        ]
+      });
+      window.addEventListener('resize', () => chart.resize());
+    },
+    initChartHistory() {
+      const el = document.getElementById('chart-history');
+      if (!el || !window.echarts) return;
+      const chart = echarts.init(el, 'dark');
+      chart.setOption({
+        backgroundColor:'transparent',
+        grid:{left:'5%', right:'5%', top:'15%', bottom:'15%'},
+        tooltip:{
+          trigger:'axis',
+          backgroundColor:'#0d1117',
+          borderColor:'rgba(0,255,136,.3)',
+          textStyle:{color:'#e2e8f0', fontFamily:'JetBrains Mono', fontSize:11}
+        },
+		
+        xAxis: {
+          data: ['1940s\nEDVAC', '1950s\nIBM704', '1961\nStrachey', '1972\nHAKMEM', '1980s\nRISC', '1990s\nGCC', '2002\nHD初版', '2013\nHD二版', '2015+\nBMI/POPCNT'],
+          axisLabel:{color:'#334155', fontSize:9, interval:0},
+          axisLine:{lineStyle:{color:'#1e293b'}}
+        },
+        yAxis: {
+          name:'影响力指数',
+          nameTextStyle:{color:'#475569', fontSize:10},
+          axisLabel:{color:'#475569'},
+          splitLine:{lineStyle:{color:'rgba(30,41,59,.5)'}},
+          axisLine:{lineStyle:{color:'#1e293b'}}
+        },
+        series:[{
+          type:'line',
+          data:[10,20,35,60,72,80,92,96,100],
+          smooth:true,
+          lineStyle:{color:'var(--neon-green)',width:2.5},
+          itemStyle:{color:'#00ff88'},
+          areaStyle:{
+            color:{
+              type:'linear', x:0, y:0, x2:0, y2:1,
+              colorStops:[
+                {offset:0, color:'rgba(0,255,136,0.25)'},
+                {offset:1, color:'rgba(0,255,136,0)'}
+              ]
+            }
+          },
+          markPoint:{
+            data:[
+              {name:'HAKMEM', coord:['1972\nHAKMEM', 60], itemStyle:{color:'rgba(177,79,255,0.8)'}},
+              {name:'HD二版', coord:['2013\nHD二版', 96], itemStyle:{color:'rgba(0,212,255,0.8)'}}
+            ],
+            label:{fontSize:9, color:'#fff'}
+          },
+          symbol:'circle', symbolSize:6
+        }]
+      });
+      window.addEventListener('resize', () => chart.resize());
+    },
+    initCanvas() {
+      const canvas = document.getElementById('bg');
+      const ctx = canvas.getContext('2d');
+      let W, H;
+      const resize = () => {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      };
+      resize();
+      window.addEventListener('resize', resize);
+
+      // 浮动二进制粒子
+      const particles = Array.from({length:50}, () => ({
+        x: Math.random() * 1920,
+        y: Math.random() * 1080,
+        vy: 0.2 + Math.random() * 0.5,
+        char: Math.random() < 0.5 ? '0' : '1',
+        alpha: 0.04 + Math.random() * 0.12,
+        size: 10 + Math.random() * 8
+      }));
+
+      const draw = () => {
+        ctx.clearRect(0, 0, W, H);
+        particles.forEach(p => {
+          ctx.fillStyle = `rgba(0,255,136,${p.alpha})`;
+          ctx.font = `${p.size}px monospace`;
+          ctx.fillText(p.char, p.x % W, p.y % H);
+          p.y += p.vy;
+          if (p.y > H) { p.y = -20; p.x = Math.random() * W; }
+          if (Math.random() < 0.015) p.char = Math.random() < 0.5 ? '0' : '1';
+        });
+        requestAnimationFrame(draw);
+      };
+      draw();
+    }
+  };
+}
+
+/* ─── 补码演示 ─── */
+function bitDemo() {
+  return {
+    bits: Array(32).fill(0),
+    get unsigned_val() {
+      let v = 0;
+      for (let i = 0; i < 32; i++) v = (v * 2 + this.bits[i]) >>> 0;
+      return v >>> 0;
+    },
+    get signed() {
+      const u = this.unsigned_val;
+      return u >= 0x80000000 ? u - 0x100000000 : u;
+    },
+    get hex() {
+      return '0x' + this.unsigned_val.toString(16).toUpperCase().padStart(8, '0');
+    },
+    get neg_val() {
+      const n = (~this.unsigned_val + 1) | 0;
+      return n;
+    },
+    toggle(i) {
+      this.bits[i] = this.bits[i] ? 0 : 1;
+    }
+  };
+}
+
+/* ─── 数制转换器 ─── */
+function numConverter() {
+  return {
+    val: -1,
+    result: null,
+    convert() {
+      let n = parseInt(this.val);
+      if (isNaN(n)) { this.result = null; return; }
+      // 钳制到32位有符号范围
+      if (n > 2147483647)  n = 2147483647;
+      if (n < -2147483648) n = -2147483648;
+
+      const u32 = n >>> 0;                              // 无符号32位
+      const not_u = (~u32) >>> 0;                       // 按位取反（无符号）
+      const not_s = (~u32) | 0;                         // 按位取反（有符号解释）
+      const neg   = ((-u32) | 0);                       // 补码取负
+      const xandxm1 = (u32 & (u32 - 1)) >>> 0;         // 清除最低位1
+
+      this.result = {
+        signed:   n,
+        unsigned: u32,
+        hex:      '0x' + u32.toString(16).toUpperCase().padStart(8, '0'),
+        bin:      u32.toString(2).padStart(32, '0').replace(/(.{8})/g, '$1 ').trim(),
+        oct:      '0o' + u32.toString(8),
+        not_val:  not_s + '  (0x' + not_u.toString(16).toUpperCase().padStart(8,'0') + ')',
+        neg_val:  neg,
+        xandxm1:  xandxm1 + '  (清除最低位1，若结果=0则原数是2的幂或0)'
+      };
+    },
+    init() { this.convert(); }
+  };
+}
+</script>
+</body>
+</html>
