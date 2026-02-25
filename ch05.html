@@ -33,11 +33,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.92);
 .dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
 .dot.active{background:var(--g);transform:scale(1.45);box-shadow:0 0 6px var(--g);}
 @media(max-width:768px){.dot-nav{display:none;}}
-.sidebar-nav{position:fixed;left:1.2rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.4rem;}
-.sn-item{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#334155;text-decoration:none;padding:.18rem .4rem;border-radius:3px;transition:all .2s;cursor:pointer;}
-.sn-item:hover{color:var(--g);background:rgba(0,255,136,.06);}
-.sn-item.active{color:var(--g);background:rgba(0,255,136,.1);}
-@media(max-width:900px){.sidebar-nav{display:none;}}
+/* ═══ 左侧章节导航栏 ═══ */
+.sidebar-nav{position:fixed;left:0;top:0;bottom:0;width:180px;z-index:90;background:rgba(5,8,16,.92);backdrop-filter:blur(10px);border-right:1px solid rgba(0,255,136,.12);padding:1rem .5rem;overflow-y:auto;overflow-x:hidden;transition:transform .25s ease;display:flex;flex-direction:column;}
+.sidebar-nav::-webkit-scrollbar{width:3px;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--g);letter-spacing:.08em;padding:.4rem .6rem;border-bottom:1px solid rgba(0,255,136,.15);margin-bottom:.5rem;flex-shrink:0;}
+.sidebar-section{margin-bottom:.6rem;display:flex;flex-direction:column;}
+.sidebar-section-title{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:#475569;padding:.3rem .6rem;letter-spacing:.05em;flex-shrink:0;}
+.sidebar-link{display:block;width:100%;clear:both;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#64748b;text-decoration:none;padding:.25rem .6rem .25rem 1rem;border-radius:3px;transition:all .15s;position:relative;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sidebar-link:hover{color:var(--g);background:rgba(0,255,136,.06);}
+.sidebar-link.active{color:var(--g);background:rgba(0,255,136,.1);}
+.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:var(--g);border-radius:1px;}
+.sidebar-toggle{display:none;position:fixed;left:.5rem;top:.85rem;z-index:95;width:32px;height:32px;background:rgba(5,8,16,.9);border:1px solid rgba(0,255,136,.2);border-radius:4px;color:var(--g);font-size:1.1rem;cursor:pointer;}
+@media(max-width:1100px){.sidebar-nav{transform:translateX(-100%);}.sidebar-nav.open{transform:translateX(0);}.sidebar-toggle{display:flex;align-items:center;justify-content:center;}body{padding-left:0!important;}}
+body.sidebar-open{padding-left:180px;}
+@media(min-width:1101px){body{padding-left:180px;}}
 
 .hero{padding:7rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
 .chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);border:1px solid var(--g);padding:.28rem .95rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
@@ -148,14 +158,42 @@ footer a{color:var(--g);text-decoration:none;}
   </div>
 </nav>
 
-<div class="sidebar-nav" id="sidebarNav">
-  <a class="sn-item active" data-sec="pop">§5-1 popcount</a>
-  <a class="sn-item" data-sec="parity">§5-2 奇偶校验</a>
-  <a class="sn-item" data-sec="nlz">§5-3 nlz</a>
-  <a class="sn-item" data-sec="ntz">§5-4 ntz</a>
-  <a class="sn-item" data-sec="history">§5-5 历史</a>
-  <a class="sn-item" data-sec="critique">§点评</a>
-</div>
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
+  ☰
+</button>
+<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link active">Ch.05 位计数</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 搜索字</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
 
 <div id="app" x-data="app()" x-init="init()">
 
@@ -1697,24 +1735,11 @@ function initDotNav() {
     dots.forEach(d => {
       d.classList.toggle('active', d.dataset.sec === current);
     });
-    // 同步左侧导航栏高亮
-    const snItems = document.querySelectorAll('.sn-item');
-    snItems.forEach(item => {
-      item.classList.toggle('active', item.dataset.sec === current);
-    });
   }
   window.addEventListener('scroll', onScroll, {passive:true});
   dots.forEach(d => {
     d.addEventListener('click', () => {
       const target = document.getElementById(d.dataset.sec);
-      if (target) target.scrollIntoView({behavior:'smooth'});
-    });
-  });
-  // 左侧导航栏点击事件
-  const snItems = document.querySelectorAll('.sn-item');
-  snItems.forEach(item => {
-    item.addEventListener('click', () => {
-      const target = document.getElementById(item.dataset.sec);
       if (target) target.scrollIntoView({behavior:'smooth'});
     });
   });
