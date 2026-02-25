@@ -136,6 +136,43 @@ footer a{color:var(--g);text-decoration:none;}
 <canvas id="bg"></canvas>
 <div id="prog"></div>
 
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
+  ☰
+</button>
+<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link active">Ch.05 位计数</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 搜索字</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校验</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
 <div class="dot-nav" id="dotNav">
   <div class="dot active"  data-sec="hero"    title="顶部"></div>
   <div class="dot"         data-sec="pop"     title="§5-1 popcount"></div>
@@ -155,43 +192,6 @@ footer a{color:var(--g);text-decoration:none;}
     <a href="#ntz">尾随零</a>
     <a href="#history">历史</a>
     <a href="#critique">点评</a>
-  </div>
-</nav>
-
-<!-- 左侧章节导航栏 -->
-<button class="sidebar-toggle" @click="sidebarOpen = !sidebarOpen" x-data="{sidebarOpen: false}">
-  ☰
-</button>
-<nav class="sidebar-nav" :class="sidebarOpen ? 'open' : ''" x-data="{sidebarOpen: false}" @click.away="sidebarOpen = false">
-  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
-  
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">正文章节</div>
-    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
-    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
-    <a href="ch03.html" class="sidebar-link">Ch.03 2的幂边界</a>
-    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
-    <a href="ch05.html" class="sidebar-link active">Ch.05 位计数</a>
-    <a href="ch06.html" class="sidebar-link">Ch.06 搜索字</a>
-    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
-    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
-    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校</a>
-    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
-    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
-    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
-    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
-    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
-    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
-    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
-    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
-    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
-  </div>
-  
-  <div class="sidebar-section">
-    <div class="sidebar-section-title">附录</div>
-    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
-    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
-    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
   </div>
 </nav>
 
