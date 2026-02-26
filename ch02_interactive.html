@@ -1405,8 +1405,8 @@
                         <span class="trick-title">位域提取/插入</span>
                     </div>
                     <div class="trick-desc">
-                        提取：(x>>p) & ((1<<n)-1)<br>
-                        插入：(x & ~mask) | ((v<<p) & mask)
+                        提取：(x>>p) & ((1&lt;&lt;n)-1)<br>
+                        插入：(x & ~mask) | ((v&lt;&lt;p) & mask)
                     </div>
                 </div>
 
@@ -1419,7 +1419,7 @@
                     <div class="trick-desc">
                         ax³+bx²+cx+d = ((ax+b)x+c)x+d<br>
                         <strong>用途</strong>：哈希函数、多项式求值<br>
-                        hash *= 31 ≡ (hash<<5) - hash
+                        hash *= 31 ≡ (hash&lt;&lt;5) - hash
                     </div>
                 </div>
 
@@ -1435,7 +1435,7 @@
                     </div>
                     <div class="example">
                         复制 bit i 到 bit j:<br>
-                        <code>x = (x & ~(1<<j)) | (((x>>i)&1)<<j)</code>
+                        <code>x = (x & ~(1&lt;&lt;j)) | (((x>>i)&1)&lt;&lt;j)</code>
                     </div>
                 </div>
 
@@ -1776,8 +1776,8 @@
                     <div class="example">
                         <strong>方案：</strong><br>
                         提取 bit i: (x >> i) & 1<br>
-                        清除 bit j: x & ~(1 << j)<br>
-                        合并: (x & ~(1<<j)) | (((x>>i)&1)<<j)
+                        清除 bit j: x & ~(1 &lt;&lt; j)<br>
+                        合并: (x & ~(1&lt;&lt;j)) | (((x>>i)&1)&lt;&lt;j)
                     </div>
                 </div>
 
