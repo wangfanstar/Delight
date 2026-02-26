@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker's Delight Ch02 - 快速记忆卡片</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .flashcard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .flashcard {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .flashcard.flipped {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .flashcard-front {
+            font-size: 0.9em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .flashcard.flipped .flashcard-front {
+            border-bottom-color: white;
+            color: white;
+        }
+
+        .flashcard-back {
+            font-size: 0.85em;
+            color: #666;
+            line-height: 1.6;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .flashcard.flipped .flashcard-back {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            display: block;
+        }
+
+        .flashcard.flipped .flashcard-front {
+            display: none;
+        }
+
+        .flashcard.flipped .flashcard-hint {
+            display: none;
+        }
+
+        .flashcard-hint {
+            font-size: 0.75em;
+            color: #999;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .flashcard.flipped .flashcard-hint {
+            color: rgba(255,255,255,0.7);
+        }
+
+        .category-section {
+            margin-bottom: 40px;
+        }
+
+        .category-title {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            border-left: 5px solid #667eea;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .quick-ref {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .quick-ref h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .ref-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .ref-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #764ba2;
+        }
+
+        .ref-formula {
+            font-family: 'Courier New', monospace;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            color: #d63031;
+            margin: 10px 0;
+            font-size: 0.9em;
+        }
+
+        .tip-box {
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .tip-box strong {
+            color: #667eea;
+        }
+
+        .star {
+            color: #f39c12;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .flashcard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+        }
+
+        .print-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .print-button:hover {
+            background: #5568d3;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .print-button {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Hacker's Delight Ch02 - 快速记忆卡片</h1>
+            <p>点击卡片翻转 | 打印成便签随身携带</p>
+        </div>
+
+        <button class="print-button" onclick="window.print()">🖨️ 打印记忆卡片</button>
+
+        <!-- 第一部分：最右位操纵 -->
+        <div class="category-section">
+            <div class="category-title">🔧 第一部分：最右位操纵 TRICKS (8个)</div>
+            <div class="flashcard-grid">
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 01: 清除最右边的1</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x & (x - 1)</div>
+                        <p>判断 2 的幂：<br/>(x & (x-1)) == 0</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 06: 最右边的1掩码 <span class="star">⭐⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x & (-x)</div>
+                        <p>棋盘引擎必用！Kernighan 位计数。</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 02: 置位最右边的0</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x | (x + 1)</div>
+                        <p>连续 0 检测</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 03: 清除尾部连续的1</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x & (x + 1)</div>
+                        <p>判断 2ⁿ-1 形式</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 04: 置位尾部连续的0</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x | (x - 1)</div>
+                        <p>内存对齐、取整</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 05: 最右边的0掩码</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">~x & (x + 1)</div>
+                        <p>在最低位 0 处产生单个 1</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 07: 尾部0的掩码</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">~x & (x - 1)</div>
+                        <p>所有尾部 0 位置产生 1</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">TRICK 08: 尾部1右对齐传播</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x | (x - 1)</div>
+                        <p>内存对齐、子集枚举</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二部分：加减法恒等式 -->
+        <div class="category-section">
+            <div class="category-title">➕ 第二部分：加减法恒等式 (7个)</div>
+            <div class="flashcard-grid">
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(a) 王牌恒等式 <span class="star">⭐⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x+y = (x^y)+((x&y)<<1)</div>
+                        <p>加法 = 无进位 + 进位传播</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(f) Dietz无溢出平均 <span class="star">⭐⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">avg = (x&y)+((x^y)>>1)</div>
+                        <p>永不溢出！JDK 的救星</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(b) OR/AND分解</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x+y = (x|y)+(x&y)</div>
+                        <p>等价分解形式</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(e) AND表示法 <span class="star">⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x&y = (x|y)-(x^y)</div>
+                        <p>对偶性质，三个操作互推</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(c) 反向推导</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x^y = (x+y)-((x&y)<<1)</div>
+                        <p>从加法反向推导 XOR</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(d) OR表示法</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x|y = (x+y)-(x&y)</div>
+                        <p>OR 用加减表示</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">(g) XOR分解</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">x^y = (x|y)&~(x&y)</div>
+                        <p>4 指令分解形式</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三部分：无分支算术 -->
+        <div class="category-section">
+            <div class="category-title">⚡ 第三部分：无分支算术 (6个)</div>
+            <div class="flashcard-grid">
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">符号掩码 <span class="star">⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">mask = x >> 31</div>
+                        <p>x≥0: 0x00 | x<0: 0xFF<br/>所有无分支操作基础</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">abs(x) - 绝对值 <span class="star">⭐⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">abs = (x + mask) ^ mask</div>
+                        <p>3 指令，0 分支<br/>快 5-10 倍</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">min(x,y) <span class="star">⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">min = y+((x-y)&((x-y)>>31))</div>
+                        <p>3 指令，无分支</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">max(x,y) <span class="star">⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">max = x-((x-y)&((x-y)>>31))</div>
+                        <p>3 指令，无分支</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">avg(x,y) <span class="star">⭐⭐⭐</span></div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">avg = (x&y)+((x^y)>>1)</div>
+                        <p>永不溢出！SIMD 必用</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">sign(x)</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">sign = (x>>31)|((-x)>>31)</div>
+                        <p>结果：-1/0/+1<br/>3 指令</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四部分：Gosper's Hack -->
+        <div class="category-section">
+            <div class="category-title">🌟 第四部分：Gosper's Hack <span class="star">⭐⭐⭐</span> (100倍加速)</div>
+            <div class="flashcard-grid">
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">Step 1: 提取最低1</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">c = x & (-x)</div>
+                        <p>识别进位点</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">Step 2: 进位传播</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">r = x + c</div>
+                        <p>级联翻转低位 1 串</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">Step 3: 计算补充1数</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">ones = (((r^x)/c)>>2)+1</div>
+                        <p>保持 popcount 不变</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+
+                <div class="flashcard" onclick="this.classList.toggle('flipped')">
+                    <div class="flashcard-front">Step 4: 合并结果</div>
+                    <div class="flashcard-back">
+                        <div class="ref-formula">result = r | ones</div>
+                        <p>完成！下一个排列</p>
+                    </div>
+                    <div class="flashcard-hint">点击查看答案</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速参考表 -->
+        <div class="quick-ref">
+            <h2>⚡ 快速参考：最常用公式</h2>
+            <div class="ref-grid">
+                <div class="ref-item">
+                    <strong>王牌恒等式</strong>
+                    <div class="ref-formula">x+y = (x^y)+((x&y)<<1)</div>
+                    <p>加法的本质：无进位 + 进位传播</p>
+                </div>
+
+                <div class="ref-item">
+                    <strong>Dietz平均</strong>
+                    <div class="ref-formula">avg = (x&y)+((x^y)>>1)</div>
+                    <p>永不溢出，2006年JDK bug的根源</p>
+                </div>
+
+                <div class="ref-item">
+                    <strong>最右边的1</strong>
+                    <div class="ref-formula">x & (-x)</div>
+                    <p>棋盘引擎和bitboard操作必用</p>
+                </div>
+
+                <div class="ref-item">
+                    <strong>无分支abs</strong>
+                    <div class="ref-formula">abs = (x + (x>>31)) ^ (x>>31)</div>
+                    <p>3指令0分支，快5-10倍</p>
+                </div>
+
+                <div class="ref-item">
+                    <strong>MUX选择器</strong>
+                    <div class="ref-formula">mux = ((x^y)&m) ^ y</div>
+                    <p>3指令优化版本（需ANDC）</p>
+                </div>
+
+                <div class="ref-item">
+                    <strong>Gosper's Hack</strong>
+                    <div class="ref-formula">result = (x+c) | (((r^x)/c)>>2)+1<br/>其中c = x&(-x), r = x+c</div>
+                    <p>组合爆炸救星，100倍加速</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 记忆技巧 -->
+        <div class="tip-box">
+            <h3>💡 记忆技巧</h3>
+            <p><strong>1. x & (x-1)：</strong>减1会触发进位穿透，清除最低的1</p>
+            <p><strong>2. x & (-x)：</strong>补码性质，提取最低的1（棋盘引擎钥匙）</p>
+            <p><strong>3. mask = x >> 31：</strong>正数得0，负数得-1，用于无分支条件</p>
+            <p><strong>4. Dietz平均：</strong>记住 (x&y) 是共同部分，((x^y)>>1) 是不同部分的一半</p>
+            <p><strong>5. Gosper's Hack：</strong>4个步骤的核心是保持位数不变，只改变排列顺序</p>
+        </div>
+
+        <!-- 学习进度追踪 -->
+        <div class="quick-ref">
+            <h2>📈 学习进度追踪</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">第1阶段：基础掌握</div>
+                    <p>☐ 8个TRICKS<br/>☐ 7个恒等式<br/>☐ 符号掩码<br/><strong>预计：3天</strong></p>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #764ba2;">
+                    <div style="font-weight: bold; color: #764ba2; margin-bottom: 10px;">第2阶段：实战应用</div>
+                    <p>☐ 6个无分支操作<br/>☐ Gosper's Hack<br/>☐ MUX优化<br/><strong>预计：5天</strong></p>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #00b894;">
+                    <div style="font-weight: bold; color: #00b894; margin-bottom: 10px;">第3阶段：深化理论</div>
+                    <p>☐ 特殊技巧合集<br/>☐ 布尔分解定理<br/>☐ 课后习题<br/><strong>预计：7天</strong></p>
+                </div>
+
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #f39c12;">
+                    <div style="font-weight: bold; color: #f39c12; margin-bottom: 10px;">第4阶段：应用迁移</div>
+                    <p>☐ 20+应用场景<br/>☐ 历史演变理解<br/>☐ 跨领域应用<br/><strong>预计：10天</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 键盘快捷键：按空格键翻转所有卡片
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                const cards = document.querySelectorAll('.flashcard');
+                cards.forEach(card => card.classList.toggle('flipped'));
+            }
+        });
+    </script>
+</body>
+</html>
