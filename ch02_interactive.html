@@ -424,6 +424,14 @@
             font-weight: bold;
         }
 
+        /* 交互演示结果并列显示 */
+        .results-inline {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
         .gosper-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
@@ -877,25 +885,27 @@
             </div>
 
             <div class="interactive-demo">
-                <div class="demo-title">🎮 交互演示 - 选择一个8位数字试试看</div>
+                <div class="demo-title">🎮 交互演示 - 选择一个8位数字试试看（并列显示）</div>
                 <div class="bit-input-group">
                     <div class="bit-input" id="bitInput"></div>
                 </div>
-                <div class="result-display" id="result1">
-                    <div class="result-label">x & (x-1):</div>
-                    <div class="result-value">暂无</div>
-                </div>
-                <div class="result-display" id="result2">
-                    <div class="result-label">x | (x+1):</div>
-                    <div class="result-value">暂无</div>
-                </div>
-                <div class="result-display" id="result3">
-                    <div class="result-label">x & (x+1):</div>
-                    <div class="result-value">暂无</div>
-                </div>
-                <div class="result-display" id="result4">
-                    <div class="result-label">x & (-x):</div>
-                    <div class="result-value">暂无</div>
+                <div class="results-inline" id="results-container">
+                    <div class="result-display" id="result1">
+                        <div class="result-label">x & (x-1):</div>
+                        <div class="result-value">暂无</div>
+                    </div>
+                    <div class="result-display" id="result2">
+                        <div class="result-label">x | (x+1):</div>
+                        <div class="result-value">暂无</div>
+                    </div>
+                    <div class="result-display" id="result3">
+                        <div class="result-label">x & (x+1):</div>
+                        <div class="result-value">暂无</div>
+                    </div>
+                    <div class="result-display" id="result4">
+                        <div class="result-label">x & (-x):</div>
+                        <div class="result-value">暂无</div>
+                    </div>
                 </div>
             </div>
 
