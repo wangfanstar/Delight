@@ -536,7 +536,7 @@ mindmap
             <div class="item-list">
                 <div class="item">
                     <div class="item-title">(a) 王牌恒等式 ⭐⭐⭐</div>
-                    <div class="item-formula">x + y == (x^y) + ((x&y)<<1)</div>
+                    <div class="item-formula">x + y == (x^y) + ((x&y)&lt;&lt;1)</div>
                     <div class="item-desc">加法分解为两个独立部分：无进位求和 + 进位传播。是并行前缀加法的理论基础。</div>
                     <span class="badge critical">最重要</span>
                 </div>
@@ -547,7 +547,7 @@ mindmap
                 </div>
                 <div class="item">
                     <div class="item-title">(c) 反向推导</div>
-                    <div class="item-formula">x ^ y == (x+y) - ((x&y)<<1)</div>
+                    <div class="item-formula">x ^ y == (x+y) - ((x&y)&lt;&lt;1)</div>
                     <div class="item-desc">从加法反向推导 XOR，说明三者的等价性。</div>
                 </div>
                 <div class="item">
@@ -695,12 +695,12 @@ mindmap
                 </div>
                 <div class="item">
                     <div class="item-title">符号扩展 (Sign Extension)</div>
-                    <div class="item-formula">sign_ext = (x<<(32-n))>>(32-n)</div>
+                    <div class="item-formula">sign_ext = (x&lt;&lt;(32-n))>>(32-n)</div>
                     <div class="item-desc">把 n 位有符号数扩展为 32 位。2 条指令。</div>
                 </div>
                 <div class="item">
                     <div class="item-title">位域提取 / 插入</div>
-                    <div class="item-formula">extract: (x>>p) & ((1<<n)-1)<br/>insert: (x & ~mask) | ((v<<p) & mask)</div>
+                    <div class="item-formula">extract: (x>>p) & ((1<<n)-1)<br/>insert: (x & ~mask) | ((v&lt;&lt;p) & mask)</div>
                     <div class="item-desc">从位置 p 提取 n 位，或在位置插入 n 位。</div>
                 </div>
                 <div class="item">
@@ -710,7 +710,7 @@ mindmap
                 </div>
                 <div class="item">
                     <div class="item-title">位域复制</div>
-                    <div class="item-formula">复制 bit i 到 bit j: (x & ~(1<<j)) | (((x>>i)&1)<<j)</div>
+                    <div class="item-formula">复制 bit i 到 bit j: (x & ~(1&lt;&lt;j)) | (((x>>i)&1)&lt;&lt;j)</div>
                     <div class="item-desc">跨位置复制。纹理坐标变换应用。</div>
                 </div>
                 <div class="item">
@@ -868,7 +868,13 @@ mindmap
     </div>
 
     <script>
-        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            logLevel: 'error',
+            flowchart: { htmlLabels: true, curve: 'basis' }
+        });
     </script>
 </body>
 </html>
