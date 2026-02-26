@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker's Delight Ch02 - 知识点思维导图</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 30px 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.05em;
+            opacity: 0.95;
+        }
+
+        .mindmap-container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            margin-bottom: 40px;
+            overflow-x: auto;
+        }
+
+        .mindmap-title {
+            text-align: center;
+            font-size: 1.8em;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-weight: bold;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            min-height: 600px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .stat-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            line-height: 1;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.95em;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .category-section {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .category-title {
+            font-size: 1.3em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .category-icon {
+            font-size: 1.5em;
+        }
+
+        .item-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 3px solid #764ba2;
+            transition: all 0.2s ease;
+        }
+
+        .item:hover {
+            background: #f0f0f0;
+            border-left-color: #667eea;
+        }
+
+        .item-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .item-desc {
+            font-size: 0.9em;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .item-formula {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            color: #d63031;
+            margin-top: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75em;
+            font-weight: bold;
+            margin-top: 8px;
+            margin-right: 5px;
+        }
+
+        .badge.critical {
+            background: #d63031;
+        }
+
+        .badge.optimization {
+            background: #00b894;
+        }
+
+        .badge.theory {
+            background: #764ba2;
+        }
+
+        .summary-box {
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+            border-left: 5px solid #667eea;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .summary-box strong {
+            color: #667eea;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mindmap-container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .item-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 标题 -->
+        <div class="header">
+            <h1>🎯 Hacker's Delight Chapter 02</h1>
+            <p>基础技巧知识点思维导图 & 分类汇总</p>
+        </div>
+
+        <!-- 统计卡片 -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">142+</div>
+                <div class="stat-label">总知识点数</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">基础技巧</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">7</div>
+                <div class="stat-label">加减法恒等式</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">无分支操作</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">20+</div>
+                <div class="stat-label">应用场景</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">历史发展阶段</div>
+            </div>
+        </div>
+
+        <!-- 思维导图 -->
+        <div class="mindmap-container">
+            <div class="mindmap-title">📊 完整知识体系思维导图</div>
+            <div class="mermaid">
+mindmap
+  root((Hacker's Delight<br/>Ch02: 位操作基础))
+    🔧 最右位操纵 (TRICKS 01-08)
+      01 清除最右边的1
+        x & (x-1)
+        判断2的幂
+      02 置位最右边的0
+        x | (x+1)
+        连续0检测
+      03 清除尾部连续的1
+        x & (x+1)
+        判断2^n-1形式
+      04 置位尾部连续的0
+        x | (x-1)
+        取整应用
+      05 最右边的0掩码
+        ~x & (x+1)
+        单bit提取
+      06 最右边的1掩码 ⭐
+        x & (-x)
+        棋盘引擎
+        bitboard
+      07 尾部0的掩码
+        ~x & (x-1)
+        低位处理
+      08 尾部1右对齐传播
+        x | (x-1)
+        内存对齐
+    ➕ 加减法恒等式 (7个)
+      (a) 王牌恒等式
+        x+y = (x^y)+((x&y)<<1)
+        加法分解
+      (b) OR/AND分解
+        x+y = (x|y)+(x&y)
+        等价形式
+      (c) 反向推导
+        x^y = (x+y)-((x&y)<<1)
+        XOR表示
+      (d) OR表示法
+        x|y = (x+y)-(x&y)
+        基础分解
+      (e) AND表示法 ⭐
+        x&y = (x|y)-(x^y)
+        对偶性质
+      (f) Dietz无溢出平均 ⭐⭐
+        avg = (x&y)+((x^y)>>1)
+        安全性关键
+      (g) XOR分解
+        x^y = (x|y)&~(x&y)
+        4指令形式
+    ⚡ 无分支算术 (6个)
+      符号掩码工具
+        mask = x >> 31
+        正数0/负数-1
+      abs(x)
+        (x+mask)^mask
+        3条指令
+      min(x,y)
+        y+((x-y)&((x-y)>>31))
+        无分支选择
+      max(x,y)
+        x-((x-y)&((x-y)>>31))
+        无分支选择
+      avg(x,y) ⭐
+        (x&y)+((x^y)>>1)
+        永不溢出
+      sign(x)
+        (x>>31)|((-x)>>31)
+        -1/0/+1结果
+    🔀 MUX多路选择器
+      标准形式
+        (x&m)|(y&~m)
+        4条指令
+      优化形式 ⭐
+        ((x^y)&m)^y
+        3条指令
+        硬件BLENDV原型
+    🌟 Gosper's Hack ⭐⭐⭐
+      Step1: 提取最低1
+        c = x & (-x)
+        进位点识别
+      Step2: 进位传播
+        r = x + c
+        级联翻转
+      Step3: 计算补1个数
+        ones = (((r^x)/c)>>2)+1
+        popcount保持
+      Step4: 合并结果
+        result = r | ones
+        下一个排列
+        100倍加速
+    🎁 特殊技巧 (8个)
+      溢出检测
+        ((x^sum)&(y^sum))>>31
+        符号变化检测
+      饱和加法
+        QADD/QSUB
+        音频处理
+      符号扩展
+        (x<<(32-n))>>(32-n)
+        n位转32位
+      位域提取/插入
+        掩码操作
+        位图处理
+      Horner规则
+        ((ax+b)x+c)x+d
+        多项式优化
+      位域复制
+        跨位置复制
+        纹理坐标
+      多字节SIMD加法
+        4×byte并行
+        图像处理
+      双字移位
+        SHLD/SHRD
+        64位模拟
+    🎓 布尔分解定理
+      Reed-Muller展开
+        任意布尔函数
+        XOR递归分解
+      Davio分解
+        多项式表示
+        代数形式
+      门电路实现
+        1条指令
+        2条指令
+        3条指令
+      真值表分析
+        2^n种可能
+        最优指令数
+      SHA-256应用
+        多数表决MAJ
+        4指令门
+    📚 应用场景 (20+)
+      棋盘引擎
+        bitboard操作
+        Stockfish基础
+      密码学
+        Constant-time编程
+        防timing攻击
+      SIMD/GPU
+        向量化处理
+        AVX2/NEON intrinsics
+      神经网络
+        稀疏化掩码
+        权重搜索
+      背包问题
+        精确算法
+        位剪枝
+      哈希函数
+        Horner规则
+        冲突最小化
+      编译器优化
+        super-optimizer
+        自动发现
+      硬件设计
+        Verilog综合
+        LUT映射
+      量子计算
+        可逆计算
+        XOR门应用
+    ⏰ 历史演变
+      1961 Strachey
+        CACM论文
+        最早正式发表
+      1972 Gosper HAKMEM
+        MIT AI Lab
+        经典汇编集
+      1986 Henry Dietz
+        无溢出平均
+        aggregate魔法集
+      1992 GCC Superoptimizer
+        自动发现技巧
+        编译器革新
+      2006 Joshua Bloch
+        二分搜索bug
+        10年潜伏期
+      2013 x86 BMI1/BMI2
+        硬件指令化
+        1条指令完成
+    💭 深度点评
+      分支预测陷阱
+        10-20周期损失
+        无分支必要性
+      整数溢出安全
+        Dietz公式价值
+        关键隐患点
+      Gosper加速原理
+        组合爆炸解决
+        100倍性能飞跃
+      语言实现差异
+        Rust vs Java
+        有符号整数处理
+      可推广方向
+        SIMD向量化
+        GPU并行化
+        量子计算应用
+            </div>
+        </div>
+
+        <!-- 分类汇总 -->
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🔧</span>
+                分类 1: 最右位操纵技巧 (TRICKS 01-08)
+            </div>
+            <div class="summary-box">
+                <strong>核心理论：</strong>补码的级联翻转性质 (x-1 和 x+1 会产生进位穿透)
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">TRICK 01: 清除最右边的1</div>
+                    <div class="item-formula">x & (x - 1)</div>
+                    <div class="item-desc">将最低位的1变为0。判断2的幂：(x & (x-1)) == 0</div>
+                    <span class="badge critical">高频使用</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 02: 置位最右边的0</div>
+                    <div class="item-formula">x | (x + 1)</div>
+                    <div class="item-desc">将最低位的0变为1。连续0检测。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 03: 清除尾部连续的1</div>
+                    <div class="item-formula">x & (x + 1)</div>
+                    <div class="item-desc">末尾连续1全清零。判断2ⁿ-1形式。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 04: 置位尾部连续的0</div>
+                    <div class="item-formula">x | (x - 1)</div>
+                    <div class="item-desc">末尾连续0全置1。取整应用。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 05: 最右边的0掩码</div>
+                    <div class="item-formula">~x & (x + 1)</div>
+                    <div class="item-desc">在最低位0处产生单个1。单bit提取。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 06: 最右边的1掩码 (LSB) ⭐</div>
+                    <div class="item-formula">x & (-x)</div>
+                    <div class="item-desc">只保留最低位的1。棋盘引擎bitboard、Kernighan位计数。</div>
+                    <span class="badge critical">★★★ 关键</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 07: 尾部0的掩码</div>
+                    <div class="item-formula">~x & (x - 1)</div>
+                    <div class="item-desc">在所有尾部0的位置产生1。低位处理。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">TRICK 08: 尾部1右对齐传播</div>
+                    <div class="item-formula">x | (x - 1)</div>
+                    <div class="item-desc">右对齐最低群组的1串。内存对齐、子集枚举常用。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">➕</span>
+                分类 2: 加减法恒等式 (7个)
+            </div>
+            <div class="summary-box">
+                <strong>核心理论：</strong>加法 = 不进位求和(XOR) + 进位传播(AND左移)，揭示加法器的物理结构
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">(a) 王牌恒等式 ⭐⭐⭐</div>
+                    <div class="item-formula">x + y == (x^y) + ((x&y)<<1)</div>
+                    <div class="item-desc">加法分解为两个独立部分：无进位求和 + 进位传播。是并行前缀加法的理论基础。</div>
+                    <span class="badge critical">最重要</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">(b) OR/AND 分解</div>
+                    <div class="item-formula">x + y == (x|y) + (x&y)</div>
+                    <div class="item-desc">等价分解形式，用并集与交集表示加法。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">(c) 反向推导</div>
+                    <div class="item-formula">x ^ y == (x+y) - ((x&y)<<1)</div>
+                    <div class="item-desc">从加法反向推导 XOR，说明三者的等价性。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">(d) OR 表示法</div>
+                    <div class="item-formula">x | y == (x+y) - (x&y)</div>
+                    <div class="item-desc">OR 用加减表示，基础分解。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">(e) AND 表示法 ⭐</div>
+                    <div class="item-formula">x & y == (x|y) - (x^y)</div>
+                    <div class="item-desc">AND 用 OR/XOR 表示，对偶性质关键。</div>
+                    <span class="badge theory">对偶性</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">(f) Dietz 无溢出平均 ⭐⭐</div>
+                    <div class="item-formula">avg = (x&y) + ((x^y)>>1)</div>
+                    <div class="item-desc">永不溢出！JDK 二分搜索曾因此 bug 潜伏 10 年。安全性关键。</div>
+                    <span class="badge optimization">安全</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">(g) XOR 分解</div>
+                    <div class="item-formula">x ^ y == (x|y) & ~(x&y)</div>
+                    <div class="item-desc">XOR 用 OR/AND/NOT 组合，4 指令形式。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">⚡</span>
+                分类 3: 无分支算术 (6个)
+            </div>
+            <div class="summary-box">
+                <strong>核心理论：</strong>用符号掩码 (mask = x >> 31) 实现数据驱动的条件选择，完全避免分支预测失败的 10-20 周期损失
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">符号掩码工具</div>
+                    <div class="item-formula">mask = x >> 31</div>
+                    <div class="item-desc">x≥0 时为 0x00000000，x<0 时为 0xFFFFFFFF。所有无分支操作的基础。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">abs(x) - 绝对值</div>
+                    <div class="item-formula">abs = (x + mask) ^ mask</div>
+                    <div class="item-desc">3 条指令，0 个分支。vs 分支版本快 5-10 倍。</div>
+                    <span class="badge critical">高频</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">min(x,y) - 最小值</div>
+                    <div class="item-formula">min = y + ((x-y) & ((x-y)>>31))</div>
+                    <div class="item-desc">3 条指令，无分支。用差值符号位决定选择。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">max(x,y) - 最大值</div>
+                    <div class="item-formula">max = x - ((x-y) & ((x-y)>>31))</div>
+                    <div class="item-desc">3 条指令，无分支。min 的对偶形式。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">avg(x,y) - 平均值 ⭐⭐</div>
+                    <div class="item-formula">avg = (x&y) + ((x^y)>>1)</div>
+                    <div class="item-desc">Dietz 公式，无论多大都不会溢出。SIMD 必用。</div>
+                    <span class="badge critical">★★★ 关键</span>
+                </div>
+                <div class="item">
+                    <div class="item-title">sign(x) - 符号函数</div>
+                    <div class="item-formula">sign = (x >> 31) | (-x >> 31)</div>
+                    <div class="item-desc">结果为 -1/0/+1。2 次右移 + 1 次或 = 3 条指令。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🔀</span>
+                分类 4: MUX 多路选择器 (2个)
+            </div>
+            <div class="summary-box">
+                <strong>核心理论：</strong>用掩码在两个值间做条件选择。SIMD blendv 指令的原型，常量时间密码学的核心工具。
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">标准 MUX - 4 条指令</div>
+                    <div class="item-formula">mux(x,y,m) = (x&m) | (y&~m)</div>
+                    <div class="item-desc">m=全1 选 x，m=全0 选 y。标准形式，容易理解。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">优化 MUX - 3 条指令 ⭐</div>
+                    <div class="item-formula">mux(x,y,m) = ((x^y)&m) ^ y</div>
+                    <div class="item-desc">少 1 条指令！需要 ANDC (AND-NOT-COMPLEMENT) 支持。ARM NEON、x86 AVX512 都有。</div>
+                    <span class="badge optimization">优化</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🌟</span>
+                分类 5: Gosper's Hack - 组合爆炸的救星 ⭐⭐⭐
+            </div>
+            <div class="summary-box">
+                <strong>核心理论：</strong>给定含 k 个 1 的 n 位整数，求下一个含同样多 1 的最小整数。
+                来自 MIT 1972 HAKMEM，5 行代码，0 个分支，纯位运算。<br>
+                <strong>性能：</strong>递归~3000万次/秒 → Gosper's Hack~3亿次/秒 = <strong>100倍加速</strong>
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">Step 1: 提取最低 1</div>
+                    <div class="item-formula">c = x & (-x)</div>
+                    <div class="item-desc">这个 1 会成为进位点，用来触发级联翻转。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Step 2: 进位传播</div>
+                    <div class="item-formula">r = x + c</div>
+                    <div class="item-desc">加 c 会清除最低连续 1 串，并把进位传到更高位。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Step 3: 计算补充 1 的个数</div>
+                    <div class="item-formula">ones = (((r^x) / c) >> 2) + 1</div>
+                    <div class="item-desc">计算低位需要多少个 1 来保持 popcount 不变。巧妙的数学技巧！</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Step 4: 合并高低位</div>
+                    <div class="item-formula">result = r | ones</div>
+                    <div class="item-desc">完成！下一个排列得出。每次调用只需 4 条指令。</div>
+                    <span class="badge critical">★★★ 关键</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🎁</span>
+                分类 6: 特殊技巧合集 (8个)
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">有符号加法溢出检测</div>
+                    <div class="item-formula">ov = ((x^sum) & (y^sum)) >> 31</div>
+                    <div class="item-desc">同号相加得反号 = 溢出。返回 -1 (0xFFFFFFFF) 或 0。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">饱和加法 (Saturating Add)</div>
+                    <div class="item-formula">QADD / QSUB (硬件指令)</div>
+                    <div class="item-desc">溢出时钳制到 MAX/MIN。音频、图像处理防截断失真。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">符号扩展 (Sign Extension)</div>
+                    <div class="item-formula">sign_ext = (x<<(32-n))>>(32-n)</div>
+                    <div class="item-desc">把 n 位有符号数扩展为 32 位。2 条指令。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">位域提取 / 插入</div>
+                    <div class="item-formula">extract: (x>>p) & ((1<<n)-1)<br/>insert: (x & ~mask) | ((v<<p) & mask)</div>
+                    <div class="item-desc">从位置 p 提取 n 位，或在位置插入 n 位。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Horner 规则 (多项式求值)</div>
+                    <div class="item-formula">ax³+bx²+cx+d = ((ax+b)x+c)x+d</div>
+                    <div class="item-desc">用于哈希函数 hash = (hash<<5) - hash ≡ hash*31</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">位域复制</div>
+                    <div class="item-formula">复制 bit i 到 bit j: (x & ~(1<<j)) | (((x>>i)&1)<<j)</div>
+                    <div class="item-desc">跨位置复制。纹理坐标变换应用。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">多字节 SIMD 加法</div>
+                    <div class="item-formula">4×byte 并行</div>
+                    <div class="item-desc">屏蔽高位防进位穿透。图像处理向量运算。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">双字移位 (Shld/Shrd)</div>
+                    <div class="item-formula">x86 SHLD/SHRD 指令</div>
+                    <div class="item-desc">64 位值用两个 32 位寄存器模拟。需处理 n=0 或 32 的特殊情况。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">🎓</span>
+                分类 7: 布尔函数分解定理 (5个)
+            </div>
+            <div class="summary-box">
+                <strong>核心定理（Reed-Muller）：</strong>任意 n 元布尔函数都可以递归分解为：<br>
+                f(x,y,z) = g(x,y) ⊕ z·h(x,y)<br>
+                这保证了任意布尔函数都可用有限的 AND/OR/XOR/NOT 实现。
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">Reed-Muller 展开</div>
+                    <div class="item-formula">f = g ⊕ z·h (递归分解)</div>
+                    <div class="item-desc">任意布尔函数的标准展开形式。g 和 h 是 (n-1) 元函数。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Davio 分解</div>
+                    <div class="item-formula">多项式代数表示</div>
+                    <div class="item-desc">用 XOR 作加法，AND 作乘法的多项式环。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">实现复杂度统计</div>
+                    <div class="item-formula">1变量: 1指令 | 2变量: 2指令 | 3变量: 3指令 | n变量: ~3n指令</div>
+                    <div class="item-desc">指令数与变量数大致线性关系。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">真值表分析</div>
+                    <div class="item-formula">2^n 种可能 (n变量)</div>
+                    <div class="item-desc">224/256 种 3 变量函数需 3 指令，剩余 32 种需 4 指令。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">SHA-256 应用</div>
+                    <div class="item-formula">MAJ(x,y,z) = (x&y)|(y&z)|(z&x)</div>
+                    <div class="item-desc">多数表决函数，4 条指令实现。密码学中的核心原语。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">⏰</span>
+                分类 8: 历史演变 (6个阶段)
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">1961 - Christopher Strachey</div>
+                    <div class="item-formula">《Bitwise Operations》CACM 论文</div>
+                    <div class="item-desc">最早正式发表位操作理论。用 XOR 实现加法的思路比 Warren 恒等式早 40 年！</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">1972 - Bill Gosper, HAKMEM</div>
+                    <div class="item-formula">MIT AI Lab AIM-239</div>
+                    <div class="item-desc">PDP-10 上的位操作圣经。包含 Gosper's Hack、人口计数等经典技巧。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">1986 - Henry Dietz</div>
+                    <div class="item-formula">无溢出平均值公式</div>
+                    <div class="item-desc">aggregate.org 发布大量位操作魔法。Dietz 公式是安全数学的基础。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">1992 - GCC Superoptimizer</div>
+                    <div class="item-formula">Granlund & Kenner, PLDI</div>
+                    <div class="item-desc">编译器开始自动发现位操作技巧。机器比人先掌握这些技巧！</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">2006 - Joshua Bloch</div>
+                    <div class="item-formula">JDK 二分搜索溢出 bug 披露</div>
+                    <div class="item-desc">完全数据没被 Dietz 公式保护，潜伏 10 年，每年被重新"发现"。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">2013 - x86 BMI1/BMI2</div>
+                    <div class="item-formula">Intel Haswell: BLSR, PEXT, PDEP</div>
+                    <div class="item-desc">软件技巧烧进硬件。5 条指令的技巧一夜变成 1 条指令！</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">💭</span>
+                分类 9: 深度点评 (5个)
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">分支预测陷阱</div>
+                    <div class="item-desc">分支预测失败时损失 10-20 个周期。无分支代码在紧循环中快 5-10 倍。这是 Warren 思想的商业核心。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">整数溢出安全</div>
+                    <div class="item-desc">Dietz 无溢出平均是系统级安全补丁。JDK bug 表明这个陷阱多么隐蔽。所有二分搜索都应该用它。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Gosper 加速原理</div>
+                    <div class="item-desc">组合爆炸问题（枚举 C(n,k)）的救星。纯位运算加速 100 倍，棋盘引擎和组合搜索的必修课。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">语言实现差异</div>
+                    <div class="item-desc">Rust debug 模式会 panic 溢出。Java 无 UB 但缺无符号整数。C23 改进了有符号溢出定义。思想跨平台，实现需校对。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">可推广方向</div>
+                    <div class="item-desc">SIMD/GPU 向量化、密码学 constant-time 编程、硬件 Verilog 综合、量子计算可逆电路。Chapter 02 是所有这些的理论基础。</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="category-section">
+            <div class="category-title">
+                <span class="category-icon">✏️</span>
+                分类 10: 精选课后习题 (6个)
+            </div>
+            <div class="item-list">
+                <div class="item">
+                    <div class="item-title">Q3: 推导 Dietz 无溢出平均值 ⭐</div>
+                    <div class="item-desc">证明 (x&y) + ((x^y)>>1) 永不溢出且等于 (x+y)/2。理论基础。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Q8: MUX 3 条指令实现 ⭐⭐</div>
+                    <div class="item-desc">证明 ((x^y)&m) ^ y 等价于标准 MUX。优化艺术。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Q10: 位复制问题 ⭐⭐</div>
+                    <div class="item-desc">复制位 i 的值到位 j。位操作组合应用。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Q11: 布尔分解定理 ⭐⭐⭐</div>
+                    <div class="item-desc">实现任意 n 元布尔函数最少需要多少条二元指令？Reed-Muller 深度思考。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Q5: 条件比较简化</div>
+                    <div class="item-desc">若 y>0，有符号比较从 7 指令简化几条？领域专家的优化眼光。</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">Q4: 四数无溢出平均 ⭐⭐</div>
+                    <div class="item-desc">(a+b+c+d)/4 的无溢出计算。Dietz 公式的递归应用。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default' });
+    </script>
+</body>
+</html>

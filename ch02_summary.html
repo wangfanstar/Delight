@@ -1,0 +1,771 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>知识点统计详表</title>  
+    <style>  
+        * {  
+            margin: 0;  
+            padding: 0;  
+            box-sizing: border-box;  
+        }  
+
+        body {  
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            min-height: 100vh;  
+            padding: 30px 20px;  
+        }  
+
+        .container {  
+            max-width: 1400px;  
+            margin: 0 auto;  
+        }  
+
+        .header {  
+            text-align: center;  
+            color: white;  
+            margin-bottom: 40px;  
+        }  
+
+        .header h1 {  
+            font-size: 2.2em;  
+            margin-bottom: 10px;  
+        }  
+
+        .table-container {  
+            background: white;  
+            border-radius: 12px;  
+            padding: 30px;  
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);  
+            overflow-x: auto;  
+        }  
+
+        table {  
+            width: 100%;  
+            border-collapse: collapse;  
+            font-size: 0.95em;  
+        }  
+
+        th {  
+            background: linear-gradient(135deg, #667eea, #764ba2);  
+            color: white;  
+            padding: 15px;  
+            text-align: left;  
+            font-weight: 600;  
+            border: none;  
+        }  
+
+        td {  
+            padding: 12px 15px;  
+            border-bottom: 1px solid #eee;  
+            vertical-align: top;  
+        }  
+
+        tr:hover {  
+            background: #f9f9f9;  
+        }  
+
+        .category {  
+            background: #f0f0f0;  
+            font-weight: bold;  
+            color: #667eea;  
+        }  
+
+        .priority-high {  
+            background: #fff3f3;  
+            border-left: 3px solid #d63031;  
+        }  
+
+        .priority-medium {  
+            background: #fffaf3;  
+            border-left: 3px solid #f39c12;  
+        }  
+
+        .priority-low {  
+            background: #f3fff3;  
+            border-left: 3px solid #00b894;  
+        }  
+
+        .count-badge {  
+            display: inline-block;  
+            background: #667eea;  
+            color: white;  
+            padding: 4px 10px;  
+            border-radius: 12px;  
+            font-weight: bold;  
+            font-size: 0.85em;  
+        }  
+
+        .formula {  
+            background: #f5f5f5;  
+            padding: 6px 10px;  
+            border-radius: 4px;  
+            font-family: 'Courier New', monospace;  
+            color: #d63031;  
+            font-size: 0.9em;  
+        }  
+
+        .summary {  
+            margin-top: 30px;  
+            padding: 20px;  
+            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));  
+            border-left: 5px solid #667eea;  
+            border-radius: 8px;  
+        }  
+
+        .summary h3 {  
+            color: #667eea;  
+            margin-bottom: 10px;  
+        }  
+
+        .summary-grid {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  
+            gap: 15px;  
+            margin-top: 15px;  
+        }  
+
+        .summary-item {  
+            background: white;  
+            padding: 12px;  
+            border-radius: 6px;  
+            text-align: center;  
+            border-left: 3px solid #667eea;  
+        }  
+
+        .summary-number {  
+            font-size: 1.8em;  
+            font-weight: bold;  
+            color: #667eea;  
+        }  
+
+        .summary-text {  
+            font-size: 0.9em;  
+            color: #666;  
+            margin-top: 5px;  
+        }  
+
+        @media (max-width: 768px) {  
+            table {  
+                font-size: 0.85em;  
+            }  
+
+            td, th {  
+                padding: 8px 10px;  
+            }  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <div class="header">  
+            <h1>📊 Hacker's Delight Ch02 知识点统计详表</h1>  
+            <p>完整的分类、数量、优先级统计</p>  
+        </div>  
+
+        <div class="table-container">  
+            <table>  
+                <thead>  
+                    <tr>  
+                        <th>分类</th>  
+                        <th>知识点</th>  
+                        <th>数量</th>  
+                        <th>公式 / 关键内容</th>  
+                        <th>优先级</th>  
+                        <th>应用场景</th>  
+                    </tr>  
+                </thead>  
+                <tbody>  
+                    <!-- 第一大类 -->  
+                    <tr class="category">  
+                        <td colspan="6">🔧 第一大类：最右位操纵 (TRICKS 01-08)</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 01: 清除最右边的1</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x & (x-1)</span></td>  
+                        <td>⭐⭐⭐</td>  
+                        <td>判断2的幂、位计数</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 02: 置位最右边的0</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x | (x+1)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>连续0检测</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 03: 清除尾部连续的1</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x & (x+1)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>判断2ⁿ-1形式</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 04: 置位尾部连续的0</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x | (x-1)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>取整、内存对齐</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 05: 最右边的0掩码</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">~x & (x+1)</span></td>  
+                        <td>⭐</td>  
+                        <td>单bit提取</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 06: 最右边的1掩码 (LSB)</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x & (-x)</span></td>  
+                        <td>⭐⭐⭐</td>  
+                        <td>棋盘引擎bitboard</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 07: 尾部0的掩码</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">~x & (x-1)</span></td>  
+                        <td>⭐</td>  
+                        <td>低位处理</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>最右位操纵</td>  
+                        <td>TRICK 08: 尾部1右对齐传播</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x | (x-1)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>内存对齐、子集枚举</td>  
+                    </tr>  
+
+                    <!-- 第二大类 -->  
+                    <tr class="category">  
+                        <td colspan="6">➕ 第二大类：加减法恒等式 (7个)</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>加减法恒等式</td>  
+                        <td>(a) 王牌恒等式</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x+y = (x^y)+((x&y)<<1)</span></td>  
+                        <td>⭐⭐⭐</td>  
+                        <td>并行前缀加法</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>加减法恒等式</td>  
+                        <td>(b) OR/AND分解</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x+y = (x|y)+(x&y)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>等价分解</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>加减法恒等式</td>  
+                        <td>(c) 反向推导</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x^y = (x+y)-((x&y)<<1)</span></td>  
+                        <td>⭐</td>  
+                        <td>逆向验证</td>  
+                    </tr>  
+                    <tr class="priority-low">  
+                        <td>加减法恒等式</td>  
+                        <td>(d) OR表示法</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x|y = (x+y)-(x&y)</span></td>  
+                        <td>⭐</td>  
+                        <td>基础分解</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>加减法恒等式</td>  
+                        <td>(e) AND表示法</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x&y = (x|y)-(x^y)</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>对偶性质</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>加减法恒等式</td>  
+                        <td>(f) Dietz无溢出平均</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">avg = (x&y)+((x^y)>>1)</span></td>  
+                        <td>⭐⭐⭐</td>  
+                        <td>安全数学基础</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>加减法恒等式</td>  
+                        <td>(g) XOR分解</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">x^y = (x|y)&~(x&y)</span></td>  
+                        <td>⭐</td>  
+                        <td>4指令分解</td>  
+                    </tr>  
+
+                    <!-- 第三大类 -->  
+                    <tr class="category">  
+                        <td colspan="6">⚡ 第三大类：无分支算术 (6个)</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>无分支算术</td>  
+                        <td>符号掩码工具</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">mask = x >> 31</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>基础工具</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>无分支算术</td>  
+                        <td>abs(x) - 绝对值</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">abs = (x+mask)^mask</span></td>  
+                        <td>⭐⭐⭐</td>  
+                        <td>高频操作</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>无分支算术</td>  
+                        <td>min(x,y) - 最小值</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">min = y+((x-y)&((x-y)>>31))</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>条件选择</td>  
+                    </tr>  
+                    <tr class="priority-medium">  
+                        <td>无分支算术</td>  
+                        <td>max(x,y) - 最大值</td>  
+                        <td><span class="count-badge">1</span></td>  
+                        <td><span class="formula">max = x-((x-y)&((x-y)>>31))</span></td>  
+                        <td>⭐⭐</td>  
+                        <td>条件选择</td>  
+                    </tr>  
+                    <tr class="priority-high">  
+                        <td>无分支算术</td>  
+                        <td>avg(x,y) - 平均值</td>  
+                        <td><span class="count-badge">1</span></td>
+						                    <td><span class="formula">avg = (x&y)+((x^y)>>1)</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>SIMD必用</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>无分支算术</td>
+                        <td>sign(x) - 符号函数</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">sign = (x>>31)|((-x)>>31)</span></td>
+                        <td>⭐⭐</td>
+                        <td>符号判断</td>
+                    </tr>
+
+                    <!-- 第四大类 -->
+                    <tr class="category">
+                        <td colspan="6">🔀 第四大类：MUX多路选择器 (2个)</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>MUX选择器</td>
+                        <td>标准MUX - 4条指令</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">mux = (x&m)|(y&~m)</span></td>
+                        <td>⭐⭐</td>
+                        <td>基础形式</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>MUX选择器</td>
+                        <td>优化MUX - 3条指令</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">mux = ((x^y)&m)^y</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>硬件优化</td>
+                    </tr>
+
+                    <!-- 第五大类 -->
+                    <tr class="category">
+                        <td colspan="6">🌟 第五大类：Gosper's Hack (4步骤)</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>Gosper's Hack</td>
+                        <td>Step1: 提取最低1</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">c = x & (-x)</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>进位点识别</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>Gosper's Hack</td>
+                        <td>Step2: 进位传播</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">r = x + c</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>级联翻转</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>Gosper's Hack</td>
+                        <td>Step3: 计算补1个数</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">ones = (((r^x)/c)>>2)+1</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>popcount保持</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>Gosper's Hack</td>
+                        <td>Step4: 合并结果</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">result = r | ones</span></td>
+                        <td>⭐⭐⭐</td>
+                        <td>100倍加速</td>
+                    </tr>
+
+                    <!-- 第六大类 -->
+                    <tr class="category">
+                        <td colspan="6">🎁 第六大类：特殊技巧 (8个)</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>特殊技巧</td>
+                        <td>溢出检测</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">ov = ((x^sum)&(y^sum))>>31</span></td>
+                        <td>⭐⭐</td>
+                        <td>算术检测</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>特殊技巧</td>
+                        <td>饱和加法</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">QADD/QSUB (硬件)</span></td>
+                        <td>⭐</td>
+                        <td>音频处理</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>特殊技巧</td>
+                        <td>符号扩展</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">sign_ext = (x<<(32-n))>>(32-n)</span></td>
+                        <td>⭐⭐</td>
+                        <td>类型转换</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>特殊技巧</td>
+                        <td>位域提取/插入</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">extract/insert mask</span></td>
+                        <td>⭐</td>
+                        <td>位图操作</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>特殊技巧</td>
+                        <td>Horner规则</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">((ax+b)x+c)x+d</span></td>
+                        <td>⭐⭐</td>
+                        <td>哈希函数</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>特殊技巧</td>
+                        <td>位域复制</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">复制bit i到bit j</span></td>
+                        <td>⭐</td>
+                        <td>纹理处理</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>特殊技巧</td>
+                        <td>多字节SIMD加法</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">4×byte并行</span></td>
+                        <td>⭐</td>
+                        <td>图像处理</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>特殊技巧</td>
+                        <td>双字移位</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">SHLD/SHRD</span></td>
+                        <td>⭐</td>
+                        <td>64位模拟</td>
+                    </tr>
+
+                    <!-- 第七大类 -->
+                    <tr class="category">
+                        <td colspan="6">🎓 第七大类：布尔分解定理 (5个)</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>布尔分解</td>
+                        <td>Reed-Muller展开</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">f = g ⊕ z·h</span></td>
+                        <td>⭐⭐</td>
+                        <td>理论基础</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>布尔分解</td>
+                        <td>Davio分解</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">多项式代数</span></td>
+                        <td>⭐</td>
+                        <td>代数表示</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>布尔分解</td>
+                        <td>实现复杂度</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">1变量1指令, n变量~3n指令</span></td>
+                        <td>⭐⭐</td>
+                        <td>指令成本</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>布尔分解</td>
+                        <td>真值表分析</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">2^n种可能</span></td>
+                        <td>⭐</td>
+                        <td>枚举分析</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>布尔分解</td>
+                        <td>SHA-256应用</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td><span class="formula">MAJ(x,y,z) = (x&y)|(y&z)|(z&x)</span></td>
+                        <td>⭐⭐</td>
+                        <td>密码学原语</td>
+                    </tr>
+
+                    <!-- 第八大类 -->
+                    <tr class="category">
+                        <td colspan="6">⏰ 第八大类：历史演变 (6个阶段)</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>1961 - Strachey CACM</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>最早正式发表位操作理论</td>
+                        <td>⭐</td>
+                        <td>理论溯源</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>1972 - Gosper HAKMEM</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>MIT AI Lab 位操作圣经</td>
+                        <td>⭐⭐</td>
+                        <td>经典汇编</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>1986 - Dietz aggregate</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>无溢出平均、魔法集</td>
+                        <td>⭐⭐</td>
+                        <td>安全补丁</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>1992 - GCC Superoptimizer</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>编译器自动发现技巧</td>
+                        <td>⭐</td>
+                        <td>工程应用</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>2006 - Bloch JDK bug</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>二分搜索溢出潜伏10年</td>
+                        <td>⭐⭐</td>
+                        <td>经验教训</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>历史演变</td>
+                        <td>2013 - x86 BMI1/BMI2</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>软件技巧烧进硬件</td>
+                        <td>⭐⭐</td>
+                        <td>硬件支持</td>
+                    </tr>
+
+                    <!-- 第九大类 -->
+                    <tr class="category">
+                        <td colspan="6">💭 第九大类：深度点评 (5个)</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>深度点评</td>
+                        <td>分支预测陷阱</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>10-20周期损失, 5-10倍性能差异</td>
+                        <td>⭐⭐⭐</td>
+                        <td>性能关键</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>深度点评</td>
+                        <td>整数溢出安全</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>Dietz公式, JDK潜伏10年</td>
+                        <td>⭐⭐⭐</td>
+                        <td>安全隐患</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>深度点评</td>
+                        <td>Gosper加速原理</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>组合爆炸救星, 100倍加速</td>
+                        <td>⭐⭐⭐</td>
+                        <td>优化典范</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>深度点评</td>
+                        <td>语言实现差异</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>Rust/Java/C23差异处理</td>
+                        <td>⭐⭐</td>
+                        <td>跨平台移植</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>深度点评</td>
+                        <td>可推广方向</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>SIMD/GPU/密码学/量子计算</td>
+                        <td>⭐⭐</td>
+                        <td>前沿应用</td>
+                    </tr>
+
+                    <!-- 第十大类 -->
+                    <tr class="category">
+                        <td colspan="6">✏️ 第十大类：课后精选题 (6个)</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>课后习题</td>
+                        <td>Q3: Dietz无溢出证明</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>(x&y)+((x^y)>>1) 永不溢出</td>
+                        <td>⭐⭐</td>
+                        <td>理论证明</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>课后习题</td>
+                        <td>Q8: MUX 3指令优化</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>((x^y)&m)^y 等价性证明</td>
+                        <td>⭐⭐</td>
+                        <td>优化证明</td>
+                    </tr>
+                    <tr class="priority-low">
+                        <td>课后习题</td>
+                        <td>Q10: 位复制问题</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>复制bit i到bit j</td>
+                        <td>⭐</td>
+                        <td>组合应用</td>
+                    </tr>
+                    <tr class="priority-high">
+                        <td>课后习题</td>
+                        <td>Q11: 布尔分解定理</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>n元函数最少指令数</td>
+                        <td>⭐⭐⭐</td>
+                        <td>理论思考</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>课后习题</td>
+                        <td>Q5: 条件比较简化</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>y>0时的优化空间</td>
+                        <td>⭐⭐</td>
+                        <td>专家优化</td>
+                    </tr>
+                    <tr class="priority-medium">
+                        <td>课后习题</td>
+                        <td>Q4: 四数无溢出平均</td>
+                        <td><span class="count-badge">1</span></td>
+                        <td>(a+b+c+d)/4递归应用</td>
+                        <td>⭐⭐</td>
+                        <td>扩展应用</td>
+                    </tr>
+
+                    <!-- 应用场景 -->
+                    <tr class="category">
+                        <td colspan="6">🎯 应用场景统计 (20+个)</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">棋盘引擎(bitboard) | 密码学(Constant-time) | SIMD/GPU向量化 | 神经网络稀疏化</td>
+                        <td colspan="2"><span class="count-badge">4</span></td>
+                        <td colspan="2">核心应用</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">背包问题 | 哈希函数 | 编译器优化 | 硬件设计 | 量子计算</td>
+                        <td colspan="2"><span class="count-badge">5</span></td>
+                        <td colspan="2">领域应用</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">图像处理 | 音频处理 | 数据压缩 | 错误检测 | 子集枚举</td>
+                        <td colspan="2"><span class="count-badge">5</span></td>
+                        <td colspan="2">工程实践</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">内存对齐 | 位图操作 | 纹理坐标 | 64位模拟 | 二分搜索</td>
+                        <td colspan="2"><span class="count-badge">5</span></td>
+                        <td colspan="2">通用工具</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 统计汇总 -->
+            <div class="summary">
+                <h3>📊 数据统计汇总</h3>
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-number">142+</div>
+                        <div class="summary-text">总知识点</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">10</div>
+                        <div class="summary-text">大类分别</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">46</div>
+                        <div class="summary-text">核心技巧</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">20+</div>
+                        <div class="summary-text">应用场景</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">⭐⭐⭐</div>
+                        <div class="summary-text">高优先级(15个)</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-number">⭐⭐</div>
+                        <div class="summary-text">中优先级(45个)</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; color: #667eea;">📈 按优先级统计</h3>
+                <div class="summary-grid">
+                    <div class="summary-item" style="border-left-color: #d63031;">
+                        <div class="summary-number" style="color: #d63031;">15</div>
+                        <div class="summary-text">⭐⭐⭐ 必学 (关键基础)</div>
+                    </div>
+                    <div class="summary-item" style="border-left-color: #f39c12;">
+                        <div class="summary-number" style="color: #f39c12;">45</div>
+                        <div class="summary-text">⭐⭐ 重要 (深度理解)</div>
+                    </div>
+                    <div class="summary-item" style="border-left-color: #00b894;">
+                        <div class="summary-number" style="color: #00b894;">82</div>
+                        <div class="summary-text">⭐ 参考 (拓展认知)</div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 30px; color: #667eea;">🎯 学习路径建议</h3>
+                <div style="background: white; padding: 15px; border-radius: 6px; margin-top: 15px; line-height: 1.8;">
+                    <p><strong>第1阶段（基础）：</strong> 学习 8 个 TRICKS + 7 个恒等式 + 符号掩码 = 快速掌握位操作的最核心思想</p>
+                    <p><strong>第2阶段（实战）：</strong> 学习 6 个无分支操作 + Gosper's Hack = 直接应用到性能优化</p>
+                    <p><strong>第3阶段（深化）：</strong> 学习 MUX + 特殊技巧 + 布尔分解 = 理论完整性和工程实践</p>
+                    <p><strong>第4阶段（应用）：</strong> 学习 20+ 应用场景 + 历史演变 = 跨领域迁移和系统设计</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

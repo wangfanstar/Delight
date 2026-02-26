@@ -1,0 +1,586 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>知识点统计图表</title>  
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>  
+    <style>  
+        * {  
+            margin: 0;  
+            padding: 0;  
+            box-sizing: border-box;  
+        }  
+
+        body {  
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;  
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
+            min-height: 100vh;  
+            padding: 30px 20px;  
+        }  
+
+        .container {  
+            max-width: 1400px;  
+            margin: 0 auto;  
+        }  
+
+        .header {  
+            text-align: center;  
+            color: white;  
+            margin-bottom: 40px;  
+        }  
+
+        .header h1 {  
+            font-size: 2.2em;  
+            margin-bottom: 10px;  
+        }  
+
+        .charts-grid {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));  
+            gap: 30px;  
+            margin-bottom: 40px;  
+        }  
+
+        .chart-container {  
+            background: white;  
+            border-radius: 16px;  
+            padding: 30px;  
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);  
+        }  
+
+        .chart-title {  
+            font-size: 1.3em;  
+            color: #667eea;  
+            font-weight: bold;  
+            margin-bottom: 20px;  
+            text-align: center;  
+        }  
+
+        canvas {  
+            max-width: 100%;  
+        }  
+
+        .stats-box {  
+            background: white;  
+            border-radius: 16px;  
+            padding: 30px;  
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);  
+            margin-bottom: 30px;  
+        }  
+
+        .stats-title {  
+            font-size: 1.5em;  
+            color: #667eea;  
+            font-weight: bold;  
+            margin-bottom: 20px;  
+            border-bottom: 3px solid #667eea;  
+            padding-bottom: 10px;  
+        }  
+
+        .stats-grid {  
+            display: grid;  
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  
+            gap: 20px;  
+        }  
+
+        .stat-item {  
+            background: linear-gradient(135deg, #667eea, #764ba2);  
+            color: white;  
+            padding: 20px;  
+            border-radius: 12px;  
+            text-align: center;  
+        }  
+
+        .stat-number {  
+            font-size: 2.5em;  
+            font-weight: bold;  
+            line-height: 1;  
+            margin-bottom: 10px;  
+        }  
+
+        .stat-label {  
+            font-size: 0.95em;  
+            opacity: 0.95;  
+        }  
+
+        @media (max-width: 768px) {  
+            .charts-grid {  
+                grid-template-columns: 1fr;  
+            }  
+
+            .header h1 {  
+                font-size: 1.5em;  
+            }  
+        }  
+    </style>  
+</head>  
+<body>  
+    <div class="container">  
+        <div class="header">  
+            <h1>📊 Hacker's Delight Ch02 - 统计数据分析</h1>  
+            <p>知识点分布、优先级、应用场景可视化</p>  
+        </div>  
+
+        <!-- 统计数据卡片 -->  
+        <div class="stats-box">  
+            <div class="stats-title">📈 核心统计指标</div>  
+            <div class="stats-grid">  
+                <div class="stat-item">  
+                    <div class="stat-number">142+</div>  
+                    <div class="stat-label">总知识点</div>  
+                </div>  
+                <div class="stat-item">  
+                    <div class="stat-number">10</div>  
+                    <div class="stat-label">大类分类</div>  
+                </div>  
+                <div class="stat-item">  
+                    <div class="stat-number">46</div>  
+                    <div class="stat-label">核心技巧</div>  
+                </div>  
+                <div class="stat-item">  
+                    <div class="stat-number">20+</div>  
+                    <div class="stat-label">应用场景</div>  
+                </div>  
+                <div class="stat-item">  
+                    <div class="stat-number">6</div>  
+                    <div class="stat-label">历史阶段</div>  
+                </div>  
+                <div class="stat-item">  
+                    <div class="stat-number">100x</div>  
+                    <div class="stat-label">最大加速</div>  
+                </div>  
+            </div>  
+        </div>  
+
+        <!-- 图表区域 -->  
+        <div class="charts-grid">  
+            <!-- 图表1：分类分布 -->  
+            <div class="chart-container">  
+                <div class="chart-title">按大类分布的知识点数量</div>  
+                <canvas id="categoryChart"></canvas>  
+            </div>  
+
+            <!-- 图表2：优先级分布 -->  
+            <div class="chart-container">  
+                <div class="chart-title">按学习优先级分布</div>  
+                <canvas id="priorityChart"></canvas>  
+            </div>  
+
+            <!-- 图表3：应用场景分布 -->  
+            <div class="chart-container">  
+                <div class="chart-title">应用场景统计</div>  
+                <canvas id="applicationChart"></canvas>  
+            </div>  
+
+            <!-- 图表4：学习路径建议 -->  
+            <div class="chart-container">  
+                <div class="chart-title">学习阶段时间安排</div>  
+                <canvas id="learningPathChart"></canvas>  
+            </div>  
+        </div>  
+
+        <!-- 详细分析 -->  
+        <div class="stats-box">  
+            <div class="stats-title">🔍 详细分析</div>  
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">  
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">  
+                    <strong style="color: #667eea;">最重要的知识点（⭐⭐⭐）</strong>  
+                    <p style="margin-top: 10px; font-size: 0.9em; line-height: 1.6;">  
+                        • TRICK 06: x&(-x) - 棋盘引擎基础<br/>  
+                        • (a) 王牌恒等式 - 加法本质<br/>  
+                        • (f) Dietz平均 - 安全数学<br/>  
+                        • abs(x) 无分支 - 性能优化<br/>  
+                        • avg(x,y) 无溢出 - SIMD必用<br/>  
+                        • Gosper's Hack - 100倍加速<br/>  
+                        • 优化MUX - 3指令优化  
+                    </p>  
+                </div>  
+
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #f39c12;">  
+                    <strong style="color: #f39c12;">应用最广泛的技巧（⭐⭐）</strong>  
+                    <p style="margin-top: 10px; font-size: 0.9em; line-height: 1.6;">  
+                        • min/max 无分支<br/>  
+                        • 符号掩码<br/>  
+                        • MUX标准形式<br/>  
+                        • 其他TRICKS<br/>  
+                        • 特殊技巧组合<br/>  
+                        • 课后习题  
+                    </p>  
+                </div>  
+
+                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; border-left: 3px solid #00b894;">  
+                    <strong style="color: #00b894;">深入学习推荐（⭐）</strong>  
+                    <p style="margin-top: 10px; font-size:  0.9em; line-height: 1.6;">
+                        • 布尔分解定理<br/>
+                        • 历史演变阶段<br/>
+                        • 特殊技巧<br/>
+                        • 应用场景深化<br/>
+                        • 跨领域迁移<br/>
+                        • 量子/GPU应用
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 学习建议 -->
+        <div class="stats-box">
+            <div class="stats-title">📚 学习建议与路线图</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                <div style="background: linear-gradient(135deg, #667eea15, #764ba215); padding: 20px; border-radius: 8px; border-left: 5px solid #667eea;">
+                    <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">🎯 第1阶段（3天）</div>
+                    <p style="font-size: 0.9em; line-height: 1.8;">
+                        <strong>目标：</strong>掌握基础<br/>
+                        <strong>内容：</strong><br/>
+                        ✓ 8个TRICKS（最右位操纵）<br/>
+                        ✓ 7个恒等式（加减法）<br/>
+                        ✓ 符号掩码概念<br/>
+                        <strong>产出：</strong>理解位操作的数学本质
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #764ba215, #f39c1215); padding: 20px; border-radius: 8px; border-left: 5px solid #764ba2;">
+                    <div style="font-weight: bold; color: #764ba2; margin-bottom: 10px;">⚡ 第2阶段（5天）</div>
+                    <p style="font-size: 0.9em; line-height: 1.8;">
+                        <strong>目标：</strong>实战应用<br/>
+                        <strong>内容：</strong><br/>
+                        ✓ 6个无分支操作<br/>
+                        ✓ Gosper's Hack（100倍加速）<br/>
+                        ✓ MUX选择器<br/>
+                        <strong>产出：</strong>能优化真实代码性能
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #f39c1215, #00b89415); padding: 20px; border-radius: 8px; border-left: 5px solid #f39c12;">
+                    <div style="font-weight: bold; color: #f39c12; margin-bottom: 10px;">🎓 第3阶段（7天）</div>
+                    <p style="font-size: 0.9em; line-height: 1.8;">
+                        <strong>目标：</strong>深化理论<br/>
+                        <strong>内容：</strong><br/>
+                        ✓ 特殊技巧合集<br/>
+                        ✓ 布尔分解定理<br/>
+                        ✓ 课后习题<br/>
+                        <strong>产出：</strong>理论完整性和证明能力
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #00b89415, #667eea15); padding: 20px; border-radius: 8px; border-left: 5px solid #00b894;">
+                    <div style="font-weight: bold; color: #00b894; margin-bottom: 10px;">🚀 第4阶段（10天）</div>
+                    <p style="font-size: 0.9em; line-height: 1.8;">
+                        <strong>目标：</strong>应用迁移<br/>
+                        <strong>内容：</strong><br/>
+                        ✓ 20+应用场景<br/>
+                        ✓ 历史演变理解<br/>
+                        ✓ 跨领域应用<br/>
+                        <strong>产出：</strong>系统性的工程视野
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 重点突破 -->
+        <div class="stats-box">
+            <div class="stats-title">💎 必须掌握的5大核心概念</div>
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border-left: 5px solid #d63031;">
+                    <div style="font-weight: bold; color: #d63031; margin-bottom: 8px;">1️⃣ 补码的进位穿透性质</div>
+                    <p style="font-size: 0.9em;">
+                        <strong>为什么：</strong>所有TRICKS的数学基础<br/>
+                        <strong>核心：</strong>x-1 会让最低位1清零，x+1 会让最低位0置1，这产生级联翻转<br/>
+                        <strong>应用：</strong>TRICK 01-08 全部基于此
+                    </p>
+                </div>
+
+                <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border-left: 5px solid #d63031;">
+                    <div style="font-weight: bold; color: #d63031; margin-bottom: 8px;">2️⃣ 加法分解恒等式</div>
+                    <p style="font-size: 0.9em;">
+                        <strong>为什么：</strong>揭示加法器的物理结构<br/>
+                        <strong>公式：</strong>x+y = (x^y) + ((x&y)<<1)<br/>
+                        <strong>意义：</strong>无进位 + 进位传播，是并行计算的理论基础
+                    </p>
+                </div>
+
+                <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border-left: 5px solid #d63031;">
+                    <div style="font-weight: bold; color: #d63031; margin-bottom: 8px;">3️⃣ 符号掩码与无分支编程</div>
+                    <p style="font-size: 0.9em;">
+                        <strong>为什么：</strong>分支预测失败有10-20周期损失<br/>
+                        <strong>核心：</strong>mask = x >> 31（正数0，负数-1）<br/>
+                        <strong>效果：</strong>无分支代码快 5-10 倍
+                    </p>
+                </div>
+
+                <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border-left: 5px solid #d63031;">
+                    <div style="font-weight: bold; color: #d63031; margin-bottom: 8px;">4️⃣ Dietz无溢出平均</div>
+                    <p style="font-size: 0.9em;">
+                        <strong>为什么：</strong>Java JDK 曾因此 bug 潜伏10年<br/>
+                        <strong>公式：</strong>avg = (x&y) + ((x^y)>>1)<br/>
+                        <strong>关键：</strong>永不溢出，所有二分搜索都应用此
+                    </p>
+                </div>
+
+                <div style="background: #fff3f3; padding: 15px; border-radius: 8px; border-left: 5px solid #d63031;">
+                    <div style="font-weight: bold; color: #d63031; margin-bottom: 8px;">5️⃣ Gosper's Hack - 100倍加速</div>
+                    <p style="font-size: 0.9em;">
+                        <strong>为什么：</strong>解决组合爆炸问题<br/>
+                        <strong>应用：</strong>枚举所有含k个1的n位数，递归需3000万/秒，Gosper需3亿/秒<br/>
+                        <strong>意义：</strong>棋盘引擎和组合搜索的必修课
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 常见误区 -->
+        <div class="stats-box">
+            <div class="stats-title">⚠️ 学习中的常见误区</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区1：记住公式就够了</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：理解补码和进位的数学原理，再推导公式
+                    </p>
+                </div>
+
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区2：忽视Dietz平均的重要性</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：所有除以2的操作都要考虑溢出，用Dietz公式
+                    </p>
+                </div>
+
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区3：Gosper's Hack太复杂了</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：从4个步骤逐个理解，100倍加速值得学习
+                    </p>
+                </div>
+
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区4：无分支操作在现代CPU不重要</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：分支预测失败仍是瓶颈，金融/密码学必须用
+                    </p>
+                </div>
+
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区5：这些技巧只有低级代码用</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：GPU/SIMD/编译器都用，高级语言也要懂
+                    </p>
+                </div>
+
+                <div style="background: #ffe8e8; padding: 15px; border-radius: 8px; border-left: 3px solid #d63031;">
+                    <strong style="color: #d63031;">❌ 误区6：布尔分解定理很抽象</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em;">
+                        ✓ 正确做法：从真值表出发，Reed-Muller展开很直观
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 拓展资源 -->
+        <div class="stats-box">
+            <div class="stats-title">🔗 推荐拓展资源</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <strong style="color: #667eea;">经典文献</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em; line-height: 1.6;">
+                        • Strachey (1961) CACM<br/>
+                        • MIT HAKMEM (1972)<br/>
+                        • Henry Dietz aggregate.org<br/>
+                        • Hacker's Delight (2nd Ed)
+                    </p>
+                </div>
+
+                <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <strong style="color: #667eea;">实战工程</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em; line-height: 1.6;">
+                        • Stockfish 棋盘引擎<br/>
+                        • OpenSSL constant-time编程<br/>
+                        • LLVM superoptimizer<br/>
+                        • GCC 编译器优化
+                    </p>
+                </div>
+
+                <div style="background: #f0f7ff; padding: 15px; border-radius: 8px; border-left: 3px solid #667eea;">
+                    <strong style="color: #667eea;">深入学习</strong>
+                    <p style="margin-top: 8px; font-size: 0.9em; line-height: 1.6;">
+                        • SIMD内联汇编优化<br/>
+                        • 硬件Verilog设计<br/>
+                        • 密码学恒定时间算法<br/>
+                        • GPU并行化技巧
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 性能对比 -->
+        <div class="stats-box">
+            <div class="stats-title">⚡ 关键优化的性能对比</div>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.9em;">
+                    <thead>
+                        <tr style="background: #667eea; color: white;">
+                            <th style="padding: 12px; text-align: left;">优化项目</th>
+                            <th style="padding: 12px; text-align: center;">传统方式</th>
+                            <th style="padding: 12px; text-align: center;">位操作优化</th>
+                            <th style="padding: 12px; text-align: center;">性能提升</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="background: #f9f9f9; border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">abs(x) 绝对值</td>
+                            <td style="padding: 12px; text-align: center;">if 分支</td>
+                            <td style="padding: 12px; text-align: center;">3 指令无分支</td>
+                            <td style="padding: 12px; text-align: center; color: #d63031; font-weight: bold;">5-10x</td>
+                        </tr>
+                        <tr style="background: white; border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">组合枚举 C(n,k)</td>
+                            <td style="padding: 12px; text-align: center;">递归算法</td>
+                            <td style="padding: 12px; text-align: center;">Gosper's Hack</td>
+                            <td style="padding: 12px; text-align: center; color: #d63031; font-weight: bold;">100x</td>
+                        </tr>
+                        <tr style="background: #f9f9f9; border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">平均值计算</td>
+                            <td style="padding: 12px; text-align: center;">有溢出风险</td>
+                            <td style="padding: 12px; text-align: center;">Dietz 无溢出</td>
+                            <td style="padding: 12px; text-align: center; color: #d63031; font-weight: bold;">安全性+快</td>
+                        </tr>
+                        <tr style="background: white; border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px;">MUX 选择器</td>
+                            <td style="padding: 12px; text-align: center;">4 指令标准</td>
+                            <td style="padding: 12px; text-align: center;">3 指令优化</td>
+                            <td style="padding: 12px; text-align: center; color: #d63031; font-weight: bold;">25%</td>
+                        </tr>
+                        <tr style="background: #f9f9f9;">
+                            <td style="padding: 12px;">二分搜索</td>
+                            <td style="padding: 12px; text-align: center;">普通平均</td>
+                            <td style="padding: 12px; text-align: center;">Dietz 平均</td>
+                            <td style="padding: 12px; text-align: center; color: #d63031; font-weight: bold;">无 bug</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 图表1：分类分布
+        const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(categoryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['TRICKS', '恒等式', '无分支', 'MUX', 'Gosper', '特殊', '分解', '历史', '评论', '习题'],
+                datasets: [{
+                    label: '知识点数量',
+                    data: [8, 7, 6, 2, 4, 8, 5, 6, 5, 6],
+                    backgroundColor: [
+                        '#667eea', '#764ba2', '#f39c12', '#00b894', '#d63031',
+                        '#3498db', '#e74c3c', '#9b59b6', '#1abc9c', '#e67e22'
+                    ],
+                    borderRadius: 8,
+                    borderSkipped: false
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+        // 图表2：优先级分布
+        const priorityCtx = document.getElementById('priorityChart').getContext('2d');
+        new Chart(priorityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['⭐⭐⭐ 必学', '⭐⭐ 重要', '⭐ 参考'],
+                datasets: [{
+                    data: [15, 45, 82],
+                    backgroundColor: ['#d63031', '#f39c12', '#00b894'],
+                    borderColor: 'white',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+
+        // 图表3：应用场景分布
+        const applicationCtx = document.getElementById('applicationChart').getContext('2d');
+        new Chart(applicationCtx, {
+            type: 'radar',
+            data: {
+                labels: ['棋盘引擎', '密码学', 'SIMD/GPU', '神经网络', '背包问题', '哈希函数', '编译器', '硬件设计'],
+                datasets: [{
+                    label: '应用广度',
+                    data: [95, 85, 90, 60, 75, 70, 80, 70],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // 图表4：学习路径时间安排
+        const learningCtx = document.getElementById('learningPathChart').getContext('2d');
+        new Chart(learningCtx, {
+            type: 'line',
+            data: {
+                labels: ['Day 1', 'Day 2', 'Day 3', 'Day 5', 'Day 10', 'Day 15', 'Day 25'],
+                datasets: [{
+                    label: '学习进度 (%)',
+                    data: [20, 35, 50, 65, 75, 85, 100],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
