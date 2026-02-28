@@ -1,0 +1,2200 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎮 位操作大师 - 闯关游戏</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700;900&display=swap');
+  :root{--bg-primary:#0a0e1a;--bg-secondary:#111827;--bg-card:#1a2235;--bg-card-hover:#1e293b;--accent-blue:#3b82f6;--accent-cyan:#06b6d4;--accent-green:#10b981;--accent-yellow:#f59e0b;--accent-red:#ef4444;--accent-purple:#8b5cf6;--accent-pink:#ec4899;--accent-orange:#f97316;--text-primary:#f1f5f9;--text-secondary:#94a3b8;--text-muted:#64748b;--border:#1e293b;--glow-blue:0 0 20px rgba(59,130,246,0.3);--glow-green:0 0 20px rgba(16,185,129,0.3);--glow-yellow:0 0 20px rgba(245,158,11,0.3);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Noto Sans SC',sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;overflow-x:hidden;}
+  .bg-particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 50%,rgba(59,130,246,0.08) 0%,transparent 50%),radial-gradient(ellipse at 80% 20%,rgba(139,92,246,0.06) 0%,transparent 50%),radial-gradient(ellipse at 50% 80%,rgba(6,182,212,0.05) 0%,transparent 50%);}
+  .container{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:20px;}
+  .game-header{text-align:center;padding:30px 0 20px;}
+  .game-header h1{font-size:2.6em;font-weight:900;background:linear-gradient(135deg,#3b82f6,#06b6d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;letter-spacing:2px;}
+  .game-header p{color:var(--text-secondary);font-size:1.05em;}
+  .stats-bar{display:flex;justify-content:center;gap:30px;padding:16px 30px;margin:15px auto 25px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border);max-width:700px;flex-wrap:wrap;}
+  .stat-item{text-align:center;}
+  .stat-item .label{font-size:.78em;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;}
+  .stat-item .value{font-family:'Fira Code',monospace;font-size:1.5em;font-weight:700;}
+  .stat-item .value.blue{color:var(--accent-blue);}
+  .stat-item .value.green{color:var(--accent-green);}
+  .stat-item .value.yellow{color:var(--accent-yellow);}
+  .stat-item .value.purple{color:var(--accent-purple);}
+  #world-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px;}
+  .world-card{background:var(--bg-card);border-radius:16px;border:1px solid var(--border);padding:22px;cursor:pointer;transition:all 0.3s ease;position:relative;overflow:hidden;}
+  .world-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--card-accent),transparent);opacity:0;transition:opacity 0.3s;}
+  .world-card:hover{transform:translateY(-4px);border-color:var(--card-accent);box-shadow:0 8px 30px rgba(0,0,0,0.3);}
+  .world-card:hover::before{opacity:1;}
+  .world-card .world-icon{font-size:2em;margin-bottom:10px;}
+  .world-card .world-title{font-size:1.15em;font-weight:700;margin-bottom:4px;}
+  .world-card .world-subtitle{font-size:.82em;color:var(--text-muted);margin-bottom:14px;}
+  .world-card .world-progress-bar{height:6px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden;}
+  .world-card .world-progress-fill{height:100%;border-radius:3px;transition:width 0.5s ease;background:linear-gradient(90deg,var(--card-accent),var(--card-accent-light,var(--card-accent)));}
+  .world-card .world-stats{display:flex;justify-content:space-between;margin-top:8px;font-size:.78em;color:var(--text-muted);}
+  .world-card.completed{border-color:var(--accent-green);}
+  #level-select,#game-play,#result-screen{display:none;}
+  .back-btn{display:inline-flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid var(--border);color:var(--text-secondary);padding:10px 20px;border-radius:10px;cursor:pointer;font-size:.95em;transition:all 0.2s;margin-bottom:20px;}
+  .back-btn:hover{background:var(--bg-card-hover);color:var(--text-primary);}
+  .level-header{text-align:center;margin-bottom:25px;}
+  .level-header h2{font-size:1.8em;margin-bottom:5px;}
+  .level-header p{color:var(--text-secondary);}
+  .level-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:15px;}
+  .level-card{background:var(--bg-card);border-radius:14px;border:1px solid var(--border);padding:20px;cursor:pointer;transition:all 0.25s;position:relative;}
+  .level-card:hover{transform:translateY(-3px);border-color:var(--accent-cyan);box-shadow:0 6px 24px rgba(0,0,0,0.25);}
+  .level-card .level-num{font-family:'Fira Code';font-size:.75em;color:var(--accent-cyan);margin-bottom:6px;}
+  .level-card .level-name{font-weight:700;font-size:1.05em;margin-bottom:5px;}
+  .level-card .level-formula{font-family:'Fira Code';font-size:.88em;color:var(--accent-yellow);background:rgba(245,158,11,0.08);padding:6px 10px;border-radius:8px;margin:8px 0;word-break:break-all;}
+  .level-card .level-stars{color:var(--accent-yellow);font-size:.85em;}
+  .level-card .level-tag{display:inline-block;font-size:.72em;padding:3px 8px;background:rgba(139,92,246,0.15);color:var(--accent-purple);border-radius:6px;margin-top:6px;}
+  .level-card .level-status{position:absolute;top:14px;right:14px;font-size:1.2em;}
+  .level-card.cleared .level-status::after{content:'✅';}
+  .level-card.locked{opacity:.45;pointer-events:none;}
+  .level-card.locked .level-status::after{content:'🔒';}
+  .game-area{max-width:780px;margin:0 auto;}
+  .question-header{text-align:center;margin-bottom:20px;}
+  .question-header .q-world{font-size:.85em;color:var(--text-muted);}
+  .question-header .q-title{font-size:1.5em;font-weight:700;margin:5px 0;}
+  .question-header .q-formula{font-family:'Fira Code';font-size:1.15em;color:var(--accent-cyan);background:rgba(6,182,212,0.1);display:inline-block;padding:8px 20px;border-radius:10px;margin-top:8px;}
+  .question-progress{display:flex;gap:6px;justify-content:center;margin:18px 0;}
+  .question-progress .dot{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s;}
+  .question-progress .dot.active{background:var(--accent-blue);box-shadow:0 0 8px rgba(59,130,246,0.5);}
+  .question-progress .dot.correct{background:var(--accent-green);}
+  .question-progress .dot.wrong{background:var(--accent-red);}
+  .question-card{background:var(--bg-card);border-radius:16px;border:1px solid var(--border);padding:30px;margin-bottom:15px;}
+  .question-card .q-type{font-size:.78em;color:var(--accent-purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;}
+  .question-card .q-text{font-size:1.12em;line-height:1.7;margin-bottom:22px;}
+  .question-card .q-text code{font-family:'Fira Code';background:rgba(59,130,246,0.12);color:var(--accent-cyan);padding:2px 7px;border-radius:5px;font-size:.92em;}
+  .options{display:flex;flex-direction:column;gap:12px;}
+  .option-btn{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border);padding:16px 20px;border-radius:12px;cursor:pointer;transition:all 0.2s;text-align:left;color:var(--text-primary);font-size:1em;font-family:inherit;}
+  .option-btn:hover{background:rgba(59,130,246,0.08);border-color:var(--accent-blue);}
+  .option-btn .opt-letter{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:8px;background:rgba(255,255,255,0.06);font-family:'Fira Code';font-weight:700;font-size:.9em;flex-shrink:0;}
+  .option-btn .opt-text{flex:1;line-height:1.5;}
+  .option-btn .opt-text code{font-family:'Fira Code';background:rgba(59,130,246,0.10);color:var(--accent-cyan);padding:1px 5px;border-radius:4px;font-size:.9em;}
+  .option-btn.selected-correct{background:rgba(16,185,129,0.12);border-color:var(--accent-green);animation:correctPulse 0.5s;}
+  .option-btn.selected-correct .opt-letter{background:var(--accent-green);color:#fff;}
+  .option-btn.selected-wrong{background:rgba(239,68,68,0.12);border-color:var(--accent-red);animation:shake 0.4s;}
+  .option-btn.selected-wrong .opt-letter{background:var(--accent-red);color:#fff;}
+  .option-btn.reveal-correct{background:rgba(16,185,129,0.08);border-color:var(--accent-green);}
+  .option-btn.disabled{pointer-events:none;}
+  @keyframes correctPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.02);}}
+  @keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+  .explanation-box{background:rgba(139,92,246,0.08);border:1px solid rgba(139,92,246,0.25);border-radius:12px;padding:18px 22px;margin-top:18px;display:none;animation:fadeIn 0.3s;}
+  .explanation-box .exp-title{font-weight:700;color:var(--accent-purple);margin-bottom:8px;font-size:.9em;}
+  .explanation-box .exp-content{font-size:.92em;line-height:1.7;color:var(--text-secondary);}
+  .explanation-box .exp-content code{font-family:'Fira Code';background:rgba(6,182,212,0.1);color:var(--accent-cyan);padding:1px 5px;border-radius:4px;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+  .next-btn{display:none;margin:20px auto 0;padding:14px 40px;background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));border:none;border-radius:12px;color:#fff;font-size:1.05em;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:inherit;}
+  .next-btn:hover{transform:translateY(-2px);box-shadow:var(--glow-blue);}
+  .result-area{text-align:center;max-width:550px;margin:0 auto;}
+  .result-area .result-icon{font-size:5em;margin-bottom:15px;animation:bounceIn 0.6s;}
+  @keyframes bounceIn{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
+  .result-area h2{font-size:2em;margin-bottom:8px;}
+  .result-area .result-sub{color:var(--text-secondary);font-size:1.05em;margin-bottom:25px;}
+  .result-score-box{background:var(--bg-card);border-radius:16px;border:1px solid var(--border);padding:25px;margin-bottom:25px;}
+  .result-score-box .big-score{font-family:'Fira Code';font-size:3.5em;font-weight:700;}
+  .result-score-box .score-label{color:var(--text-muted);margin-top:5px;}
+  .result-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+  .result-btns button{padding:13px 32px;border-radius:12px;font-size:1em;font-weight:600;cursor:pointer;transition:all 0.2s;border:none;font-family:inherit;}
+  .btn-retry{background:var(--accent-orange);color:#fff;}
+  .btn-retry:hover{box-shadow:0 0 20px rgba(249,115,22,0.4);}
+  .btn-next-world{background:linear-gradient(135deg,var(--accent-blue),var(--accent-purple));color:#fff;}
+  .btn-next-world:hover{box-shadow:0 0 20px rgba(139,92,246,0.4);}
+  .btn-home{background:var(--bg-card);color:var(--text-secondary);border:1px solid var(--border)!important;}
+  .btn-home:hover{color:var(--text-primary);}
+  .floating-bits{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden;}
+  .floating-bits span{position:absolute;font-family:'Fira Code';color:rgba(59,130,246,0.06);font-size:1.2em;animation:floatUp linear infinite;}
+  @keyframes floatUp{0%{transform:translateY(100vh) rotate(0deg);opacity:0;}10%{opacity:1;}90%{opacity:1;}100%{transform:translateY(-10vh) rotate(360deg);opacity:0;}}
+  .screen-transition{animation:slideIn 0.35s ease;}
+  @keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  /* toast */
+  .toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:rgba(30,41,59,0.97);border:1px solid var(--border);color:var(--text-primary);padding:14px 28px;border-radius:14px;font-size:.98em;z-index:9999;transition:transform 0.35s cubic-bezier(.34,1.56,.64,1),opacity 0.3s;opacity:0;white-space:nowrap;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  /* achievement popup */
+  .achievement-popup{position:fixed;top:80px;right:-340px;background:linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1));border:1px solid rgba(139,92,246,0.4);border-radius:16px;padding:18px 22px;max-width:300px;z-index:9998;transition:right 0.5s cubic-bezier(.34,1.56,.64,1);}
+  .achievement-popup.show{right:20px;}
+  .achievement-popup .ach-title{font-size:.75em;color:var(--accent-purple);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;}
+  .achievement-popup .ach-name{font-weight:700;font-size:1.05em;}
+  .achievement-popup .ach-icon{font-size:2em;float:right;margin-top:-5px;}
+  /* progress ring */
+  .progress-ring{display:inline-flex;align-items:center;justify-content:center;position:relative;width:56px;height:56px;margin-bottom:6px;}
+  .progress-ring svg{transform:rotate(-90deg);}
+  .progress-ring .ring-bg{fill:none;stroke:rgba(255,255,255,0.07);stroke-width:4;}
+  .progress-ring .ring-fill{fill:none;stroke-width:4;stroke-linecap:round;transition:stroke-dashoffset 0.6s ease;}
+  .progress-ring .ring-text{position:absolute;font-family:'Fira Code';font-size:.72em;font-weight:700;}
+  @media(max-width:600px){
+    .game-header h1{font-size:1.7em;}
+    .stats-bar{gap:15px;padding:12px 16px;}
+    .stat-item .value{font-size:1.2em;}
+    #world-map{grid-template-columns:1fr;}
+    .level-grid{grid-template-columns:1fr;}
+    .question-card{padding:20px 16px;}
+  }
+</style>
+</head>
+<body>
+<div class="floating-bits" id="floatingBits"></div>
+<div class="bg-particles"></div>
+<div class="toast" id="toastEl"></div>
+<div class="achievement-popup" id="achievementPopup">
+  <div class="ach-title">🏆 成就解锁</div>
+  <div class="ach-name" id="achName"></div>
+  <div class="ach-icon" id="achIcon"></div>
+</div>
+
+<div class="container">
+  <div class="game-header">
+    <h1>⚡ 位操作大师</h1>
+    <p>Bit Manipulation Master · 10大世界 · 55+关卡 · 从青铜到王者</p>
+  </div>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="label">总进度</div><div class="value blue" id="statProgress">0%</div></div>
+    <div class="stat-item"><div class="label">已通关</div><div class="value green" id="statCleared">0</div></div>
+    <div class="stat-item"><div class="label">总分</div><div class="value yellow" id="statScore">0</div></div>
+    <div class="stat-item"><div class="label">连胜</div><div class="value purple" id="statStreak">0</div></div>
+  </div>
+  <div id="world-map"></div>
+  <div id="level-select">
+    <button class="back-btn" onclick="showWorldMap()">← 返回世界地图</button>
+    <div class="level-header">
+      <h2 id="levelWorldTitle"></h2>
+      <p id="levelWorldDesc"></p>
+    </div>
+    <div class="level-grid" id="levelGrid"></div>
+  </div>
+  <div id="game-play">
+    <button class="back-btn" onclick="confirmExit()">← 退出关卡</button>
+    <div class="game-area">
+      <div class="question-header">
+        <div class="q-world" id="gpWorld"></div>
+        <div class="q-title" id="gpTitle"></div>
+        <div class="q-formula" id="gpFormula"></div>
+      </div>
+      <div class="question-progress" id="qProgress"></div>
+      <div class="question-card">
+        <div class="q-type" id="qType"></div>
+        <div class="q-text" id="qText"></div>
+        <div class="options" id="qOptions"></div>
+        <div class="explanation-box" id="qExplanation">
+          <div class="exp-title">💡 解析</div>
+          <div class="exp-content" id="qExpContent"></div>
+        </div>
+      </div>
+      <button class="next-btn" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+    </div>
+  </div>
+  <div id="result-screen">
+    <div class="result-area">
+      <div class="result-icon" id="resultIcon"></div>
+      <h2 id="resultTitle"></h2>
+      <p class="result-sub" id="resultSub"></p>
+      <div class="result-score-box">
+        <div class="big-score" id="resultScore"></div>
+        <div class="score-label" id="resultScoreLabel"></div>
+      </div>
+      <div class="result-btns">
+        <button class="btn-retry" onclick="retryLevel()">🔄 重新挑战</button>
+        <button class="btn-next-world" id="btnNextLevel" onclick="goNextLevel()">⚡ 下一关</button>
+        <button class="btn-home" onclick="showWorldMap()">🏠 世界地图</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  FULL GAME DATA
+// ============================================================
+const WORLDS = [
+  {
+    id:'w1',icon:'🔧',title:'最右位操纵',subtitle:'TRICK 01-08 · 8关',accent:'#3b82f6',accentLight:'#60a5fa',
+    levels:[
+      {id:'w1l1',name:'清除最右边的1',formula:'x & (x-1)',stars:'⭐⭐⭐',tag:'判断2的幂',questions:[
+        {type:'概念题',text:'表达式 <code>x & (x-1)</code> 的作用是什么？',options:['清除x最右边(最低位)的1','置位x最右边的0','清除x所有的1','反转x所有位'],answer:0,explanation:'<code>x-1</code> 会把最右边的1变为0，其右侧的0全变为1。与x做AND后，最右边那个1就被清除了，其余位不变。'},
+        {type:'应用题',text:'如何用 <code>x & (x-1)</code> 判断x是否为2的幂（x>0）？',options:['x & (x-1) == 0 则是2的幂','x & (x-1) == 1 则是2的幂','x & (x-1) == x 则是2的幂','x & (x-1) != 0 则是2的幂'],answer:0,explanation:'2的幂只有一个1位。清除唯一的1后结果为0。例如 <code>8(1000) & 7(0111) = 0</code>。'},
+        {type:'计算题',text:'<code>x = 0b10110100</code>，计算 <code>x & (x-1)</code> 的结果？',options:['0b10110000','0b10110100','0b10100000','0b10100100'],answer:0,explanation:'<code>x=10110100</code>，最右边的1在第2位。<code>x-1=10110011</code>，<code>x & (x-1) = 10110000</code>。'},
+        {type:'拓展题',text:'Brian Kernighan算法用 <code>x & (x-1)</code> 做什么？',options:['计算popcount(位中1的个数)','计算前导零','反转所有位','找最高位1'],answer:0,explanation:'每次 <code>x = x & (x-1)</code> 清除一个1，循环直到x=0，循环次数就是1的个数。时间复杂度O(popcount)。'}
+      ]},
+      {id:'w1l2',name:'置位最右边的0',formula:'x | (x+1)',stars:'⭐⭐',tag:'连续0检测',questions:[
+        {type:'概念题',text:'<code>x | (x+1)</code> 的作用是什么？',options:['置位最右边的0为1','清除最右边的1','反转最低位','清除所有0'],answer:0,explanation:'<code>x+1</code> 会在最右边的0的位置产生一个1。与x做OR后，该0被置为1。'},
+        {type:'计算题',text:'<code>x = 0b10110111</code>，<code>x | (x+1)</code> = ?',options:['0b10111111','0b10110111','0b11111111','0b10111000'],answer:0,explanation:'最右边的0在第3位。<code>x+1=10111000</code>，<code>x | (x+1) = 10111111</code>。'},
+        {type:'应用题',text:'如何检测x是否形如 <code>2ⁿ-1</code>（全1）？',options:['x | (x+1) 结果全为1即等于-1(无符号)','x & (x+1) == 0','x ^ (x+1) == 0','x | (x-1) == -1'],answer:0,explanation:'如果x是连续全1(如0111)，<code>x+1</code>会进位到更高位(1000)，OR后所有位都是1，等于全1(即-1的补码)。'}
+      ]},
+      {id:'w1l3',name:'清除尾部连续的1',formula:'x & (x+1)',stars:'⭐⭐',tag:'判断2ⁿ-1形式',questions:[
+        {type:'概念题',text:'<code>x & (x+1)</code> 清除的是哪些位？',options:['尾部连续的1','最右边的单个1','所有的1','最高位的1'],answer:0,explanation:'<code>x+1</code> 将尾部连续的1全部翻转为0并进位。AND操作后这些位被清零。如 <code>10110111 & 10111000 = 10110000</code>。'},
+        {type:'计算题',text:'<code>x = 0b11001111</code>，<code>x & (x+1)</code> = ?',options:['0b11000000','0b11001110','0b11001000','0b11010000'],answer:0,explanation:'尾部连续4个1。<code>x+1=11010000</code>，<code>x & (x+1) = 11000000</code>。尾部4个1全部被清除。'},
+        {type:'应用题',text:'<code>x & (x+1) == 0</code> 意味着x是什么形式？',options:['x = 2ⁿ - 1（所有位都是连续1）','x是2的幂','x是偶数','x是奇数'],answer:0,explanation:'如果清除尾部连续1后结果为0，说明x的所有位都是连续的1，即 <code>x = 2ⁿ - 1</code> 的形式（如1, 3, 7, 15...）。'}
+      ]},
+      {id:'w1l4',name:'置位尾部连续的0',formula:'x | (x-1)',stars:'⭐⭐',tag:'取整、内存对齐',questions:[
+        {type:'概念题',text:'<code>x | (x-1)</code> 能做什么？',options:['将尾部所有连续的0置为1','清除尾部连续的1','只修改最低位','反转所有位'],answer:0,explanation:'<code>x-1</code> 把最低的1变0，其后的0全变1。与x做OR，就把尾部连续0全置1了。'},
+        {type:'计算题',text:'<code>x = 0b10101000</code>，<code>x | (x-1)</code> = ?',options:['0b10101111','0b10101000','0b10100111','0b10111111'],answer:0,explanation:'尾部有3个0。<code>x-1=10100111</code>，<code>x | (x-1) = 10101111</code>。尾部3个0全部被置1。'}
+      ]},
+      {id:'w1l5',name:'最右边的0掩码',formula:'~x & (x+1)',stars:'⭐',tag:'单bit提取',questions:[
+        {type:'概念题',text:'<code>~x & (x+1)</code> 生成的掩码特点是？',options:['只有最右边0的位置为1，其余为0','只有最右边1的位置为1','尾部全为1','全1掩码'],answer:0,explanation:'<code>~x</code>翻转所有位，<code>x+1</code>在最右0处产生1。两者AND后精确提取出最右边0的位置。'},
+        {type:'计算题',text:'<code>x = 0b10110111</code>，<code>~x & (x+1)</code> = ?',options:['0b00001000','0b00000001','0b01000000','0b00010000'],answer:0,explanation:'最右边的0在第3位。<code>~x=01001000</code>，<code>x+1=10111000</code>，AND结果 = <code>00001000</code>，精确标记了第3位。'}
+      ]},
+      {id:'w1l6',name:'最右边的1掩码(LSB)',formula:'x & (-x)',stars:'⭐⭐⭐',tag:'棋盘引擎bitboard',questions:[
+        {type:'概念题',text:'<code>x & (-x)</code> 提取的是什么？',options:['最右边(最低位)的1，即LSB','最左边的1','所有的1','最右边的0'],answer:0,explanation:'<code>-x</code> 在补码中等于 <code>~x + 1</code>。这会使最右边的1保持不变，其左边的位全部翻转。AND后只剩那个最低位的1。'},
+        {type:'应用题',text:'树状数组(Fenwick Tree)中 <code>x & (-x)</code> 用来做什么？',options:['计算lowbit，决定节点管辖范围','判断是否为2的幂','计算popcount','生成随机数'],answer:0,explanation:'Fenwick Tree中 <code>lowbit(x) = x & (-x)</code> 决定了索引x管辖的区间长度，是前缀和更新和查询的核心。'},
+        {type:'计算题',text:'<code>x = 0b01011000</code>，<code>x & (-x)</code> = ?',options:['0b00001000','0b00000001','0b01000000','0b00010000'],answer:0,explanation:'最右边的1在第3位。<code>-x(补码)=10101000</code>，<code>x & (-x) = 00001000</code>。'}
+      ]},
+      {id:'w1l7',name:'尾部0的掩码',formula:'~x & (x-1)',stars:'⭐',tag:'低位处理',questions:[
+        {type:'概念题',text:'<code>~x & (x-1)</code> 生成什么样的掩码？',options:['尾部连续0的位置全为1','只有最低位为1','全部为1','尾部连续1的位置全为1'],answer:0,explanation:'<code>x-1</code>将最低的1变0，其后0变1。<code>~x</code>在原来0处为1。AND后得到尾部0们的掩码。例如 <code>x=11110000</code>: <code>~x=00001111, x-1=11101111</code>，AND= <code>00001111</code>。'},
+        {type:'计算题',text:'<code>x = 0b11110000</code>，<code>~x & (x-1)</code> = ?',options:['0b00001111','0b00000001','0b00010000','0b11110000'],answer:0,explanation:'尾部4个0。<code>~x=00001111</code>，<code>x-1=11101111</code>，AND= <code>00001111</code>。恰好标记了尾部4个0。'}
+      ]},
+      {id:'w1l8',name:'尾部1右对齐传播',formula:'x | (x-1)',stars:'⭐⭐',tag:'内存对齐、子集枚举',questions:[
+        {type:'概念题',text:'<code>x | (x-1)</code> 被称为"右传播"是因为？',options:['它将最右边的1向右扩展，填充尾部所有0','它将1向左传播','它清除右侧所有位','它反转右侧所有位'],answer:0,explanation:'<code>x-1</code>把最低1变0，右侧0变1。OR后，原来的1保留，右侧0也变1，效果就是最低的1"向右传播"填充了所有0。'},
+        {type:'应用题',text:'在子集枚举场景中，<code>x | (x-1)</code> 的作用是？',options:['向右扩展当前集合到块末尾，为枚举超集做准备','删除子集','计算并集','计算交集'],answer:0,explanation:'通过填充尾部0为1，可将集合向右"扩展"。这在枚举超集和内存地址对齐中是核心操作。'}
+      ]}
+    ]
+  },
+  {
+    id:'w2',icon:'➕',title:'加减法恒等式',subtitle:'7个核心恒等式',accent:'#10b981',accentLight:'#34d399',
+    levels:[
+      {id:'w2l1',name:'王牌恒等式',formula:'x+y = (x^y)+((x&y)<<1)',stars:'⭐⭐⭐',tag:'并行前缀加法',questions:[
+        {type:'原理题',text:'在 <code>x+y = (x^y)+((x&y)<<1)</code> 中，<code>x^y</code> 代表什么？',options:['无进位加法（半加和）','全加和','进位','借位'],answer:0,explanation:'XOR执行逐位加法但不处理进位，即"半加和"。<code>x&y</code>标识需要进位的位，左移1就是进位值。两者相加还原完整加法。'},
+        {type:'应用题',text:'这个恒等式是哪种硬件结构的理论基础？',options:['并行前缀加法器(如Kogge-Stone)','乘法器','除法器','移位寄存器'],answer:0,explanation:'并行前缀加法器通过递归地计算"生成-传播"对来实现O(log n)延迟的加法，其核心就是这个恒等式的递归应用。'},
+        {type:'验证题',text:'设 <code>x=0b1011(11), y=0b0110(6)</code>，<code>x+y</code> = ?',options:['0b10001 (17)','0b10010 (18)','0b1101 (13)','0b10000 (16)'],answer:0,explanation:'<code>x+y=17=10001</code>。验证: <code>x^y=1101</code>, <code>(x&y)<<1=0100</code>, <code>1101+0100=10001 ✓</code>'}
+      ]},
+      {id:'w2l2',name:'OR/AND分解',formula:'x+y = (x|y)+(x&y)',stars:'⭐⭐',tag:'等价分解',questions:[
+        {type:'理解题',text:'<code>x+y = (x|y)+(x&y)</code> 的直觉是什么？',options:['OR算了公共位一次，AND补回另一次','OR丢失了信息需要AND补回','两者无关只是巧合','这是减法的逆运算'],answer:0,explanation:'对于每一位: 若两个都是1，OR贡献1但实际该贡献2，AND补回缺的1。若只有一个1，OR正确贡献1，AND贡献0。完美还原。'},
+        {type:'推导题',text:'由 <code>x+y = (x|y)+(x&y)</code> 可以推出 <code>x|y</code> = ?',options:['(x+y) - (x&y)','(x+y) + (x&y)','(x+y) ^ (x&y)','(x+y) | (x&y)'],answer:0,explanation:'直接移项: <code>x|y = (x+y) - (x&y)</code>。这就是OR表示法的来源。'}
+      ]},
+      {id:'w2l3',name:'Dietz无溢出平均',formula:'avg = (x&y)+((x^y)>>1)',stars:'⭐⭐⭐',tag:'安全数学基础',questions:[
+        {type:'问题题',text:'经典 <code>(x+y)/2</code> 有什么潜在问题？',options:['x+y可能整数溢出','除法太慢','结果不精确','没有问题'],answer:0,explanation:'当x和y都很大时(如接近INT_MAX)，<code>x+y</code>会溢出。Java JDK的二分搜索bug就因此潜伏了近10年！'},
+        {type:'原理题',text:'<code>(x&y)+((x^y)>>1)</code> 为什么能安全计算平均值？',options:['x&y是公共位，x^y是差异位右移均分，各项不会超出范围','这是近似算法','它只对正数有效','它避免了所有运算'],answer:0,explanation:'公共位两人都有，直接保留。差异位只有一人有，÷2均分。两部分相加不会溢出，因为各项都不超过原始值。'},
+        {type:'历史题',text:'2006年Joshua Bloch发现JDK中 <code>mid=(low+high)/2</code> 的bug，正确修复是？',options:['(low&high)+((low^high)>>1) 或 low+(high-low)/2','mid=(low+high)>>>1(仅无符号)','无法修复','用BigInteger'],answer:0,explanation:'Dietz公式是最优雅的修复。<code>low+(high-low)/2</code>也可以但多一次减法。JDK后来采用了无符号右移方案。'}
+      ]},
+      {id:'w2l4',name:'XOR王牌推导',formula:'x^y = (x|y)&~(x&y)',stars:'⭐',tag:'4指令分解',questions:[
+        {type:'逻辑题',text:'<code>x^y = (x|y) & ~(x&y)</code> 的逻辑含义是？',options:['至少一方为1，但不能两方都为1','两方都为1','至少一方为0','两方都为0'],answer:0,explanation:'<code>x|y</code>: 至少一方为1。<code>~(x&y)</code>: 不是双方都为1。AND合并: "至少一方为1 且 不是双方都为1" = 恰好一方为1 = XOR。'},
+        {type:'计算题',text:'<code>x=5(101), y=3(011)</code>，验证 <code>x|y = (x+y)-(x&y)</code>',options:['x|y=7, (5+3)-(5&3)=8-1=7 ✓','x|y=6, 不成立','x|y=8, 不成立','结果为5'],answer:0,explanation:'<code>x|y = 101|011 = 111 = 7</code>。<code>(x+y)-(x&y) = 8 - 1 = 7 ✓</code>'}
+      ]}
+    ]
+  },
+  {
+    id:'w3',icon:'⚡',title:'无分支算术',subtitle:'6个无分支技巧',accent:'#f59e0b',accentLight:'#fbbf24',
+    levels:[
+      {id:'w3l1',name:'符号掩码工具',formula:'mask = x >> 31',stars:'⭐⭐',tag:'基础工具',questions:[
+        {type:'概念题',text:'<code>x >> 31</code>（算术右移）对32位有符号整数的结果是？',options:['x为负数时全1(-1)，非负时全0(0)','总是0','总是1','x的符号位(0或1)'],answer:0,explanation:'算术右移保留符号位。右移31位后，负数的符号位1扩展为全1（即-1），正数/零的0扩展为全0。这就是"符号掩码"。'},
+        {type:'应用题',text:'符号掩码 <code>mask = x >> 31</code> 在无分支公式中的角色？',options:['作为条件选择的控制信号，替代if分支','作为乘法因子','作为除法因子','无特殊作用'],answer:0,explanation:'mask为全0或全1，可以用AND/XOR/加减实现条件操作。全1时 <code>x^mask=~x</code>，全0时 <code>x^mask=x</code>。'}
+      ]},
+      {id:'w3l2',name:'abs(x) - 绝对值',formula:'abs = (x+mask)^mask',stars:'⭐⭐⭐',tag:'高频操作',questions:[
+        {type:'原理题',text:'<code>abs(x) = (x + (x>>31)) ^ (x>>31)</code> 的工作原理？',options:['正数mask=0不变；负数mask=-1，先加-1再XOR取反，等价于补码取负','两种情况处理方式相同','只对正数有效','利用浮点运算'],answer:0,explanation:'负数时mask=-1(全1): <code>(x+(-1))^(-1) = (x-1)^0xFFFFFFFF</code>。对补码负数取反再加1等于取绝对值，这里先减1再按位取反等价。'},
+        {type:'优势题',text:'在SIMD/GPU编程中偏好无分支abs的原因？',options:['避免分支预测失败，保持流水线效率；GPU避免线程分歧','代码更短','更容易调试','没有优势'],answer:0,explanation:'SIMD处理多个数据，分支会导致车道分歧(lane divergence)。无分支版本所有车道执行相同指令，效率大幅提升。分支预测错误惩罚10-20个周期。'}
+      ]},
+      {id:'w3l3',name:'min/max无分支',formula:'y+((x-y)&((x-y)>>31))',stars:'⭐⭐',tag:'条件选择',questions:[
+        {type:'原理题',text:'<code>min(x,y) = y + ((x-y) & ((x-y)>>31))</code> 怎么工作？',options:['x<y时差值为负掩码全1加差值得x；x≥y时掩码全0加0得y','总是返回y','用查表实现','需要额外判断'],answer:0,explanation:'令 <code>d=x-y</code>。若x<y，d<0，<code>d>>31=-1</code>，<code>d&(-1)=d</code>，结果 <code>y+d=x</code>。若x≥y，d≥0，<code>d>>31=0</code>，结果 <code>y+0=y</code>。'},
+        {type:'注意题',text:'这个无分支min有什么潜在问题？',options:['x-y可能溢出（当x和y符号相反且绝对值大时）','没有问题','只能处理正数','结果精度不够'],answer:0,explanation:'当x和y一正一负且绝对值很大时，<code>x-y</code>可能溢出。实际使用中需确保差值在int范围内。'}
+      ]},
+      {id:'w3l4',name:'sign(x) - 符号函数',formula:'(x>>31)|((-x)>>31)',stars:'⭐⭐',tag:'符号判断',questions:[
+        {type:'概念题',text:'<code>sign(x) = (x>>31) | ((-x)>>31)</code> 返回什么？',options:['负数返回-1，零返回0，正数返回1','总是返回0或1','返回x的绝对值','返回x的最高位'],answer:0,explanation:'<code>x>>31</code>: 负数为-1，其他为0。<code>(-x)>>31</code>: 正数时-x为负数该项为-1。正数: <code>0|(-1的符号扩展的低1位)=1</code>。零: <code>0|0=0</code>。负数: <code>-1|...=-1</code>。'},
+        {type:'对比题',text:'avg(x,y) = (x&y)+((x^y)>>1) 体现了什么设计思想？',options:['将问题分解为"公共部分"和"差异部分"分别处理，避免溢出','随机算法','近似计算','查表法'],answer:0,explanation:'公共位(x&y)直接保留，差异位(x^y)平均分配。这种"分而治之"的思路是无溢出算法设计的精髓，可推广到更多场景。'}
+      ]}
+    ]
+  },
+  {
+    id:'w4',icon:'🔀',title:'MUX多路选择器',subtitle:'2个核心变体',accent:'#ec4899',accentLight:'#f472b6',
+    levels:[
+      {id:'w4l1',name:'标准MUX (4指令)',formula:'(x&m)|(y&~m)',stars:'⭐⭐',tag:'基础形式',questions:[
+        {type:'概念题',text:'<code>mux = (x & m) | (y & ~m)</code> 的语义是什么？',options:['m位为1时选x，m位为0时选y','m位为1时选y，m位为0时选x','总是选x','总是选y'],answer:0,explanation:'<code>x & m</code> 保留x中m为1的位。<code>y & ~m</code> 保留y中m为0的位。OR合并后，m控制了每一位来自x还是y。'},
+        {type:'类比题',text:'MUX在硬件中对应什么组件？',options:['多路选择器(Multiplexer)','加法器','寄存器','时钟'],answer:0,explanation:'这正是硬件2:1 MUX(多路选择器)的位级并行版本。每一位独立选择，相当于32个并行MUX。'},
+        {type:'应用题',text:'用MUX实现 <code>if(flag) x=a; else x=b;</code> 的关键步骤？',options:['将flag扩展为全0或全1的掩码m，然后 x=(a&m)|(b&~m)','直接用flag作为m','flag必须是0或1','无法实现'],answer:0,explanation:'关键是将布尔flag扩展为位掩码: <code>m = -flag</code>（flag为1时-1即全1，flag为0时0即全0）。全1选a，全0选b。'}
+      ]},
+      {id:'w4l2',name:'优化MUX (3指令)',formula:'((x^y)&m)^y',stars:'⭐⭐⭐',tag:'硬件优化',questions:[
+        {type:'原理题',text:'<code>((x^y) & m) ^ y</code> 为什么只需3条指令就等价于标准MUX？',options:['x^y计算差异，&m选择要改变的位，^y在y基础上应用选中的改变','它是近似算法','牺牲了精度','只对特定输入有效'],answer:0,explanation:'<code>x^y</code>: x和y的差异位。<code>& m</code>: 只保留m选中的差异。<code>^y</code>: 将这些差异应用到y上。选中位变成x，未选中位保持y。精确等价！'},
+        {type:'证明题',text:'令m全为1，<code>((x^y)&m)^y</code> 应该等于？',options:['x（全选x）','y（全选y）','0','x^y'],answer:0,explanation:'m全1: <code>((x^y)&1...1)^y = (x^y)^y = x</code>。XOR的自逆性：<code>a^b^b = a</code>。完美选中x。'},
+        {type:'优势题',text:'节省1条指令在什么场景下意义最重大？',options:['SIMD/GPU并行处理大量数据时，节省数十亿次操作','日常编程','脚本语言','单次调用'],answer:0,explanation:'处理百万像素图像或GPU shader时，每像素节省1条指令就能节省数百万次操作。在硬件电路中还少一个门电路，省面积省功耗。'}
+      ]}
+    ]
+  },
+  {
+    id:'w5',icon:'🌟',title:"Gosper's Hack",subtitle:'4步组合枚举加速',accent:'#8b5cf6',accentLight:'#a78bfa',
+    levels:[
+      {id:'w5l1',name:'Step1: 提取最低1',formula:'c = x & (-x)',stars:'⭐⭐⭐',tag:'进位点识别',questions:[
+        {type:'概念题',text:"在Gosper's Hack中，<code>c = x & (-x)</code> 的角色是？",options:['定位"进位注入点"——最低位的1，是算法的起点','生成最终结果','计算popcount','与主算法无关'],answer:0,explanation:'c是最低位的1(LSB)，代表我们将在这个位置"加1"来触发进位级联。这是找到下一个同popcount排列的第一步。'},
+        {type:'理解题',text:'为什么选择最低位的1作为操作起点？',options:['从最低位开始进位是生成"下一个排列"的最小增量方式','随机选择都可以','最高位效果一样','算法要求必须从右往左'],answer:0,explanation:'类似十进制计数，我们从最低位开始递增。在位排列中，从最低的1开始进位，能找到字典序紧邻的下一个排列。'}
+      ]},
+      {id:'w5l2',name:'Step2+3+4: 完整流程',formula:'r=x+c; ones=(((r^x)/c)>>2)+1; result=r|ones',stars:'⭐⭐⭐',tag:'级联翻转+合并',questions:[
+        {type:'核心题',text:'<code>r = x + c</code> 执行"进位传播"，具体发生了什么？',options:['从最低1开始连续进位，翻转一串连续的1，并在更高位产生一个新的1','简单加法无特殊效果','清除所有位','左移一位'],answer:0,explanation:'加c相当于在最低1处加1，触发进位链。连续的1被进位翻转为0，直到遇到第一个0，该0变为1。这就是"级联翻转"。'},
+        {type:'关键题',text:'Step3为什么要计算"补回"的1的个数？',options:['进位传播消灭了一些1，需要在低位补回相同数量以保持总popcount不变','为了美观','不需要补回','为了凑整'],answer:0,explanation:"Gosper's Hack的核心约束: 输出与输入有相同数量的1。Step2消灭了一些1又产生了一个新的1，差额需要在最低位补回。"},
+        {type:'综合题',text:"Gosper's Hack完整流程生成的是什么？",options:['具有相同popcount的下一个字典序更大的整数','任意随机数','popcount更大的数','popcount更小的数'],answer:0,explanation:'通过进位传播(高位进一步)和低位补1(保持总数)，生成字典序紧邻的下一个同popcount整数。这就是"同popcount枚举器"。'},
+        {type:'性能题',text:"相比暴力枚举，Gosper's Hack快多少？",options:['可达100倍以上（直接跳到下一个有效排列）','2倍','10倍','没有明显提升'],answer:0,explanation:'暴力需要检查每个数是否满足popcount，大部分不满足被浪费。Gosper直接跳到下一个有效排列，在C(32,5)中比暴力快100倍以上。'}
+      ]}
+    ]
+  },
+  {
+  id:'w6', icon:'🎁', title:'特殊技巧', subtitle:'8个实用特殊技巧',
+  accent:'#f97316', accentLight:'#fb923c',
+  levels:[
+
+    // ── Level 1 ──────────────────────────────────────────────
+    {
+      id:'w6l1', name:'溢出检测', formula:'((x^sum)&(y^sum))>>31',
+      stars:'⭐⭐', tag:'算术检测',
+      questions:[
+        {
+          type:'原理题',
+          text:'<code>((x^sum) & (y^sum)) >> 31</code> 检测的是什么溢出？',
+          options:[
+            '有符号加法溢出: 两个同号数相加得到异号结果',
+            '无符号溢出',
+            '乘法溢出',
+            '除法溢出'
+          ],
+          answer:0,
+          explanation:'<code>x^sum</code>: x和结果符号不同时该值为负(最高位为1)。<code>y^sum</code>: y和结果符号不同时同理。两者都为负(AND结果最高位为1)，意味着x和y同号但结果异号——这正是有符号溢出的定义。'
+        },
+        {
+          type:'应用题',
+          text:'下面哪种情况会触发有符号加法溢出？',
+          options:[
+            '两个正数相加得到负数，或两个负数相加得到正数',
+            '正数加负数',
+            '任何加法都可能溢出',
+            '只有乘法会溢出'
+          ],
+          answer:0,
+          explanation:'正+正=负(上溢) 或 负+负=正(下溢) 是两种有符号加法溢出。正数加负数永远不会溢出，因为结果绝对值不超过两者中较大的那个。'
+        },
+        {
+          type:'计算题',
+          text:'设 <code>x=0x7FFFFFFF, y=1</code>，<code>sum=x+y=0x80000000</code>，溢出检测表达式结果是？',
+          options:[
+            '-1（最高位为1，表示发生了溢出）',
+            '0（未发生溢出）',
+            '1',
+            '0x7FFFFFFF'
+          ],
+          answer:0,
+          explanation:'<code>x^sum = 0x7FFFFFFF ^ 0x80000000 = 0xFFFFFFFF</code>（负）；<code>y^sum = 0x00000001 ^ 0x80000000 = 0x80000001</code>（负）；两者AND最高位为1，>>31得-1，表示溢出。'
+        },
+        {
+          type:'对比题',
+          text:'C/C++中有符号整数溢出的标准定义是？',
+          options:[
+            '未定义行为(Undefined Behavior)，编译器可以做任意假设',
+            '回绕(wrap around)到最小值',
+            '抛出异常',
+            '产生不确定值但不是UB'
+          ],
+          answer:0,
+          explanation:'C/C++标准明确规定：有符号整数溢出是未定义行为(UB)。编译器可利用"不发生溢出"假设做激进优化，导致安全检查被删除。Java/Go等语言则明确定义为回绕。'
+        }
+      ]
+    },
+
+    // ── Level 2 ──────────────────────────────────────────────
+    {
+      id:'w6l2', name:'符号扩展', formula:'(x<<(32-n))>>(32-n)',
+      stars:'⭐⭐', tag:'类型转换',
+      questions:[
+        {
+          type:'原理题',
+          text:'<code>(x << (32-n)) >> (32-n)</code> 如何实现n位到32位的符号扩展？',
+          options:[
+            '左移把第n位(符号位)移到最高位，算术右移用符号位填充高位',
+            '直接清除高位，保留低n位',
+            '翻转所有位后右移',
+            '用掩码 <code>0xFFFFFFFF >> (32-n)</code> 提取低n位'
+          ],
+          answer:0,
+          explanation:'两步操作：①左移 <code>32-n</code> 位将第n位(n位数的符号位)移到第31位(最高位)；②算术右移 <code>32-n</code> 位，CPU用符号位填充空出的高位。若原符号为1则高位全填1，为0则全填0。'
+        },
+        {
+          type:'计算题',
+          text:'对5位有符号数 <code>x = 0b10001 (-15)</code> 做符号扩展到8位，结果是？',
+          options:[
+            '0b11110001 (0xF1, -15)',
+            '0b00010001 (17)',
+            '0b10001000',
+            '0b11111111 (-1)'
+          ],
+          answer:0,
+          explanation:'5位数 <code>10001</code> 的符号位为1(负数)。符号扩展到8位：高3位全补1，得 <code>11110001</code>。补码验证：-16+1=-15 ✓。'
+        },
+        {
+          type:'对比题',
+          text:'符号扩展(Sign Extension) 和 零扩展(Zero Extension) 的区别是？',
+          options:[
+            '符号扩展用原数符号位填充高位；零扩展高位一律填0',
+            '两者完全相同',
+            '符号扩展只适用于正数',
+            '零扩展会改变数值'
+          ],
+          answer:0,
+          explanation:'有符号数转换用符号扩展（C中的隐式转换）；无符号数转换用零扩展。错误地选择会导致负数变成巨大正数的经典bug，如 <code>char -1</code> 零扩展为 <code>0xFF=255</code>，而非 <code>-1</code>。'
+        },
+        {
+          type:'应用题',
+          text:'x86指令 <code>MOVSX</code> 和 <code>MOVZX</code> 分别对应哪种扩展？',
+          options:[
+            'MOVSX=符号扩展传送，MOVZX=零扩展传送',
+            'MOVSX=零扩展，MOVZX=符号扩展',
+            '两者功能相同',
+            '都是符号扩展'
+          ],
+          answer:0,
+          explanation:'<code>MOVSX eax, al</code>：把AL的值符号扩展到32位放入EAX。<code>MOVZX eax, al</code>：把AL的值零扩展到32位。C中 <code>int i = (signed char)x</code> 对应MOVSX，<code>unsigned int u = (unsigned char)x</code> 对应MOVZX。'
+        }
+      ]
+    },
+
+    // ── Level 3 ──────────────────────────────────────────────
+    {
+      id:'w6l3', name:'条件置位/清位', formula:'x |= (1<<n) / x &= ~(1<<n)',
+      stars:'⭐', tag:'位域操作',
+      questions:[
+        {
+          type:'概念题',
+          text:'如何在不影响其他位的前提下，将x的第n位置为1？',
+          options:[
+            'x |= (1 << n)',
+            'x &= (1 << n)',
+            'x ^= (1 << n)',
+            'x = (1 << n)'
+          ],
+          answer:0,
+          explanation:'<code>1 << n</code> 生成只有第n位为1的掩码。OR操作：原本为1的位保持1，原本为0的第n位变为1，其余位不受影响。这是"置位"(set bit)的标准写法。'
+        },
+        {
+          type:'概念题',
+          text:'如何在不影响其他位的前提下，将x的第n位清为0？',
+          options:[
+            'x &= ~(1 << n)',
+            'x |= ~(1 << n)',
+            'x ^= ~(1 << n)',
+            'x &= (1 << n)'
+          ],
+          answer:0,
+          explanation:'<code>~(1 << n)</code> 生成只有第n位为0其余全为1的掩码。AND操作：其余位与1 AND保持不变，第n位与0 AND变为0。这是"清位"(clear bit)的标准写法。'
+        },
+        {
+          type:'概念题',
+          text:'如何翻转x的第n位（0变1，1变0）？',
+          options:[
+            'x ^= (1 << n)',
+            'x |= (1 << n)',
+            'x &= (1 << n)',
+            'x -= (1 << n)'
+          ],
+          answer:0,
+          explanation:'XOR的自反性：与1 XOR则翻转，与0 XOR则保持。<code>1 << n</code> 掩码使第n位与1异或（翻转），其他位与0异或（不变）。这是"翻转位"(toggle bit)的标准写法。'
+        },
+        {
+          type:'综合题',
+          text:'如何读取x的第n位的值（结果为0或1）？',
+          options:[
+            '(x >> n) & 1',
+            '(x & n) >> 1',
+            'x & (1 << n)',
+            '(x | n) & 1'
+          ],
+          answer:0,
+          explanation:'先右移n位将目标位移到最低位，再与1做AND提取最低位。结果为0或1。另一种写法 <code>(x >> n) & 1</code> 和 <code>!!(x & (1<<n))</code> 等价，但前者更直接。'
+        }
+      ]
+    },
+
+    // ── Level 4 ──────────────────────────────────────────────
+    {
+      id:'w6l4', name:'字节序反转(BSWAP)', formula:'循环移位组合实现',
+      stars:'⭐⭐', tag:'网络/大端',
+      questions:[
+        {
+          type:'概念题',
+          text:'字节序反转(byte swap)的作用是什么？',
+          options:[
+            '将大端(big-endian)和小端(little-endian)格式相互转换',
+            '反转所有比特位',
+            '将正数变为负数',
+            '循环移位32位'
+          ],
+          answer:0,
+          explanation:'网络协议(TCP/IP)使用大端字节序，x86 CPU使用小端字节序。收发网络数据时需要字节序转换。例如 <code>0x12345678</code> 大端→小端变为 <code>0x78563412</code>。'
+        },
+        {
+          type:'计算题',
+          text:'对 <code>x = 0x12345678</code> 执行字节序反转，结果是？',
+          options:[
+            '0x78563412',
+            '0x87654321',
+            '0x21436587',
+            '0x12345678'
+          ],
+          answer:0,
+          explanation:'字节序反转将4个字节逆序排列：字节0(0x78)↔字节3(0x12)，字节1(0x56)↔字节2(0x34)。结果：<code>0x78 56 34 12 = 0x78563412</code>。'
+        },
+        {
+          type:'实现题',
+          text:'用位操作实现32位字节序反转的表达式是？',
+          options:[
+            '<code>((x&0xFF)<<24)|((x&0xFF00)<<8)|((x>>8)&0xFF00)|((x>>24)&0xFF)</code>',
+            '<code>~x</code>',
+            '<code>x << 16 | x >> 16</code>',
+            '<code>x & 0xFF00FF00</code>'
+          ],
+          answer:0,
+          explanation:'分别提取并移动4个字节：字节0左移24位到最高字节位置，字节1左移8位，字节2右移8位，字节3右移24位，最后OR合并。x86提供 <code>BSWAP</code> 单条指令完成此操作。'
+        },
+        {
+          type:'应用题',
+          text:'C语言中 <code>htonl()</code> 函数的作用是？',
+          options:[
+            '将32位整数从主机字节序转为网络字节序(大端)',
+            '将字符串转为整数',
+            '计算网络延迟',
+            '反转所有位'
+          ],
+          answer:0,
+          explanation:'<code>htonl</code> = Host TO Network Long。在小端主机(x86)上等价于字节序反转；在大端主机上是空操作(no-op)。对应的还有 <code>ntohl</code>(网络→主机)，<code>htons/ntohs</code>(16位版本)。'
+        }
+      ]
+    },
+
+    // ── Level 5 ──────────────────────────────────────────────
+    {
+      id:'w6l5', name:'模2的幂取余', formula:'x & (n-1)',
+      stars:'⭐⭐', tag:'哈希/环形缓冲',
+      questions:[
+        {
+          type:'概念题',
+          text:'当 <code>n</code> 是2的幂时，<code>x % n</code> 可以用什么位操作替代？',
+          options:[
+            'x & (n-1)',
+            'x | (n-1)',
+            'x ^ (n-1)',
+            'x >> log2(n)'
+          ],
+          answer:0,
+          explanation:'2的幂 <code>n = 2^k</code> 的二进制形式是1后跟k个0，<code>n-1</code> 则是k个1的掩码。<code>x & (n-1)</code> 保留x的低k位，正好等于 <code>x mod n</code>。例如 <code>x % 8 = x & 7</code>。'
+        },
+        {
+          type:'性能题',
+          text:'<code>x & (n-1)</code> 相比 <code>x % n</code> 的性能优势是？',
+          options:[
+            '位AND是单周期指令，整数除法(%)需要20-90个周期',
+            '两者性能相同',
+            'AND只快2倍',
+            '只在n很小时才快'
+          ],
+          answer:0,
+          explanation:'整数除法是CPU最慢的运算之一，x86 DIV指令需要20-90个时钟周期。位AND是单周期操作，快约20-90倍。编译器在n是编译期常数且为2的幂时会自动做此优化，但n在运行时确定时需手动优化。'
+        },
+        {
+          type:'应用题',
+          text:'环形缓冲区(Ring Buffer)中如何用位操作实现下标回绕？',
+          options:[
+            '缓冲区大小设为2的幂N，下标用 <code>index & (N-1)</code> 代替 <code>index % N</code>',
+            '用if语句判断是否超出',
+            '每次手动减去N',
+            '使用取模但存储结果'
+          ],
+          answer:0,
+          explanation:'经典设计：将环形缓冲区大小设为2的幂（如1024）。入队/出队指针自增后用 <code>ptr & (SIZE-1)</code> 取余，比 <code>if(ptr>=SIZE) ptr=0</code> 更快且无分支。Linux内核的 <code>kfifo</code> 就采用此设计。'
+        },
+        {
+          type:'陷阱题',
+          text:'<code>x & (n-1)</code> 用于取余有什么限制条件？',
+          options:[
+            'n必须是2的正整数次幂，且x必须是无符号整数或非负有符号整数',
+            '无任何限制',
+            '只能用于32位整数',
+            'n必须小于256'
+          ],
+          answer:0,
+          explanation:'两个前提：①n必须是2的幂，否则结果错误。②x为负数时，C中 <code>%</code> 的结果可能为负（实现定义），而 <code>&</code> 结果恒非负，语义不同。无符号整数或确保x≥0时两者等价。'
+        }
+      ]
+    },
+
+    // ── Level 6 ──────────────────────────────────────────────
+    {
+      id:'w6l6', name:'位计数(Popcount)', formula:'多种实现方式对比',
+      stars:'⭐⭐⭐', tag:'汉明重量',
+      questions:[
+        {
+          type:'概念题',
+          text:'Popcount(Population Count)计算的是什么？',
+          options:[
+            '一个整数的二进制表示中1的个数(汉明重量)',
+            '二进制中0的个数',
+            '最高位1的位置',
+            '最低位1的位置'
+          ],
+          answer:0,
+          explanation:'Popcount也叫"汉明重量"(Hamming Weight)或"位计数"。例如 <code>popcount(0b10110101) = 5</code>（有5个1）。应用广泛：纠错码、密码学、棋盘游戏、数据压缩等。'
+        },
+        {
+          type:'实现题',
+          text:'Brian Kernighan算法计算popcount的核心思想是？',
+          options:[
+            '每次用 <code>x &= x-1</code> 清除最低位的1，循环计数直到x为0',
+            '用查表法',
+            '逐位检查每一位',
+            '用除法分离各位'
+          ],
+          answer:0,
+          explanation:'<code>while(x){count++;x&=x-1;}</code>。每次迭代消除一个1，循环次数等于1的个数。时间复杂度O(popcount(x))，对稀疏位（少量1）比O(32)的逐位法更快。'
+        },
+        {
+          type:'实现题',
+          text:'并行位计数的"分治"方法第一步是将相邻两位的popcount存入原位，如何实现？',
+          options:[
+            '<code>x = (x & 0x55555555) + ((x>>1) & 0x55555555)</code>',
+            '<code>x = x & 0x55555555</code>',
+            '<code>x = x ^ (x>>1)</code>',
+            '<code>x = x | 0x55555555</code>'
+          ],
+          answer:0,
+          explanation:'<code>0x55555555 = 01010101...01</code>。先提取奇数位，再提取偶数位右移1，两者相加将每对相邻位的1的个数(0/1/2)存入原来的2位空间。后续步骤类似，每次合并相邻分组，直到32位全部求和。'
+        },
+        {
+          type:'硬件题',
+          text:'现代CPU中计算popcount最快的方式是？',
+          options:[
+            '使用 <code>POPCNT</code> 硬件指令（SSE4.2），单时钟周期完成',
+            '查表法(lookup table)',
+            'Brian Kernighan循环',
+            '并行分治法'
+          ],
+          answer:0,
+          explanation:'Intel SSE4.2引入 <code>POPCNT</code> 指令，1个时钟周期完成64位popcount。C中用 <code>__builtin_popcountll(x)</code>(GCC)或 <code>_mm_popcnt_u64(x)</code>(MSVC)调用。比最快软件实现快3-5倍。'
+        }
+      ]
+    },
+
+    // ── Level 7 ──────────────────────────────────────────────
+    {
+      id:'w6l7', name:'前导零/尾部零计数', formula:'CLZ / CTZ / BSR / BSF',
+      stars:'⭐⭐', tag:'位扫描',
+      questions:[
+        {
+          type:'概念题',
+          text:'前导零计数(CLZ, Count Leading Zeros)的含义是？',
+          options:[
+            '从最高位开始连续0的个数，等价于 <code>31 - floor(log2(x))</code>',
+            '从最低位开始连续0的个数',
+            '所有0的总数',
+            '最高位1的位置'
+          ],
+          answer:0,
+          explanation:'CLZ(x)统计最高位到第一个1之前的0的数量。例如 <code>CLZ(0b00000100) = 29</code>（32位中）。重要应用：计算 <code>floor(log2(x)) = 31 - CLZ(x)</code>，用于规格化浮点数。'
+        },
+        {
+          type:'关联题',
+          text:'尾部零计数(CTZ, Count Trailing Zeros)和哪个位操作直接相关？',
+          options:[
+            '<code>CTZ(x) = log2(x & -x)</code>，即最低位1的位置',
+            '与CLZ互补',
+            '等于popcount(~x)',
+            '等于32-CLZ(x)'
+          ],
+          answer:0,
+          explanation:'<code>x & (-x)</code> 提取最低位的1（LSB），该1的位置就是尾部0的个数。例如 <code>x=0b10110100</code>，<code>x&(-x)=0b00000100=4=2²</code>，CTZ=2。'
+        },
+        {
+          type:'硬件题',
+          text:'x86提供哪些指令用于位扫描？',
+          options:[
+            'BSF(Bit Scan Forward=CTZ)、BSR(Bit Scan Reverse=31-CLZ)、LZCNT(CLZ)、TZCNT(CTZ)',
+            '只有BSWAP',
+            'POPCNT和BSWAP',
+            'SAR和SHR'
+          ],
+          answer:0,
+          explanation:'<code>BSF</code>找最低位1(等价CTZ)，<code>BSR</code>找最高位1。<code>LZCNT/TZCNT</code>是BMI1新增的更规范版本（BSF/BSR对x=0有未定义行为，TZCNT/LZCNT返回操作数位宽）。GCC内建：<code>__builtin_ctz</code>/<code>__builtin_clz</code>。'
+        },
+        {
+          type:'应用题',
+          text:'<code>floor(log2(x))</code> 用位操作如何高效计算？',
+          options:[
+            '31 - __builtin_clz(x)（32位），即用CLZ结果推导对数',
+            'x >> 1 循环计数',
+            'log(x) / log(2)',
+            'popcount(x) - 1'
+          ],
+          answer:0,
+          explanation:'CLZ告诉我们最高位1在哪里，即 <code>floor(log2(x)) = 31 - CLZ(x)</code>（32位无符号）。这比浮点 <code>log2()</code> 快10-100倍，用于哈希桶大小计算、内存分配器、Fibonacci编码等。'
+        }
+      ]
+    },
+
+    // ── Level 8 ──────────────────────────────────────────────
+    {
+      id:'w6l8', name:'位域打包与提取', formula:'(x >> pos) & mask',
+      stars:'⭐⭐', tag:'协议解析/嵌入式',
+      questions:[
+        {
+          type:'概念题',
+          text:'从整数x中提取从第 <code>pos</code> 位开始、长度为 <code>len</code> 位的字段，表达式是？',
+          options:[
+            '<code>(x >> pos) & ((1 << len) - 1)</code>',
+            '<code>(x & pos) >> len</code>',
+            '<code>x >> (pos + len)</code>',
+            '<code>(x << pos) & len</code>'
+          ],
+          answer:0,
+          explanation:'两步：①右移 <code>pos</code> 位将目标字段对齐到最低位；②与掩码 <code>(1<<len)-1</code>（低len位全1）做AND，提取出目标len位。例如提取第4-6位(3位)：<code>(x>>4) & 0x7</code>。'
+        },
+        {
+          type:'概念题',
+          text:'将值 <code>v</code> 写入x的第 <code>pos</code> 位起、长度 <code>len</code> 位的字段，正确操作是？',
+          options:[
+            '先清除目标字段：<code>x &= ~(((1<<len)-1)<<pos)</code>，再写入：<code>x |= (v & ((1<<len)-1)) << pos</code>',
+            '<code>x |= v << pos</code>',
+            '<code>x = v << pos</code>',
+            '<code>x ^= v << pos</code>'
+          ],
+          answer:0,
+          explanation:'必须先清除目标字段再写入，否则原有位会与新值OR产生错误结果。清除用AND+NOT掩码，写入用OR。这是嵌入式/驱动开发中最常见的寄存器位域操作模式。'
+        },
+        {
+          type:'应用题',
+          text:'解析以太网帧头时需要提取12位VLAN ID（802.1Q标签第0-11位），表达式是？',
+          options:[
+            '<code>tag & 0x0FFF</code>（低12位掩码）',
+            '<code>tag >> 12</code>',
+            '<code>tag & 0xFFFF</code>',
+            '<code>tag >> 4 & 0xFF</code>'
+          ],
+          answer:0,
+          explanation:'802.1Q标签中VLAN ID占低12位，PCP占高3位，DEI占第12位。提取VLAN ID：<code>vlan_id = tag & 0x0FFF</code>（掩码12个1）。网络协议解析大量依赖位域提取。'
+        },
+        {
+          type:'工具题',
+          text:'C语言的位域结构体 <code>struct { uint32_t a:4; uint32_t b:12; }</code> 有什么潜在问题？',
+          options:[
+            '位域布局是实现定义的(implementation-defined)，不同编译器/平台结果可能不同，不可移植',
+            '完全跨平台可移植',
+            '只能用于8位字段',
+            '无法处理大端系统'
+          ],
+          answer:0,
+          explanation:'C标准规定位域的位顺序、跨字节处理方式等是实现定义。GCC和MSVC在同一平台上可能不同。跨平台代码应使用手动位操作(<<, >>, &)而非位域结构体。Linux内核几乎不用位域结构体正因如此。'
+        }
+      ]
+    }
+
+  ]
+},
+{  
+    id:'w7',icon:'🎓',title:'布尔分解定理',subtitle:'5个理论基础',accent:'#06b6d4',accentLight:'#22d3ee',  
+    levels:[  
+      {id:'w7l1',name:'Shannon展开',formula:'f = z̄·f₀ + z·f₁',stars:'⭐⭐',tag:'理论基础',questions:[  
+        {type:'理论题',text:'Shannon展开 <code>f = z̄·f₀ + z·f₁</code> 中各项的含义？',  
+         options:['z是分解变量，f₀=f|z=0，f₁=f|z=1，按z的值选择子函数','f₀是常数，f₁是变量','这是Reed-Muller展开的别名','只适用于加法'],  
+         answer:0,explanation:'Shannon余因子展开: 任何布尔函数都可以按一个变量z展开。当z=0选f₀，当z=1选f₁。这是BDD(二叉决策图)的理论基础。'},  
+        {type:'比较题',text:'Shannon展开与Reed-Muller展开 <code>f = f₀ ⊕ z·(f₀⊕f₁)</code> 的主要区别？',  
+         options:['Shannon用OR+AND+NOT；Reed-Muller只用XOR+AND，不需要NOT','完全相同','Reed-Muller更复杂','Shannon不需要分解'],  
+         answer:0,explanation:'Shannon需要NOT(取z̄)和OR。Reed-Muller只用{AND, XOR}(GF(2)上的多项式)，更适合某些硬件实现和密码学分析。'}  
+      ]},  
+      {id:'w7l2',name:'ANF代数正规形',formula:'每个变量最多出现一次',stars:'⭐⭐',tag:'代数表示',questions:[  
+        {type:'概念题',text:'布尔函数的代数正规形(ANF)有什么特点？',  
+         options:['GF(2)上的多项式：AND对应乘法，XOR对应加法，每个单项式中每个变量最多出现一次',  
+                  '与真值表等价但更简洁','只含AND操作','只含XOR操作'],  
+         answer:0,explanation:'ANF(Algebraic Normal Form)也叫Zhegalkin多项式。任何布尔函数都有唯一的ANF。例如 <code>f(x,y)=x⊕y⊕xy</code> 是XOR的ANF。'},  
+        {type:'应用题',text:'ANF在密码学中有什么重要应用？',  
+         options:['分析S盒的代数次数(algebraic degree)，评估密码算法抗代数攻击能力',  
+                  '加速加密速度','生成密钥','替代哈希函数'],  
+         answer:0,explanation:'S盒的代数次数是其ANF中最高次单项式的次数。次数越高，代数攻击越难。AES的S盒次数为7(最大值255位时)，抗性强。'}  
+      ]},  
+      {id:'w7l3',name:'SHA-256 MAJ函数',formula:'MAJ(x,y,z)=(x&y)|(y&z)|(z&x)',stars:'⭐⭐',tag:'密码学原语',questions:[  
+        {type:'密码题',text:'SHA-256中 <code>MAJ(x,y,z)</code> 的逻辑含义？',  
+         options:['三者多数表决: 每位取x,y,z中出现更多的值(2个或3个为1则结果为1)',  
+                  '三者的AND','三者的OR','三者的XOR'],  
+         answer:0,explanation:'MAJ=Majority(多数表决)。逐位看: 3个输入中2个或3个为1时输出1，否则输出0。它是SHA-256压缩函数的核心非线性组件之一。'},  
+        {type:'优化题',text:'<code>MAJ(x,y,z)</code> 的3-AND-2-OR实现可以优化为？',  
+         options:['(x&y)^(x&z)^(y&z) — 用XOR替代OR减少依赖链','无法优化','(x|y|z)&(x&y&z)','x^y^z'],  
+         answer:0,explanation:'由于三个AND项不会同时为1(至多两个为1)，XOR和OR在这里等价。XOR版本在某些架构上更快，且可与CH函数共享中间计算。'},  
+        {type:'对比题',text:'SHA-256还有一个函数CH(x,y,z)，它的含义是？',  
+         options:['x为1时选y，x为0时选z — 即 (x&y)|(~x&z)','与MAJ相同','三者异或','三者与'],  
+         answer:0,explanation:'CH=Choose(选择器)。x的每一位决定是从y还是z取值，本质上是一个逐位MUX。与MAJ共同构成SHA-256压缩函数的非线性核心。'}  
+      ]},  
+      {id:'w7l4',name:'真值表与函数计数',formula:'2^(2^n) 种布尔函数',stars:'⭐',tag:'枚举分析',questions:[  
+        {type:'计算题',text:'n个变量的布尔函数有多少种不同的函数？',  
+         options:['2^(2^n) 种','2^n 种','n! 种','2n 种'],  
+         answer:0,explanation:'n个变量有 <code>2ⁿ</code> 种输入组合，每种组合输出0或1，所以共有 <code>2^(2ⁿ)</code> 种不同函数。2变量有16种，3变量有256种！'},  
+        {type:'理解题',text:'为什么说"任何布尔函数都可以用AND/OR/NOT实现"？',  
+         options:['{AND,OR,NOT}是功能完备集(Functionally Complete)，可表达所有真值表',  
+                  '只有线性函数可以','需要额外操作符','这个说法是错误的'],  
+         answer:0,explanation:'功能完备集意味着可以表达任意真值表对应的函数。{AND,OR,NOT}、{NAND}、{NOR}、{AND,XOR,1}(GF2)都是完备集。'}  
+      ]},  
+      {id:'w7l5',name:'3n指令实现复杂度',formula:'1变量1指令, n变量~3n指令',stars:'⭐⭐',tag:'指令成本',questions:[  
+        {type:'分析题',text:'用位运算实现n元布尔函数大约需要多少条指令？',  
+         options:['约3n条（AND,XOR,及辅助操作各约n次）','n条','n²条','2ⁿ条'],  
+         answer:0,explanation:'每引入一个新变量，大约需要一次AND(乘以变量)、一次XOR(加到结果)和可能的辅助操作。线性增长约3n，比真值表查表的2ⁿ高效得多。'},  
+        {type:'实践题',text:'超级优化器(Superoptimizer)在这里扮演什么角色？',  
+         options:['穷举验证某布尔函数的最短指令序列，确认3n是否真的最优',  
+                  '自动编写程序','替代编译器','生成测试用例'],  
+         answer:0,explanation:'GNU Superoptimizer暴力枚举所有短指令序列，验证哪个能正确实现目标功能。它自动"发现"了很多人类已知的位操作技巧，有时甚至找到更短的序列。'}  
+      ]}  
+    ]  
+  },  
+  {  
+    id:'w8',icon:'⏰',title:'历史演变',subtitle:'6个里程碑时刻',accent:'#64748b',accentLight:'#94a3b8',  
+    levels:[  
+      {id:'w8l1',name:'1961 - Strachey CACM',formula:'最早正式发表',stars:'⭐',tag:'理论溯源',questions:[  
+        {type:'历史题',text:'Christopher Strachey 1961年的CACM论文有什么里程碑意义？',  
+         options:['首次在学术期刊上系统讨论位操作技巧，使其从"黑客秘笈"走向学术殿堂',  
+                  '发明了计算机','设计了第一个CPU','创建了C语言'],  
+         answer:0,explanation:'在此之前位操作技巧只在程序员间口口相传。Strachey将它们正式化发表在ACM通讯上，为后续研究奠定了学术基础，也使这些技巧获得了更广泛的传播。'},  
+        {type:'文化题',text:'为什么早期计算机程序员对位操作如此痴迷？',  
+         options:['早期计算机内存极其稀缺，每个字节都宝贵；CPU也慢，节省指令意味着节省昂贵的计算时间',  
+                  '纯粹是爱好','位操作更容易调试','编译器要求使用位操作'],  
+         answer:0,explanation:'1960年代的计算机内存以KB计，时间以分钟计费。每省一条指令、每省一个字节都有实际的商业价值。这种极端约束催生了无数精妙的位操作技巧。'}  
+      ]},  
+      {id:'w8l2',name:'1972 - Gosper HAKMEM',formula:'MIT位操作圣经',stars:'⭐⭐',tag:'经典汇编',questions:[  
+        {type:'历史题',text:'HAKMEM(Memo 239)是什么？',  
+         options:['MIT AI Lab的黑客备忘录，收录了大量位操作技巧包括Gosper\'s Hack',  
+                  '一本教科书','一个编程语言','一个操作系统'],  
+         answer:0,explanation:'HAKMEM由Bill Gosper等MIT黑客编纂于1972年，收录了数学、位操作、图形等奇技淫巧。Gosper\'s Hack就出自其中，影响了整整一代程序员。'},  
+        {type:'技术题',text:'HAKMEM中还有哪些著名的位操作技巧？',  
+         options:['popcount(位计数)、前导零计数、循环移位、棋盘问题等数十种技巧',  
+                  '只有Gosper\'s Hack一个','浮点运算技巧','字符串处理技巧'],  
+         answer:0,explanation:'HAKMEM收录了170多个条目，涵盖位计数、游程编码、国际象棋走法生成等。其中很多技巧后来被烧进了现代CPU的专用指令中。'}  
+      ]},  
+      {id:'w8l3',name:'1986 - Dietz无溢出平均',formula:'安全算术先驱',stars:'⭐⭐',tag:'安全补丁',questions:[  
+        {type:'贡献题',text:'Henry G. Dietz的主要贡献是什么？',  
+         options:['发现无溢出平均公式，推动了SIMD安全算术研究，影响了后来的硬件指令设计',  
+                  '发明了C语言','设计了x86','创建了Linux'],  
+         answer:0,explanation:'Dietz在aggregate.org发表了一系列无溢出算术技巧，其中 <code>(x&y)+((x^y)>>1)</code> 成为经典。这启发了后来SIMD指令集中安全算术指令(如SSE的pavg)的设计。'},  
+        {type:'延伸题',text:'Dietz公式可以推广到什么场景？',  
+         options:['任何需要无溢出均值的场景: SIMD packed操作、二分搜索中值、图像混合等',  
+                  '只能用于整数加法','只在32位系统有效','只能用于正数'],  
+         answer:0,explanation:'只要是"两个值取均值"的场景都可用: 图像alpha混合、插值计算、中位数查找等。公式对有符号和无符号整数都有对应版本。'}  
+      ]},  
+      {id:'w8l4',name:'2006 - Bloch JDK Bug',formula:'二分搜索溢出经典案例',stars:'⭐⭐',tag:'经验教训',questions:[  
+        {type:'案例题',text:'Joshua Bloch发现的JDK二分搜索bug是什么？',  
+         options:['mid=(low+high)/2 在大数组时low+high整数溢出变成负数，导致数组越界异常',  
+                  '排序错误','死循环','内存泄漏'],  
+         answer:0,explanation:'JDK的 <code>Arrays.binarySearch</code> 中 <code>(low+high)/2</code> 当数组很大时(low+high超过Integer.MAX_VALUE)会变成负数。这个bug潜伏了近10年才被发现！'},  
+        {type:'教训题',text:'Jon Bentley的《编程珠玑》中也有同样的bug，这说明了什么？',  
+         options:['整数溢出是最容易被忽视的bug之一，即使是顶级专家也会中招；需要专门的安全审查',  
+                  '二分搜索很难实现','Java不安全','书中例子不可信'],  
+         answer:0,explanation:'Knuth据说曾说过90%的程序员无法正确实现二分搜索。这个bug警示我们: 整数溢出在C/C++中是未定义行为，在Java中会给出错误结果。Dietz公式是根本解法。'},  
+        {type:'修复题',text:'修复 <code>mid=(low+high)/2</code> 的最优方案是？',  
+         options:['low + ((high-low)>>1) 或 (low&high)+((low^high)>>1) — 两者都避免了溢出',  
+                  '改用long类型','只处理小数组','添加try-catch'],  
+         answer:0,explanation:'<code>low+(high-low)/2</code> 通过先做减法避免溢出。Dietz公式 <code>(low&high)+((low^high)>>1)</code> 更优雅且速度相当。JDK官方修复采用了 <code>(low+high)>>>1</code>(无符号右移)。'}  
+      ]},  
+      {id:'w8l5',name:'2013 - Intel BMI1/BMI2',formula:'软件技巧→硬件指令',stars:'⭐⭐',tag:'硬件支持',questions:[  
+        {type:'演进题',text:'Intel BMI1/BMI2指令集体现了什么演进规律？',  
+         options:['频繁使用的位操作软件技巧最终被烧进CPU硬件，成为单周期指令(BLSR,BLSI,PEXT,PDEP等)',  
+                  '硬件越来越简单','软件不再需要位操作','CPU不需要专用指令'],  
+         answer:0,explanation:'BMI1提供BLSR(<code>x&(x-1)</code>)、BLSI(<code>x&(-x)</code>)等。BMI2提供PEXT/PDEP位域操作。软件技巧变成了单周期硬件指令，这是计算机体系结构演化的典型路径。'},  
+        {type:'影响题',text:'PEXT/PDEP指令对哪个领域影响最大？',  
+         options:['国际象棋引擎(位棋盘bitboard)和密码学位置换，性能提升数十倍',  
+                  '文本处理','网页渲染','数据库查询'],  
+         answer:0,explanation:'PEXT根据掩码提取散落的位并压缩，PDEP做反操作。棋盘引擎的合法走步生成从数十条指令降到1条，密码学的位置换也大幅加速。'},  
+        {type:'延伸题',text:'除BMI外，哪个指令对popcount计算影响最大？',  
+         options:['POPCNT指令(SSE4.2引入)，单周期计算汉明重量，替代Brian Kernighan的循环算法',  
+                  'PEXT','LZCNT','BSWAP'],  
+         answer:0,explanation:'POPCNT在一个时钟周期内完成整个popcount计算，比最快的软件实现快3-5倍。这使得依赖popcount的算法(如棋盘引擎、压缩算法)性能大幅提升。'}  
+      ]},  
+      {id:'w8l6',name:'C23/Rust/Java演进',formula:'语言级安全支持',stars:'⭐',tag:'现代进展',questions:[  
+        {type:'对比题',text:'关于整数溢出，C/C++、Java、Rust有什么关键差异？',  
+         options:['C/C++有符号溢出是UB；Java有>>>无符号右移但溢出回绕；Rust默认debug panic，提供wrapping/checked/saturating API',  
+                  '完全相同','只有语法不同','不影响结果'],  
+         answer:0,explanation:'C有符号整数溢出是未定义行为(UB)，编译器可做危险假设。Java溢出回绕但无UB。Rust是目前最严谨的: debug模式溢出panic，release可选行为，且有四种明确API。'},  
+        {type:'前沿题',text:'C23标准新增了哪些与位操作相关的标准库函数？',  
+         options:['<bit.h>提供stdc_bit_width、stdc_count_ones、stdc_leading_zeros等标准化位操作函数',  
+                  '没有任何新增','只增加了数学函数','只增加了字符串函数'],  
+         answer:0,explanation:'C23的 <code><stdbit.h></code> 终于标准化了popcount、前导零、尾部零等位操作，结束了各平台使用不同内建函数(__builtin_popcount vs _BitScanForward)的混乱局面。'}  
+      ]}  
+    ]  
+  },  
+  {  
+    id:'w9',icon:'💭',title:'深度点评',subtitle:'5个深度洞察',accent:'#ef4444',accentLight:'#f87171',  
+    levels:[  
+      {id:'w9l1',name:'分支预测陷阱',formula:'10-20周期惩罚',stars:'⭐⭐⭐',tag:'性能关键',questions:[  
+        {type:'性能题',text:'现代CPU分支预测失败(misprediction)的代价大约是？',  
+         options:['10-20个时钟周期(需冲刷流水线)，在高频循环中可造成5-10倍性能差',  
+                  '0个周期','1-2个周期','100+个周期'],  
+         answer:0,explanation:'流水线越深，惩罚越大。现代CPU 15-20级流水线，预测失败需冲刷整条流水线重新填充。在热循环中频繁预测失败可造成严重性能下降。'},  
+        {type:'策略题',text:'什么情况下无分支代码最有优势？',  
+         options:['分支走向随机(依赖数据内容)导致预测率低时(如排序中的比较)；GPU线程束分歧时',  
+                  '分支高度可预测时','只执行一次的代码','所有情况都需要'],  
+         answer:0,explanation:'分支预测器对模式化分支(如循环计数器)能达到99%+预测率，无分支代价得不偿失。但数据依赖的分支(如依赖输入值)可能只有50%，此时无分支代码大幅领先。'},  
+        {type:'实践题',text:'使用无分支位操作替代条件分支时应注意？',  
+         options:['先profile确认分支是瓶颈；添加注释说明意图；验证编译器是否已自动优化(CMOV)',  
+                  '总是无分支更好','不需要注释','编译器不会做任何优化'],  
+         answer:0,explanation:'现代编译器(GCC -O2)常自动使用CMOV等条件移动指令替代分支。手写位操作应先确认编译器没有自动优化，否则只是增加代码复杂度。Profile before optimize！'}  
+      ]},  
+      {id:'w9l2',name:'整数溢出安全',formula:'UB → 安全漏洞',stars:'⭐⭐⭐',tag:'安全隐患',questions:[  
+        {type:'安全题',text:'C/C++中有符号整数溢出为何极其危险？',  
+         options:['它是未定义行为(UB)，编译器可假设它不会发生并做出危险优化，导致安全检查被消除',  
+                  '总是会回绕到负数','会抛出异常','会被编译器报错'],  
+         answer:0,explanation:'经典案例: 编译器可能优化掉 <code>if(x+1 > x)</code>(因为UB假设不溢出所以恒真)，导致缓冲区溢出检查失效。CVE数据库中大量安全漏洞源于此。'},  
+        {type:'防御题',text:'以下哪个是防御整数溢出的最佳实践？',  
+         options:['使用Dietz无溢出公式；运算前范围检查；使用__builtin_add_overflow；考虑Rust',  
+                  '忽略溢出','只使用unsigned','用float替代int'],  
+         answer:0,explanation:'最佳实践: ①使用无溢出算法(如Dietz平均值)②运算前范围检查③使用编译器内建检查④在新项目中考虑使用Rust等内存安全语言。'  
+        }  
+      ]},  
+      {id:'w9l3',name:"Gosper's Hack精髓",formula:'生成模式 vs 过滤模式',stars:'⭐⭐⭐',tag:'算法范式',questions:[  
+        {type:'算法题',text:"Gosper's Hack的核心算法范式是什么？",  
+         options:['将"过滤模式"(枚举所有检查是否满足)转化为"生成模式"(直接生成合法解)',  
+                  '更快的硬件','并行计算','减少内存使用'],  
+         answer:0,explanation:'暴力(过滤): 遍历2^n个子集，过滤popcount=k的。Gosper(生成): 直接从当前合法解跳到下一个。这种从"过滤"到"生成"的转换是算法优化的重要范式。'},  
+        {type:'推广题',text:'"生成模式"在其他算法中有哪些体现？',  
+         options:['全排列的Heap算法、格雷码生成、康托展开——都是直接生成而非过滤',  
+                  '快速排序','哈希表','动态规划'],  
+         answer:0,explanation:'Heap算法直接生成下一个排列，格雷码确保相邻只差一位，康托展开直接映射到第k个排列。都体现了"生成"思维——知道当前状态就能推出下一个状态。'}  
+      ]},  
+      {id:'w9l4',name:'SIMD并行化',formula:'软件位操作→硬件SIMD',stars:'⭐⭐',tag:'现代并行',questions:[  
+        {type:'SIMD题',text:'为什么SIMD编程特别需要无分支技巧？',  
+         options:['SIMD同时处理多个数据，分支会导致车道分歧(lane divergence)，部分车道空转浪费资源',  
+                  'SIMD没有加法指令','纯粹是历史原因','SIMD比普通代码慢'],  
+         answer:0,explanation:'SSE/AVX同时处理4/8/16个整数。如果某个分支只对部分车道成立，硬件必须两个分支都执行，未选中的车道结果被屏蔽。无分支代码所有车道执行相同指令，效率最高。'},  
+        {type:'实例题',text:'SSE/AVX中的 <code>_mm_min_epi32</code> 指令是哪个软件技巧的硬件化？',  
+         options:['无分支min: y+((x-y)&((x-y)>>31))，4个32位整数并行取最小值',  
+                  'Gosper\'s Hack','Dietz平均值','MUX选择器'],  
+         answer:0,explanation:'<code>_mm_min_epi32</code> 在单个指令中对4个32位整数对取最小值，正是无分支min的硬件实现。类似的还有 <code>_mm_max_epi32</code>、<code>_mm_avg_epu16</code>(Dietz)等。'}  
+      ]},  
+      {id:'w9l5',name:'前沿应用方向',formula:'密码学·量子·AI加速器',stars:'⭐⭐',tag:'未来展望',questions:[  
+        {type:'前沿题',text:'位操作在密码学中为什么必须使用"恒时(constant-time)"实现？',  
+         options:['普通分支的执行时间依赖数据，攻击者可通过计时攻击(timing attack)推断密钥',  
+                  '性能更好','代码更短','编译器要求'],  
+         answer:0,explanation:'RSA/AES等密码操作如果含有数据依赖的分支，攻击者通过精确测量执行时间就能推断出密钥比特。恒时位操作(无分支)让执行时间与数据无关，阻断侧信道。'},  
+        {type:'趋势题',text:'随着硬件越来越强，位操作技巧是否会过时？',  
+         options:['不会——它们被吸收进硬件(BMI)和编译器，并在新领域(量子/AI加速器/安全计算)重新涌现',  
+                  '会完全过时','取决于编程语言','50年后可能消失'],  
+         answer:0,explanation:'历史规律: 软件技巧→编译器优化→硬件指令→释放程序员去探索更高层抽象→新领域又需要底层位操作。量子门本质是qubit变换，AI加速器大量使用位并行，这个循环不会结束。'}  
+      ]}  
+    ]  
+  },  
+  {  
+    id:'w10',icon:'✏️',title:'课后精选题',subtitle:'6道经典挑战',accent:'#a855f7',accentLight:'#c084fc',  
+    levels:[  
+      {id:'w10l1',name:'Q1: Dietz无溢出证明',formula:'(x&y)+((x^y)>>1) ≤ max(x,y)',stars:'⭐⭐',tag:'理论证明',questions:[  
+        {type:'证明题',text:'证明 <code>(x&y)+((x^y)>>1)</code> 不会溢出的关键论点是？',  
+         options:['x&y ≤ min(x,y)，(x^y)>>1 ≤ (x^y)/2，且两项之和不超过max(x,y)',  
+                  '因为右移了所以变小','经验证明所有case都ok','无法严格证明'],  
+         answer:0,explanation:'严格证明: 对任意位i，x&y的第i位=1要求x,y的第i位都=1；(x^y)>>1的第i位=1要求x,y的第i+1位恰好一个=1。两者对应不同位的1，不产生额外进位，故总和不超过max(x,y)。'},  
+        {type:'延伸题',text:'对于无符号数，<code>(x&y)+((x^y)>>1)</code> 是floor还是ceil？',  
+         options:['floor(向下取整)——右移丢失了(x^y)的最低位，当x和y奇偶不同时损失0.5',  
+                  'ceil(向上取整)','精确值','取决于x和y的大小'],  
+         answer:0,explanation:'当x和y最低位不同(一个0一个1)，真实平均值有0.5的小数部分，<code>(x^y)>>1</code>的右移将其截断。这是floor(向下取整)。如需ceil，可用 <code>(x|y)-((x^y)>>1)</code>。'}  
+      ]},  
+      {id:'w10l2',name:'Q2: MUX等价证明',formula:'((x^y)&m)^y = (x&m)|(y&~m)',stars:'⭐⭐',tag:'优化证明',questions:[  
+        {type:'证明题',text:'证明 <code>((x^y)&m)^y = (x&m)|(y&~m)</code> 的方法是？',  
+         options:['对m的每一位分情况: m=1时两边均为x；m=0时两边均为y，逐位等价',  
+                  '数学归纳法','反证法','无法证明'],  
+         answer:0,explanation:'m位=1: 左边 <code>((x^y)&1)^y=(x^y)^y=x</code>；右边 <code>(x&1)|(y&0)=x</code>。✓ m位=0: 左边 <code>((x^y)&0)^y=0^y=y</code>；右边 <code>(x&0)|(y&1)=y</code>。✓ 逐位等价，QED。'},  
+        {type:'推广题',text:'优化MUX节省的1条指令是哪条？',  
+         options:['省去了一次NOT操作(~m)，从{XOR,AND,OR,NOT}降为{XOR,AND,XOR}',  
+                  '省去了一次AND','省去了一次OR','省去了一次XOR'],  
+         answer:0,explanation:'标准MUX: <code>(x&m)|(y&~m)</code> 需要 AND, NOT, AND, OR = 4条。优化MUX: <code>((x^y)&m)^y</code> 需要 XOR, AND, XOR = 3条。省去了NOT指令，且XOR链可流水化。'}  
+      ]},  
+      {id:'w10l3',name:'Q3: 位复制综合',formula:'复制bit i 到 bit j',stars:'⭐',tag:'组合应用',questions:[  
+        {type:'编码题',text:'实现"将x的第i位复制到第j位"的最简洁位操作？',  
+         options:['x = (x & ~(1<<j)) | (((x>>i)&1)<<j)',  
+                  'x = x ^ (1<<j)','x = x | (1<<j)','x = x & (1<<i)'],  
+         answer:0,explanation:'三步: ①提取第i位: <code>(x>>i)&1</code>。②移到第j位位置: <code><<j</code>。③清除原第j位并写入: <code>(x & ~(1<<j)) | 新值</code>。这是位域操作的经典组合。'},  
+        {type:'优化题',text:'用MUX技巧优化"位复制"操作，减少指令数？',  
+         options:['mask = 1<<j; x = ((x>>i)^x)&mask)^x — 用3指令MUX，省去NOT',  
+                  '无法优化','需要更多指令','只能用原始方法'],  
+         answer:0,explanation:'令bit=<code>(x>>i)&1</code>，扩展为全0或全1: 但MUX的精髓是: 先计算"是否需要改变当前j位"，即 <code>diff = ((x>>i)^(x>>j))&1</code>，然后 <code>x ^= diff<<j</code>。只需3步！'}  
+      ]},  
+      {id:'w10l4',name:'Q4: Gosper完整实现',formula:'一行代码枚举所有C(n,k)',stars:'⭐⭐⭐',tag:'综合挑战',questions:[  
+        {type:'实现题',text:'用Gosper\'s Hack枚举所有5位中选3位的子集，起始值是？',  
+         options:['0b00111 (7) — popcount=3的最小值，从低位开始',  
+                  '0b11100','0b10101','0b01110'],  
+         answer:0,explanation:'枚举从最小的同popcount数开始: popcount=3的最小32位数是 <code>0b00000111=7</code>。Gosper每次生成下一个，直到超出n位范围(>0b11100=28)停止，恰好枚举C(5,3)=10个。'},  
+        {type:'验证题',text:'<code>x=0b0010_1100(44)</code> 的Gosper下一个是？',  
+         options:['0b0011_0001(49) — 最低两个1进位，低位补1个1',  
+                  '0b0010_1101(45)','0b0101_0000(80)','0b0100_0011(67)'],  
+         answer:0,explanation:'c=x&(-x)=4, r=x+c=48(0b110000), 消灭了两个1并进一个1。差额ones=1，result=r|ones=0b110001=49。验证popcount(49)=3=popcount(44) ✓'},  
+        {type:'应用题',text:'用Gosper枚举所有从32个元素中选5个的子集共多少个？需要多少次迭代？',  
+         options:['C(32,5) = 201,376 次迭代，每次O(1)操作',  
+                  '2^32 = 42亿次','32^5次','C(32,5)^2次'],  
+         answer:0,explanation:'Gosper完美地只访问每个合法子集恰好一次，共C(32,5)=201376次。相比暴力的2^32=42亿次，节省了2万倍的工作量，这就是"生成模式"的威力。'}  
+      ]},  
+      {id:'w10l5',name:'Q5: 综合优化挑战',formula:'选择最优实现',stars:'⭐⭐⭐',tag:'综合应用',questions:[  
+        {type:'综合题',text:'以下哪个abs(x)实现在现代编译器优化后性能最好？',  
+         options:['让编译器自动优化(gcc -O2通常生成最优代码，可能用CMOV或NEG+CMOV)',  
+                  '手写位操作 (x+(x>>31))^(x>>31)','用std::abs()','用条件运算符x>0?x:-x'],  
+         answer:0,explanation:'现代编译器在-O2下对 <code>x>0?x:-x</code> 通常能生成与手写位操作等价甚至更优的代码。手写位操作降低可读性，在有编译器优化时意义不大。明智的做法: 写清晰代码，测量，按需优化。'},  
+        {type:'思考题',text:'什么时候应该手写位操作技巧，而不是依赖编译器？',  
+         options:['编译器无法识别的特定模式(如Gosper\'s Hack)；嵌入式/实时系统无优化器；密码学恒时要求；竞赛编程',  
+                  '永远都应该手写','永远不需要手写','只在C语言中'],  
+         answer:0,explanation:'合理选择: ①编译器能优化的基础操作(abs/min/max)→写清晰代码 ②复杂组合算法(Gosper/Dietz)→手写并注释 ③安全关键代码(恒时)→手写并验证 ④性能关键内层循环→profile后决定'}  
+      ]},  
+      {id:'w10l6',name:'Q6: 终极王者挑战',formula:'全知识综合',stars:'⭐⭐⭐',tag:'最终BOSS',questions:[  
+        {type:'综合题',text:'设计一个函数: 输入x(32位无符号整数)，返回"x的popcount是否为奇数"(1/0)。最优实现？',  
+         options:['x ^= x>>16; x ^= x>>8; x ^= x>>4; x ^= x>>2; x ^= x>>1; return x&1; — XOR折叠法',  
+                  'return __builtin_popcount(x)%2','return x&1','return popcount(x)>16'],  
+         answer:0,explanation:'XOR折叠: 每次将高半部分折叠到低半部分(高低位XOR)，奇偶性保持不变。最终第0位就是popcount的奇偶性。或者直接用 <code>__builtin_parity(x)</code>，但理解折叠原理是关键。'},  
+        {type:'终极题',text:'下列关于位操作的说法，哪个是错误的？',  
+         options:['x & (x+1) 清除最右边的0 (❌ 错误：它清除尾部连续的1，不是0)',  
+                  'x & (x-1) 清除最右边的1 (✓ 正确)','x | (x+1) 置位最右边的0 (✓ 正确)','x & (-x) 提取最低位的1 (✓ 正确)'],  
+         answer:0,explanation:'<code>x & (x+1)</code> 的作用是清除尾部连续的1(不是0)。例如 <code>0b10110111 & 0b10111000 = 0b10110000</code>。这是最容易混淆的公式之一，请记住: +1产生进位翻转连续1，AND后尾部连续1消失。'},  
+        {type:'终极题2',text:'在64位系统上，计算任意整数x的以2为底的对数下取整(floor(log2(x)))，最快方法？',  
+         options:['63 - __builtin_clzll(x) — 63减去前导零数量，单指令BSR/LZCNT',  
+                  '循环右移计数','查表法','用数学库log2()'],  
+         answer:0,explanation:'前导零数量(clz)告诉我们最高位1的位置，即 <code>floor(log2(x)) = 63 - clz(x)</code>。x86的BSR指令、ARM的CLZ指令都是单周期操作。这比数学库的浮点log2()快10-100倍。'}  
+      ]}  
+    ]  
+  }  
+];  
+
+// WORLDS 数组已包含所有世界 (w1-w10)，直接使用
+const ALL_WORLDS = WORLDS;
+
+// ============================================================  
+//  游戏状态管理  
+// ============================================================  
+const STATE_KEY = 'bitmaster_v3';  
+let gameState = {  
+  totalScore: 0,  
+  cleared: {},      // levelId -> {score, stars}  
+  streak: 0,  
+  maxStreak: 0,  
+  achievements: {}  
+};  
+
+function loadState() {  
+  try {  
+    const s = localStorage.getItem(STATE_KEY);  
+    if (s) gameState = { ...gameState, ...JSON.parse(s) };  
+  } catch(e) {}  
+}  
+
+function saveState() {  
+  try { localStorage.setItem(STATE_KEY, JSON.stringify(gameState)); } catch(e) {}  
+}  
+
+// ============================================================  
+//  成就系统  
+// ============================================================  
+const ACHIEVEMENTS = [  
+  { id:'first_blood', name:'初见锋芒', icon:'⚔️', desc:'完成第一关' },  
+  { id:'perfect_10', name:'满分达人', icon:'💯', desc:'某关全题答对' },  
+  { id:'streak_5', name:'连胜五杀', icon:'🔥', desc:'连续5题答对' },  
+  { id:'streak_10', name:'十连无敌', icon:'⚡', desc:'连续10题答对' },  
+  { id:'world_1', name:'位操纵大师', icon:'🔧', desc:'完成世界1全部关卡' },  
+  { id:'world_5', name:'Gosper门徒', icon:'🌟', desc:'完成Gosper\'s Hack世界' },  
+  { id:'halfway', name:'半程勇士', icon:'🏃', desc:'完成25关' },  
+  { id:'champion', name:'位操作王者', icon:'👑', desc:'完成所有关卡' }  
+];  
+
+function checkAchievements(context = {}) {  
+  const totalCleared = Object.keys(gameState.cleared).length;  
+  const checks = [  
+    { id:'first_blood', cond: totalCleared >= 1 },  
+    { id:'perfect_10', cond: context.perfect === true },  
+    { id:'streak_5', cond: gameState.streak >= 5 },  
+    { id:'streak_10', cond: gameState.streak >= 10 },  
+    { id:'halfway', cond: totalCleared >= 25 },  
+    { id:'champion', cond: totalCleared >= ALL_WORLDS.reduce((a,w)=>a+w.levels.length,0) },  
+    { id:'world_1', cond: ALL_WORLDS[0].levels.every(l => gameState.cleared[l.id]) },  
+    { id:'world_5', cond: ALL_WORLDS[4] && ALL_WORLDS[4].levels.every(l => gameState.cleared[l.id]) }  
+  ];  
+  checks.forEach(c => {  
+    if (c.cond && !gameState.achievements[c.id]) {  
+      gameState.achievements[c.id] = true;  
+      const ach = ACHIEVEMENTS.find(a => a.id === c.id);  
+      if (ach) setTimeout(() => showAchievement(ach), 500);  
+    }  
+  });  
+}  
+
+function showAchievement(ach) {  
+  const el = document.getElementById('achievementPopup');  
+  document.getElementById('achName').textContent = ach.name + ' — ' + ach.desc;  
+  document.getElementById('achIcon').textContent = ach.icon;  
+  el.classList.add('show');  
+  setTimeout(() => el.classList.remove('show'), 3500);  
+}  
+
+// ============================================================  
+//  UI工具函数  
+// ============================================================  
+function showToast(msg, duration = 2200) {  
+  const el = document.getElementById('toastEl');  
+  if (!el) return;  
+  el.textContent = msg;  
+  el.classList.add('show');  
+  setTimeout(() => el.classList.remove('show'), duration);  
+}  
+
+function setScreen(id) {  
+  ['world-map','level-select','game-play','result-screen'].forEach(s => {  
+    const el = document.getElementById(s);  
+    if (el) el.style.display = 'none';  
+  });  
+  const target = document.getElementById(id);  
+  if (target) { target.style.display = 'block'; target.classList.add('screen-transition'); }  
+}  
+
+function updateStatsBar() {  
+  const totalLevels = ALL_WORLDS.reduce((a,w) => a + w.levels.length, 0);  
+  const cleared = Object.keys(gameState.cleared).length;  
+  const pct = Math.round(cleared / totalLevels * 100);  
+  const el = (id, val) => { const e = document.getElementById(id); if(e) e.textContent = val; };  
+  el('statProgress', pct + '%');  
+  el('statCleared', cleared);  
+  el('statScore', gameState.totalScore.toLocaleString());  
+  el('statStreak', gameState.streak);  
+}  
+
+// ============================================================  
+//  浮动粒子  
+// ============================================================  
+function initFloatingBits() {  
+  const container = document.getElementById('floatingBits');  
+  if (!container) return;  
+  const symbols = ['0','1','&','|','^','~','<<','>>'];  
+  for (let i = 0; i < 22; i++) {  
+    const span = document.createElement('span');  
+    span.textContent = symbols[Math.floor(Math.random()*symbols.length)];  
+    span.style.cssText = `  
+      left: ${Math.random()*100}%;  
+      animation-duration: ${8+Math.random()*14}s;  
+      animation-delay: ${Math.random()*10}s;  
+      font-size: ${0.8+Math.random()*1.2}em;  
+      opacity: ${0.03+Math.random()*0.06};  
+    `;  
+    container.appendChild(span);  
+  }  
+}  
+
+// ============================================================  
+//  世界地图渲染  
+// ============================================================  
+function showWorldMap() {  
+  setScreen('world-map');  
+  updateStatsBar();  
+  renderWorldMap();  
+}  
+
+function renderWorldMap() {  
+  const container = document.getElementById('world-map');  
+  if (!container) return;  
+  container.innerHTML = '';  
+  ALL_WORLDS.forEach((world, wi) => {  
+    const total = world.levels.length;  
+    const done = world.levels.filter(l => gameState.cleared[l.id]).length;  
+    const pct = Math.round(done / total * 100);  
+    const isComplete = done === total;  
+    const card = document.createElement('div');  
+    card.className = 'world-card' + (isComplete ? ' completed' : '');  
+    card.style.setProperty('--card-accent', world.accent);  
+    card.style.setProperty('--card-accent-light', world.accentLight || world.accent);  
+    card.innerHTML = `  
+      <div class="world-icon">${world.icon}</div>  
+      <div class="world-title" style="color:${world.accent}">${world.title}</div>  
+      <div class="world-subtitle">${world.subtitle}</div>  
+      <div class="world-progress-bar">  
+        <div class="world-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${world.accent},${world.accentLight||world.accent})"></div>  
+      </div>  
+      <div class="world-stats">  
+        <span>${done}/${total} 关通关</span>  
+        <span style="color:${world.accent}">${pct}%${isComplete?' 🏆':''}</span>  
+      </div>  
+    `;  
+    card.onclick = () => showLevelSelect(wi);  
+    container.appendChild(card);  
+  });  
+}  
+
+// ============================================================  
+//  关卡选择  
+// ============================================================  
+function showLevelSelect(worldIndex) {  
+  currentWorldIndex = worldIndex;  
+  const world = ALL_WORLDS[worldIndex];  
+  setScreen('level-select');  
+  document.getElementById('levelWorldTitle').textContent = world.icon + ' ' + world.title;  
+  document.getElementById('levelWorldDesc').textContent = world.subtitle;  
+  const grid = document.getElementById('levelGrid');  
+  if (!grid) return;  
+  grid.innerHTML = '';  
+  world.levels.forEach((level, li) => {  
+    const isCleared = !!gameState.cleared[level.id];  
+    const isLocked = li > 0 && !gameState.cleared[world.levels[li-1].id];  
+    const card = document.createElement('div');  
+    card.className = 'level-card' + (isCleared ? ' cleared' : '') + (isLocked ? ' locked' : '');  
+    card.innerHTML = `  
+      <div class="level-status"></div>  
+      <div class="level-num">LEVEL ${li+1}</div>  
+      <div class="level-name">${level.name}</div>  
+      <div class="level-formula">${level.formula}</div>  
+      <div class="level-stars">${level.stars}</div>  
+      <span class="level-tag">${level.tag}</span>  
+      ${isCleared ? `<div style="font-size:.75em;color:var(--accent-green);margin-top:6px">最高 ${gameState.cleared[level.id].score || 0}分</div>` : ''}  
+    `;  
+    card.onclick = () => startLevel(worldIndex, li);  
+    grid.appendChild(card);  
+  });  
+}  
+
+// ============================================================  
+//  游戏核心变量  
+// ============================================================  
+let currentWorldIndex = 0;  
+let currentLevelIndex = 0;  
+let currentQuestions = [];  
+let currentQIndex = 0;  
+let sessionScore = 0;  
+let sessionCorrect = 0;  
+let sessionAnswered = 0;  
+let answeredThisQ = false;  
+
+// ============================================================  
+//  开始关卡  
+// ============================================================  
+function startLevel(worldIndex, levelIndex) {  
+  currentWorldIndex = worldIndex;  
+  currentLevelIndex = levelIndex;  
+  const world = ALL_WORLDS[worldIndex];  
+  const level = world.levels[levelIndex];  
+  currentQuestions = shuffleArr([...level.questions]);  
+  currentQIndex = 0;  
+  sessionScore = 0;  
+  sessionCorrect = 0;  
+  sessionAnswered = 0;  
+
+  document.getElementById('gpWorld').textContent = world.icon + ' ' + world.title;  
+  document.getElementById('gpTitle').textContent = level.name;  
+  document.getElementById('gpFormula').textContent = level.formula;  
+
+  setScreen('game-play');  
+  renderQuestion();  
+}  
+
+function shuffleArr(arr) {  
+  for (let i = arr.length-1; i > 0; i--) {  
+    const j = Math.floor(Math.random()*(i+1));  
+    [arr[i],arr[j]] = [arr[j],arr[i]];  
+  }  
+  return arr;  
+}  
+
+// ============================================================  
+//  渲染题目  
+// ============================================================  
+function renderQuestion() {  
+  const q = currentQuestions[currentQIndex];  
+  answeredThisQ = false;  
+
+  // 进度点  
+  const prog = document.getElementById('qProgress');  
+  if (prog) {  
+    prog.innerHTML = currentQuestions.map((_,i) => {  
+      let cls = 'dot';  
+      if (i < currentQIndex) cls += ' correct';  
+      if (i === currentQIndex) cls += ' active';  
+      return `<div class="${cls}" id="dot_${i}"></div>`;  
+    }).join('');  
+  }  
+
+  // 题目类型 & 文本  
+  const qType = document.getElementById('qType');  
+  const qText = document.getElementById('qText');  
+  if (qType) qType.textContent = '📋 ' + q.type;  
+  if (qText) qText.innerHTML = q.text;  
+
+  // 选项  
+  const opts = document.getElementById('qOptions');  
+  if (opts) {  
+    opts.innerHTML = '';  
+    const letters = ['A','B','C','D','E'];  
+    q.options.forEach((opt, i) => {  
+      const btn = document.createElement('button');  
+      btn.className = 'option-btn';  
+      btn.innerHTML = `  
+        <div class="opt-letter">${letters[i]}</div>  
+        <div class="opt-text">${formatCode(opt)}</div>  
+      `;  
+      btn.onclick = () => selectAnswer(i, q);  
+      opts.appendChild(btn);  
+    });  
+  }  
+
+  // 隐藏解析和next按钮  
+  const exp = document.getElementById('qExplanation');  
+  const nb = document.getElementById('nextBtn');  
+  if (exp) exp.style.display = 'none';  
+  if (nb) { nb.style.display = 'none'; nb.textContent = currentQIndex < currentQuestions.length-1 ? '下一题 →' : '查看结果 🎉'; }  
+}  
+
+function formatCode(text) {  
+  return text.replace(/`([^`]+)`/g, '<code>$1</code>');  
+}  
+
+// ============================================================  
+//  选择答案  
+// ============================================================  
+function selectAnswer(index, q) {  
+  if (answeredThisQ) return;  
+  answeredThisQ = true;  
+  sessionAnswered++;  
+
+  const buttons = document.querySelectorAll('.option-btn');  
+  buttons.forEach(b => b.classList.add('disabled'));  
+
+  const isCorrect = index === q.answer;  
+  buttons[index].classList.add(isCorrect ? 'selected-correct' : 'selected-wrong');  
+  if (!isCorrect) buttons[q.answer].classList.add('reveal-correct');  
+
+  // 更新streak  
+  if (isCorrect) {  
+    sessionCorrect++;  
+    gameState.streak++;  
+    if (gameState.streak > gameState.maxStreak) gameState.maxStreak = gameState.streak;  
+    const bonus = Math.min(gameState.streak * 10, 100);  
+    const pts = 100 + bonus;  
+    sessionScore += pts;  
+    gameState.totalScore += pts;  
+    showToast(gameState.streak > 2 ? `✅ 正确！+${pts}分 🔥连胜${gameState.streak}` : `✅ 正确！+${pts}分`);  
+    // 更新进度点颜色  
+    const dot = document.getElementById(`dot_${currentQIndex}`);  
+    if (dot) { dot.classList.remove('active'); dot.classList.add('correct'); }  
+  } else {  
+    gameState.streak = 0;  
+    showToast('❌ 答错了，看看解析吧');  
+    const dot = document.getElementById(`dot_${currentQIndex}`);  
+    if (dot) { dot.classList.remove('active'); dot.classList.add('wrong'); }  
+  }  
+
+  saveState();  
+  checkAchievements({ perfect: sessionCorrect === currentQuestions.length && sessionAnswered === currentQuestions.length });  
+
+  // 显示解析  
+  const exp = document.getElementById('qExplanation');  
+  const expContent = document.getElementById('qExpContent');  
+  if (exp && expContent) {  
+    expContent.innerHTML = formatCode(q.explanation);  
+    exp.style.display = 'block';  
+  }  
+
+  // 显示next按钮  
+  const nb = document.getElementById('nextBtn');  
+  if (nb) {  
+    nb.style.display = 'block';  
+    nb.textContent = currentQIndex < currentQuestions.length-1 ? '下一题 →' : '查看结果 🎉';  
+  }  
+
+  updateStatsBar();  
+}  
+
+// ============================================================  
+//  下一题  
+// ============================================================  
+function nextQuestion() {  
+  currentQIndex++;  
+  if (currentQIndex >= currentQuestions.length) {  
+    showResult();  
+  } else {  
+    renderQuestion();  
+  }  
+}  
+
+// ============================================================  
+//  结果页面  
+// ============================================================  
+function showResult() {  
+  const total = currentQuestions.length;  
+  const pct = Math.round(sessionCorrect / total * 100);  
+  const level = ALL_WORLDS[currentWorldIndex].levels[currentLevelIndex];  
+
+  // 保存通关记录  
+  if (!gameState.cleared[level.id] || (gameState.cleared[level.id].score || 0) < sessionScore) {  
+    gameState.cleared[level.id] = { score: sessionScore, correct: sessionCorrect, total };  
+  }  
+  saveState();  
+  checkAchievements({ perfect: sessionCorrect === total });  
+
+  // 选择结果图标和文字  
+  let icon, title, sub;  
+  if (pct === 100) { icon='🏆'; title='完美通关！'; sub='全部答对！你是真正的位操作大师！'; }  
+  else if (pct >= 75) { icon='⭐'; title='优秀！'; sub=`${sessionCorrect}/${total} 题正确，继续保持！`; }  
+  else if (pct >= 50) { icon='💪'; title='良好'; sub=`${sessionCorrect}/${total} 题正确，还有提升空间！`; }  
+  else { icon='📚'; title='需要复习'; sub=`${sessionCorrect}/${total} 题正确，建议重读知识点再挑战！`; }  
+
+  document.getElementById('resultIcon').textContent = icon;  
+  document.getElementById('resultTitle').textContent = title;  
+  document.getElementById('resultSub').textContent = sub;  
+  document.getElementById('resultScore').textContent = sessionScore.toLocaleString();  
+  document.getElementById('resultScoreLabel').textContent =  
+    `本关得分 · 总分 ${gameState.totalScore.toLocaleString()} · 连胜 ${gameState.streak}`;  
+
+  // 下一关按钮  
+  const world = ALL_WORLDS[currentWorldIndex];  
+  const hasNext = currentLevelIndex < world.levels.length - 1;  
+  const nextBtn = document.getElementById('btnNextLevel');  
+  if (nextBtn) {
+    const hasNextLevel = currentLevelIndex < world.levels.length - 1;
+    const hasNextWorld = currentWorldIndex < ALL_WORLDS.length - 1;
+    if (hasNextLevel) {
+      nextBtn.style.display = 'inline-block';
+      nextBtn.textContent = '⚡ 下一关';
+    } else if (hasNextWorld) {
+      nextBtn.style.display = 'inline-block';
+      nextBtn.textContent = '🌍 下一个世界';
+    } else {
+      nextBtn.style.display = 'none';
+    }
+  }
+
+  setScreen('result-screen');
+  updateStatsBar();
+}
+
+// ============================================================
+//  重试当前关卡
+// ============================================================
+function retryLevel() {
+  startLevel(currentWorldIndex, currentLevelIndex);
+}
+
+// ============================================================
+//  跳转下一关 / 下一个世界
+// ============================================================
+function goNextLevel() {
+  const world = ALL_WORLDS[currentWorldIndex];
+  if (currentLevelIndex < world.levels.length - 1) {
+    // 同世界下一关
+    startLevel(currentWorldIndex, currentLevelIndex + 1);
+  } else if (currentWorldIndex < ALL_WORLDS.length - 1) {
+    // 进入下一个世界的第一关
+    currentWorldIndex++;
+    showLevelSelect(currentWorldIndex);
+  }
+}
+
+// ============================================================
+//  退出确认
+// ============================================================
+function confirmExit() {
+  if (sessionAnswered === 0 || confirm('确定要退出当前关卡吗？本局进度将不会保存。')) {
+    showLevelSelect(currentWorldIndex);
+  }
+}
+
+// ============================================================
+//  键盘快捷键支持
+// ============================================================
+document.addEventListener('keydown', (e) => {
+  const screen = getActiveScreen();
+
+  // 答题快捷键 A/B/C/D
+  if (screen === 'game-play' && !answeredThisQ) {
+    const keyMap = { 'a': 0, 'b': 1, 'c': 2, 'd': 3 };
+    const idx = keyMap[e.key.toLowerCase()];
+    if (idx !== undefined) {
+      const buttons = document.querySelectorAll('.option-btn');
+      if (buttons[idx] && !buttons[idx].classList.contains('disabled')) {
+        buttons[idx].click();
+      }
+    }
+  }
+
+  // Enter → 下一题 / 查看结果
+  if (e.key === 'Enter') {
+    const nb = document.getElementById('nextBtn');
+    if (nb && nb.style.display !== 'none' && screen === 'game-play') {
+      nb.click();
+    }
+  }
+
+  // Escape → 退出关卡 / 返回地图
+  if (e.key === 'Escape') {
+    if (screen === 'game-play') confirmExit();
+    else if (screen === 'level-select') showWorldMap();
+    else if (screen === 'result-screen') showWorldMap();
+  }
+});
+
+function getActiveScreen() {
+  const screens = ['world-map', 'level-select', 'game-play', 'result-screen'];
+  return screens.find(id => {
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  }) || 'world-map';
+}
+
+// ============================================================
+//  进度环绘制（可选UI组件，供世界卡片内嵌使用）
+// ============================================================
+function createProgressRing(pct, color, size = 56) {
+  const r = (size / 2) - 5;
+  const circ = 2 * Math.PI * r;
+  const offset = circ * (1 - pct / 100);
+  return `
+    <div class="progress-ring" style="width:${size}px;height:${size}px;">
+      <svg width="${size}" height="${size}">
+        <circle class="ring-bg" cx="${size/2}" cy="${size/2}" r="${r}"/>
+        <circle class="ring-fill"
+          cx="${size/2}" cy="${size/2}" r="${r}"
+          stroke="${color}"
+          stroke-dasharray="${circ}"
+          stroke-dashoffset="${offset}"/>
+      </svg>
+      <span class="ring-text" style="color:${color}">${pct}%</span>
+    </div>
+  `;
+}
+
+// ============================================================
+//  动态星级评定（按答题正确率）
+// ============================================================
+function calcStars(correct, total) {
+  const pct = correct / total;
+  if (pct === 1)   return '⭐⭐⭐';
+  if (pct >= 0.75) return '⭐⭐';
+  if (pct >= 0.5)  return '⭐';
+  return '☆';
+}
+
+// ============================================================
+//  全局排行榜（localStorage本地模拟）
+// ============================================================
+const LEADERBOARD_KEY = 'bitmaster_lb_v1';
+
+function getLeaderboard() {
+  try {
+    return JSON.parse(localStorage.getItem(LEADERBOARD_KEY)) || [];
+  } catch { return []; }
+}
+
+function submitScore(name, score) {
+  const lb = getLeaderboard();
+  lb.push({ name: name || '匿名', score, date: new Date().toLocaleDateString('zh-CN') });
+  lb.sort((a, b) => b.score - a.score);
+  const top = lb.slice(0, 10);
+  try { localStorage.setItem(LEADERBOARD_KEY, JSON.stringify(top)); } catch {}
+  return top;
+}
+
+function renderLeaderboard() {
+  const lb = getLeaderboard();
+  if (!lb.length) return '<p style="color:var(--text-muted);text-align:center;">暂无记录，快去挑战吧！</p>';
+  return lb.map((e, i) => `
+    <div style="display:flex;justify-content:space-between;padding:10px 0;
+      border-bottom:1px solid var(--border);font-size:.92em;">
+      <span style="color:${i<3?'var(--accent-yellow)':'var(--text-muted)'}">
+        ${['🥇','🥈','🥉'][i] || (i+1)+'.'}
+      </span>
+      <span>${e.name}</span>
+      <span style="font-family:'Fira Code';color:var(--accent-cyan)">${e.score.toLocaleString()}</span>
+      <span style="color:var(--text-muted)">${e.date}</span>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+//  每日一题系统（基于日期种子随机选题）
+// ============================================================
+function getDailyQuestion() {
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+
+  // 收集所有题目
+  const allQuestions = [];
+  ALL_WORLDS.forEach(w => w.levels.forEach(l => l.questions.forEach(q => {
+    allQuestions.push({ world: w.title, level: l.name, ...q });
+  })));
+
+  const idx = seed % allQuestions.length;
+  return allQuestions[idx];
+}
+
+function showDailyQuestion() {
+  const q = getDailyQuestion();
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.7);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  `;
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border-radius:20px;padding:30px;
+      max-width:560px;width:100%;border:1px solid var(--accent-purple);
+      box-shadow:0 0 40px rgba(139,92,246,0.2);">
+      <div style="font-size:.8em;color:var(--accent-purple);text-transform:uppercase;
+        letter-spacing:1px;margin-bottom:8px;">📅 每日一题</div>
+      <div style="font-size:.85em;color:var(--text-muted);margin-bottom:14px;">
+        ${q.world} · ${q.level}
+      </div>
+      <div style="font-size:1.05em;line-height:1.7;margin-bottom:20px;">
+        ${formatCode(q.text)}
+      </div>
+      <div id="dailyOpts" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <div id="dailyExp" style="display:none;background:rgba(139,92,246,0.08);
+        border:1px solid rgba(139,92,246,0.25);border-radius:12px;
+        padding:14px 18px;margin-top:16px;font-size:.9em;
+        line-height:1.7;color:var(--text-secondary);"></div>
+      <button onclick="this.closest('div[style]').remove()"
+        style="margin-top:20px;padding:10px 28px;background:var(--bg-secondary);
+        border:1px solid var(--border);border-radius:10px;color:var(--text-secondary);
+        cursor:pointer;font-family:inherit;width:100%;">关闭</button>
+    </div>
+  `;
+
+  // 填充选项
+  const optsEl = modal.querySelector('#dailyOpts');
+  const expEl = modal.querySelector('#dailyExp');
+  const letters = ['A','B','C','D'];
+  let answered = false;
+
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.03);
+      border:1px solid var(--border);padding:12px 16px;border-radius:10px;
+      cursor:pointer;color:var(--text-primary);font-size:.95em;
+      font-family:inherit;text-align:left;transition:all 0.2s;
+    `;
+    btn.innerHTML = `
+      <span style="width:30px;height:30px;display:flex;align-items:center;
+        justify-content:center;background:rgba(255,255,255,0.06);
+        border-radius:7px;font-family:'Fira Code';font-weight:700;flex-shrink:0">
+        ${letters[i]}
+      </span>
+      <span>${formatCode(opt)}</span>
+    `;
+    btn.onclick = () => {
+      if (answered) return;
+      answered = true;
+      const allBtns = optsEl.querySelectorAll('button');
+      allBtns.forEach(b => b.style.pointerEvents = 'none');
+      if (i === q.answer) {
+        btn.style.background = 'rgba(16,185,129,0.12)';
+        btn.style.borderColor = 'var(--accent-green)';
+        showToast('✅ 每日一题答对了！');
+      } else {
+        btn.style.background = 'rgba(239,68,68,0.12)';
+        btn.style.borderColor = 'var(--accent-red)';
+        allBtns[q.answer].style.background = 'rgba(16,185,129,0.08)';
+        allBtns[q.answer].style.borderColor = 'var(--accent-green)';
+        showToast('❌ 答错了，看看解析！');
+      }
+      expEl.style.display = 'block';
+      expEl.innerHTML = '<strong style="color:var(--accent-purple)">💡 解析：</strong><br>' + formatCode(q.explanation);
+    };
+    optsEl.appendChild(btn);
+  });
+
+  document.body.appendChild(modal);
+}
+
+// ============================================================
+//  设置面板（音效、动画开关）
+// ============================================================
+let settings = { sfx: true, animation: true };
+
+function loadSettings() {
+  try {
+    const s = localStorage.getItem('bitmaster_settings');
+    if (s) settings = { ...settings, ...JSON.parse(s) };
+  } catch {}
+}
+
+function saveSettings() {
+  try { localStorage.setItem('bitmaster_settings', JSON.stringify(settings)); } catch {}
+}
+
+function toggleSettings() {
+  const existing = document.getElementById('settingsModal');
+  if (existing) { existing.remove(); return; }
+
+  const modal = document.createElement('div');
+  modal.id = 'settingsModal';
+  modal.style.cssText = `
+    position:fixed;bottom:80px;right:20px;
+    background:var(--bg-card);border:1px solid var(--border);
+    border-radius:16px;padding:22px;z-index:9000;
+    min-width:240px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  `;
+  modal.innerHTML = `
+    <div style="font-weight:700;margin-bottom:16px;font-size:1.05em">⚙️ 设置</div>
+    <label style="display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:14px;cursor:pointer;font-size:.95em;">
+      <span>音效</span>
+      <input type="checkbox" id="sfxToggle" ${settings.sfx?'checked':''} 
+        onchange="settings.sfx=this.checked;saveSettings()">
+    </label>
+    <label style="display:flex;justify-content:space-between;align-items:center;
+      margin-bottom:14px;cursor:pointer;font-size:.95em;">
+      <span>动画效果</span>
+      <input type="checkbox" id="animToggle" ${settings.animation?'checked':''} 
+        onchange="settings.animation=this.checked;saveSettings()">
+    </label>
+    <hr style="border-color:var(--border);margin:14px 0">
+    <button onclick="resetProgress()" style="width:100%;padding:10px;background:rgba(239,68,68,0.12);
+      border:1px solid var(--accent-red);border-radius:10px;color:var(--accent-red);
+      cursor:pointer;font-family:inherit;font-size:.9em;">🗑️ 重置所有进度</button>
+    <button onclick="document.getElementById('settingsModal').remove()"
+      style="width:100%;padding:10px;background:transparent;border:1px solid var(--border);
+      border-radius:10px;color:var(--text-muted);cursor:pointer;
+      font-family:inherit;font-size:.9em;margin-top:8px">关闭</button>
+  `;
+  document.body.appendChild(modal);
+}
+
+function resetProgress() {
+  if (confirm('⚠️ 确定要清除所有进度吗？此操作不可恢复！')) {
+    localStorage.removeItem(STATE_KEY);
+    gameState = { totalScore:0, cleared:{}, streak:0, maxStreak:0, achievements:{} };
+    document.getElementById('settingsModal')?.remove();
+    showWorldMap();
+    showToast('✅ 进度已重置');
+  }
+}
+
+// ============================================================
+//  悬浮工具栏（右下角快捷按钮）
+// ============================================================
+function createFloatingToolbar() {
+  const toolbar = document.createElement('div');
+  toolbar.style.cssText = `
+    position:fixed;bottom:20px;right:20px;
+    display:flex;flex-direction:column;gap:10px;z-index:8000;
+  `;
+
+  const buttons = [
+    { icon:'📅', tip:'每日一题', fn: showDailyQuestion },
+    { icon:'⚙️', tip:'设置',     fn: toggleSettings },
+    { icon:'🏠', tip:'返回主页', fn: showWorldMap },
+  ];
+
+  buttons.forEach(({ icon, tip, fn }) => {
+    const btn = document.createElement('button');
+    btn.title = tip;
+    btn.textContent = icon;
+    btn.style.cssText = `
+      width:42px;height:42px;border-radius:50%;
+      background:var(--bg-card);border:1px solid var(--border);
+      font-size:1.25em;cursor:pointer;transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 12px rgba(0,0,0,0.3);
+    `;
+    btn.onmouseenter = () => { btn.style.transform='scale(1.15)'; btn.style.borderColor='var(--accent-cyan)'; };
+    btn.onmouseleave = () => { btn.style.transform='scale(1)'; btn.style.borderColor='var(--border)'; };
+    btn.onclick = fn;
+    toolbar.appendChild(btn);
+  });
+
+  document.body.appendChild(toolbar);
+}
+
+// ============================================================
+//  搜索题目（按关键词高亮定位）
+// ============================================================
+function searchLevels(keyword) {
+  if (!keyword.trim()) return [];
+  const kw = keyword.toLowerCase();
+  const results = [];
+  ALL_WORLDS.forEach((w, wi) => {
+    w.levels.forEach((l, li) => {
+      const match =
+        l.name.toLowerCase().includes(kw) ||
+        l.formula.toLowerCase().includes(kw) ||
+        l.tag.toLowerCase().includes(kw) ||
+        l.questions.some(q => q.text.toLowerCase().includes(kw));
+      if (match) results.push({ world: w, worldIndex: wi, level: l, levelIndex: li });
+    });
+  });
+  return results;
+}
+
+// ============================================================
+//  主题切换（明/暗）
+// ============================================================
+let isDark = true;
+
+function toggleTheme() {
+  isDark = !isDark;
+  if (!isDark) {
+    document.documentElement.style.setProperty('--bg-primary', '#f0f4f8');
+    document.documentElement.style.setProperty('--bg-card', '#ffffff');
+    document.documentElement.style.setProperty('--bg-secondary', '#e8edf4');
+    document.documentElement.style.setProperty('--text-primary', '#1e293b');
+    document.documentElement.style.setProperty('--text-secondary', '#475569');
+    document.documentElement.style.setProperty('--text-muted', '#94a3b8');
+    document.documentElement.style.setProperty('--border', '#e2e8f0');
+  } else {
+    document.documentElement.style.setProperty('--bg-primary', '#0a0e1a');
+    document.documentElement.style.setProperty('--bg-card', '#1a2235');
+    document.documentElement.style.setProperty('--bg-secondary', '#111827');
+    document.documentElement.style.setProperty('--text-primary', '#f1f5f9');
+    document.documentElement.style.setProperty('--text-secondary', '#94a3b8');
+    document.documentElement.style.setProperty('--text-muted', '#64748b');
+    document.documentElement.style.setProperty('--border', '#1e293b');
+  }
+  showToast(isDark ? '🌙 已切换深色主题' : '☀️ 已切换浅色主题');
+}
+
+// ============================================================
+//  音效系统（Web Audio API，无需外部文件）
+// ============================================================
+let audioCtx = null;
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  if (!settings.sfx) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const configs = {
+      correct:  { type:'sine',     freq:880, dur:0.15, vol:0.15 },
+      wrong:    { type:'sawtooth', freq:200, dur:0.25, vol:0.10 },
+      levelup:  { type:'sine',     freq:1046,dur:0.4,  vol:0.12 },
+      click:    { type:'sine',     freq:440, dur:0.08, vol:0.08 },
+    };
+    const cfg = configs[type] || configs.click;
+
+    osc.type = cfg.type;
+    osc.frequency.setValueAtTime(cfg.freq, ctx.currentTime);
+    gain.gain.setValueAtTime(cfg.vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + cfg.dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + cfg.dur);
+
+    if (type === 'levelup') {
+      // 和弦效果
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.connect(gain2); gain2.connect(ctx.destination);
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1318, ctx.currentTime + 0.15);
+      gain2.gain.setValueAtTime(0.10, ctx.currentTime + 0.15);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+      osc2.start(ctx.currentTime + 0.15);
+      osc2.stop(ctx.currentTime + 0.55);
+    }
+  } catch (e) {
+    // 音频API不可用时静默忽略
+  }
+}
+
+// ============================================================
+//  烟花/粒子庆祝效果（答对时触发）
+// ============================================================
+function spawnConfetti(x, y) {
+  if (!settings.animation) return;
+  const colors = ['#3b82f6','#10b981','#f59e0b','#ec4899','#8b5cf6','#06b6d4'];
+  for (let i = 0; i < 18; i++) {
+    const dot = document.createElement('div');
+    const angle = (Math.PI * 2 / 18) * i;
+    const dist = 60 + Math.random() * 60;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    dot.style.cssText = `
+      position:fixed;
+      left:${x}px;top:${y}px;
+      width:${4+Math.random()*5}px;height:${4+Math.random()*5}px;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      border-radius:50%;
+      pointer-events:none;z-index:99999;
+      transition:all ${0.5+Math.random()*0.4}s ease-out;
+      transform:translate(-50%,-50%);
+    `;
+    document.body.appendChild(dot);
+    requestAnimationFrame(() => {
+      dot.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0)`;
+      dot.style.opacity = '0';
+    });
+    setTimeout(() => dot.remove(), 1000);
+  }
+}
+
+// 重写 selectAnswer 以集成音效和粒子
+const _origSelectAnswer = selectAnswer;
+window.selectAnswer = function(index, q) {
+  _origSelectAnswer(index, q);
+  const isCorrect = index === q.answer;
+  playSound(isCorrect ? 'correct' : 'wrong');
+  if (isCorrect) {
+    // 找到点击的按钮位置触发粒子
+    const buttons = document.querySelectorAll('.option-btn');
+    if (buttons[index]) {
+      const rect = buttons[index].getBoundingClientRect();
+      spawnConfetti(rect.left + rect.width/2, rect.top + rect.height/2);
+    }
+    // 满分时额外庆祝
+    if (sessionCorrect === currentQuestions.length) {
+      setTimeout(() => playSound('levelup'), 300);
+    }
+  }
+};
+
+// ============================================================
+//  PWA Service Worker 注册（可选离线缓存）
+// ============================================================
+function registerSW() {
+  if ('serviceWorker' in navigator) {
+    // 若有sw.js文件则注册，否则静默跳过
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+}
+
+// ============================================================
+//  页面可见性API — 离开时自动暂停倒计时（若有）
+// ============================================================
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    // 暂停任何计时器
+    saveState();
+  }
+});
+
+// ============================================================
+//  窗口卸载前保存状态
+// ============================================================
+window.addEventListener('beforeunload', saveState);
+
+// ============================================================
+//  响应式断点监听
+// ============================================================
+const mq = window.matchMedia('(max-width: 600px)');
+function onBreakpoint(e) {
+  if (e.matches) {
+    // 移动端: 减少浮动粒子数量
+    document.querySelectorAll('#floatingBits span').forEach((s, i) => {
+      if (i > 10) s.style.display = 'none';
+    });
+  }
+}
+mq.addEventListener('change', onBreakpoint);
+onBreakpoint(mq);
+
+// ============================================================
+//  首次访问引导提示
+// ============================================================
+function showWelcomeGuide() {
+  const visited = localStorage.getItem('bitmaster_visited');
+  if (visited) return;
+  localStorage.setItem('bitmaster_visited', '1');
+
+  setTimeout(() => {
+    const guide = document.createElement('div');
+    guide.style.cssText = `
+      position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+      background:var(--bg-card);border:1px solid var(--accent-blue);
+      border-radius:20px;padding:36px;max-width:460px;width:90%;
+      z-index:99998;text-align:center;
+      box-shadow:0 0 60px rgba(59,130,246,0.25);
+    `;
+    guide.innerHTML = `
+      <div style="font-size:3em;margin-bottom:16px">⚡</div>
+      <h2 style="font-size:1.6em;margin-bottom:10px">欢迎来到位操作大师！</h2>
+      <p style="color:var(--text-secondary);line-height:1.7;margin-bottom:24px">
+        本游戏包含 <strong style="color:var(--accent-cyan)">10个世界 · 55+关卡</strong>，
+        涵盖位操作所有核心技巧。<br><br>
+        💡 <strong>使用技巧</strong><br>
+        · 按 <code style="background:rgba(59,130,246,0.15);padding:2px 6px;border-radius:4px">A/B/C/D</code> 键快速选答<br>
+        · 按 <code style="background:rgba(59,130,246,0.15);padding:2px 6px;border-radius:4px">Enter</code> 进入下一题<br>
+        · 点击右下角 📅 查看每日一题<br>
+        · 连续答对可获得连胜加分！
+      </p>
+      <button onclick="this.parentElement.remove()"
+        style="padding:14px 40px;background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));
+        border:none;border-radius:12px;color:#fff;font-size:1.05em;font-weight:700;
+        cursor:pointer;font-family:inherit;width:100%">
+        🚀 开始挑战！
+      </button>
+    `;
+    document.body.appendChild(guide);
+  }, 800);
+}
+
+// ============================================================
+//  错题本系统（自动记录答错的题目）
+// ============================================================
+const MISTAKES_KEY = 'bitmaster_mistakes_v1';
+let mistakeBook = [];
+
+function loadMistakes() {
+  try {
+    mistakeBook = JSON.parse(localStorage.getItem(MISTAKES_KEY)) || [];
+  } catch { mistakeBook = []; }
+}
+
+function saveMistakeEntry(worldTitle, levelName, question) {
+  const entry = {
+    id: Date.now(),
+    world: worldTitle,
+    level: levelName,
+    question: question.text,
+    options: question.options,
+    answer: question.answer,
+    explanation: question.explanation,
+    date: new Date().toLocaleDateString('zh-CN')
+  };
+  // 去重（同题目不重复添加）
+  const exists = mistakeBook.some(m => m.question === entry.question);
+  if (!exists) {
+    mistakeBook.unshift(entry);
+    if (mistakeBook.length > 50) mistakeBook = mistakeBook.slice(0, 50); // 最多保留50条
+    try { localStorage.setItem(MISTAKES_KEY, JSON.stringify(mistakeBook)); } catch {}
+  }
+}
+
+function showMistakeBook() {
+  loadMistakes();
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position:fixed;top:0;left:0;width:100%;height:100%;
+    background:rgba(0,0,0,0.75);z-index:9999;
+    display:flex;align-items:center;justify-content:center;padding:16px;
+    overflow-y:auto;
+  `;
+
+  const content = mistakeBook.length === 0
+    ? '<p style="color:var(--text-muted);text-align:center;padding:20px">暂无错题，继续加油！✨</p>'
+    : mistakeBook.map((m, i) => `
+        <div style="background:var(--bg-secondary);border-radius:12px;
+          padding:16px;margin-bottom:12px;border:1px solid var(--border);">
+          <div style="font-size:.75em;color:var(--text-muted);margin-bottom:6px">
+            📍 ${m.world} · ${m.level} · ${m.date}
+          </div>
+          <div style="font-size:.95em;line-height:1.6;margin-bottom:10px">
+            ${formatCode(m.question)}
+          </div>
+          <div style="font-size:.85em;color:var(--accent-green);margin-bottom:6px">
+            ✅ 正确答案: ${['A','B','C','D'][m.answer]}. ${formatCode(m.options[m.answer])}
+          </div>
+          <div style="font-size:.83em;color:var(--text-secondary);line-height:1.6;
+            background:rgba(139,92,246,0.08);padding:10px;border-radius:8px">
+            💡 ${formatCode(m.explanation)}
+          </div>
+        </div>
+      `).join('');
+
+  modal.innerHTML = `
+    <div style="background:var(--bg-card);border-radius:20px;padding:28px;
+      max-width:600px;width:100%;border:1px solid var(--border);max-height:80vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="font-size:1.2em">📒 错题本（${mistakeBook.length} 题）</h3>
+        <button onclick="this.closest('div[style*=fixed]').remove()"
+          style="background:transparent;border:none;color:var(--text-muted);
+          font-size:1.4em;cursor:pointer">✕</button>
+      </div>
+      ${content}
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// 在答错时自动记录到错题本
+const __origSelect = window.selectAnswer;
+window.selectAnswer = function(index, q) {
+  __origSelect(index, q);
+  if (index !== q.answer) {
+    const world = ALL_WORLDS[currentWorldIndex];
+    const level = world.levels[currentLevelIndex];
+    saveMistakeEntry(world.title, level.name, q);
+  }
+};
+
+// ============================================================
+//  经验值 & 等级系统
+// ============================================================
+const RANKS = [
+  { name:'铁牌见习',  icon:'🪨', min:0     },
+  { name:'青铜学徒',  icon:'🥉', min:500   },
+  { name:'白银程序员',icon:'🥈', min:1500  },
+  { name:'黄金工程师',icon:'🥇', min:3500  },
+  { name:'铂金专家',  icon:'💎', min:7000  },
+  { name:'钻石大师',  icon:'💠', min:12000 },
+  { name:'王者大宗师',icon:'👑', min:20000 },
+];
+
+function getRank(score) {
+  let rank = RANKS[0];
+  for (const r of RANKS) {
+    if (score >= r.min) rank = r;
+  }
+  return rank;
+}
+
+function getNextRank(score) {
+  for (const r of RANKS) {
+    if (score < r.min) return r;
+  }
+  return null;
+}
+
+function renderRankBadge() {
+  const rank = getRank(gameState.totalScore);
+  const next = getNextRank(gameState.totalScore);
+  const pct = next
+    ? Math.round((gameState.totalScore - rank.min) / (next.min - rank.min) * 100)
+    : 100;
+
+  return `
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;
+      background:var(--bg-card);border-radius:14px;border:1px solid var(--border);
+      margin-bottom:16px;">
+      <span style="font-size:2em">${rank.icon}</span>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:1.05em">${rank.name}</div>
+        <div style="font-size:.78em;color:var(--text-muted);margin:3px 0">
+          ${next ? `距 ${next.icon}${next.name} 还需 ${next.min - gameState.totalScore} 分` : '🎉 已达最高等级！'}
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,0.07);border-radius:3px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--accent-yellow),var(--accent-orange));border-radius:3px;transition:width 0.5s"></div>
+        </div>
+      </div>
+      <span style="font-family:'Fira Code';color:var(--accent-yellow);font-size:1.1em;font-weight:700">
+        ${gameState.totalScore.toLocaleString()}
+      </span>
+    </div>
+  `;
+}
+
+// ============================================================
+//  游戏初始化入口
+// ============================================================
+function initGame() {
+  loadState();
+  loadSettings();
+  loadMistakes();
+  initFloatingBits();
+  createFloatingToolbar();
+  registerSW();
+  showWelcomeGuide();
+  showWorldMap();
+
+  // 将错题本按钮加入工具栏
+  const toolbar = document.querySelector('div[style*="flex-direction:column"]');
+  if (toolbar) {
+    const mbBtn = document.createElement('button');
+    mbBtn.title = '错题本';
+    mbBtn.textContent = '📒';
+    mbBtn.style.cssText = `
+      width:42px;height:42px;border-radius:50%;
+      background:var(--bg-card);border:1px solid var(--border);
+      font-size:1.25em;cursor:pointer;transition:all 0.2s;
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 12px rgba(0,0,0,0.3);
+    `;
+    mbBtn.onmouseenter = () => { mbBtn.style.transform='scale(1.15)'; mbBtn.style.borderColor='var(--accent-cyan)'; };
+    mbBtn.onmouseleave = () => { mbBtn.style.transform='scale(1)'; mbBtn.style.borderColor='var(--border)'; };
+    mbBtn.onclick = showMistakeBook;
+    toolbar.insertBefore(mbBtn, toolbar.firstChild);
+  }
+}
+
+// DOM加载完成后启动
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGame);
+} else {
+  initGame();
+}
+</script>
+</body>
+</html>
