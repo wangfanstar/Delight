@@ -1,0 +1,749 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gosper's Hack 动画演示</title>
+<script src="alpine.min.js" defer></script>
+<script src="echarts.min.js"></script>
+<link rel="stylesheet" href="tailwind.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+:root {
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card2: #334155;
+  --accent-cyan: #22d3ee;
+  --accent-blue: #3b82f6;
+  --accent-purple: #a78bfa;
+  --accent-green: #34d399;
+  --accent-yellow: #fbbf24;
+  --accent-red: #f87171;
+  --accent-orange: #fb923c;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --bit-on: #22d3ee;
+  --bit-off: #334155;
+  --bit-changed: #fbbf24;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+.mono { font-family: 'JetBrains Mono', monospace; }
+.glass {
+  background: rgba(30,41,59,0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(148,163,184,0.12);
+}
+.glass-hover:hover {
+  border-color: rgba(34,211,238,0.3);
+  box-shadow: 0 0 20px rgba(34,211,238,0.08);
+}
+
+/* Header */
+.header-gradient {
+  background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(167,139,250,0.15), rgba(34,211,238,0.1));
+}
+
+/* Bit Cell */
+.bit-cell {
+  width: 44px; height: 52px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: 8px;
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 20px; font-weight: 700;
+  position: relative;
+}
+.bit-cell.on { background: rgba(34,211,238,0.2); color: var(--bit-on); border: 1.5px solid var(--bit-on); box-shadow: 0 0 12px rgba(34,211,238,0.25); }
+.bit-cell.off { background: var(--bit-off); color: var(--text-secondary); border: 1.5px solid rgba(148,163,184,0.15); }
+.bit-cell.changed { background: rgba(251,191,36,0.2); color: var(--bit-changed); border: 1.5px solid var(--bit-changed); box-shadow: 0 0 12px rgba(251,191,36,0.25); animation: bitPulse 0.6s ease-out; }
+.bit-cell.highlight-c { background: rgba(251,113,133,0.2); color: var(--accent-red); border: 1.5px solid var(--accent-red); box-shadow: 0 0 12px rgba(251,113,133,0.25); }
+.bit-cell.highlight-carry { background: rgba(52,211,153,0.2); color: var(--accent-green); border: 1.5px solid var(--accent-green); box-shadow: 0 0 12px rgba(52,211,153,0.25); }
+.bit-cell.highlight-ones { background: rgba(167,139,250,0.2); color: var(--accent-purple); border: 1.5px solid var(--accent-purple); box-shadow: 0 0 12px rgba(167,139,250,0.25); }
+.bit-index { font-size: 9px; color: var(--text-secondary); margin-top: 2px; }
+@keyframes bitPulse {
+  0% { transform: scale(1.3); } 100% { transform: scale(1); }
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.step-animate { animation: fadeSlideIn 0.4s ease-out; }
+
+/* Step Indicator */
+.step-dot {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px;
+  transition: all 0.3s;
+}
+.step-dot.active { background: var(--accent-cyan); color: var(--bg-dark); box-shadow: 0 0 20px rgba(34,211,238,0.4); }
+.step-dot.done { background: var(--accent-green); color: var(--bg-dark); }
+.step-dot.pending { background: var(--bg-card2); color: var(--text-secondary); }
+.step-line { height: 2px; flex: 1; transition: background 0.3s; }
+.step-line.done { background: var(--accent-green); }
+.step-line.pending { background: var(--bg-card2); }
+
+/* Buttons */
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: #fff; font-weight: 600; padding: 10px 24px;
+  border-radius: 10px; border: none; cursor: pointer;
+  transition: all 0.2s; font-size: 14px;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(34,211,238,0.3); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-secondary {
+  background: var(--bg-card2); color: var(--text-primary);
+  font-weight: 500; padding: 10px 24px;
+  border-radius: 10px; border: 1px solid rgba(148,163,184,0.15);
+  cursor: pointer; transition: all 0.2s; font-size: 14px;
+}
+.btn-secondary:hover { border-color: rgba(148,163,184,0.3); }
+
+/* Input */
+.num-input {
+  background: var(--bg-dark); border: 1.5px solid rgba(148,163,184,0.2);
+  border-radius: 10px; color: var(--text-primary); padding: 10px 16px;
+  font-family: 'JetBrains Mono', monospace; font-size: 16px;
+  width: 120px; text-align: center; outline: none; transition: border-color 0.2s;
+}
+.num-input:focus { border-color: var(--accent-cyan); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-card2); border-radius: 3px; }
+
+/* Tag */
+.tag {
+  display: inline-block; padding: 2px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+}
+
+/* Timeline */
+.timeline-item { position: relative; padding-left: 28px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: 8px; top: 28px;
+  width: 2px; height: calc(100% - 20px); background: var(--bg-card2);
+}
+.timeline-item:last-child::before { display: none; }
+.timeline-dot {
+  position: absolute; left: 2px; top: 6px;
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 2px solid var(--accent-cyan); background: var(--bg-dark);
+}
+
+/* tooltip */
+.formula-box {
+  background: rgba(15,23,42,0.9);
+  border: 1px solid rgba(34,211,238,0.2);
+  border-radius: 8px; padding: 8px 14px;
+}
+
+.tab-btn {
+  padding: 8px 18px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.tab-btn.active {
+  background: rgba(34,211,238,0.15);
+  border-color: rgba(34,211,238,0.3);
+  color: var(--accent-cyan);
+}
+.tab-btn:not(.active) {
+  color: var(--text-secondary);
+}
+.tab-btn:not(.active):hover {
+  color: var(--text-primary);
+  background: rgba(148,163,184,0.08);
+}
+</style>
+</head>
+<body>
+
+<div x-data="gosperApp()" x-init="init()">
+
+  <!-- Header -->
+  <header class="header-gradient py-6 px-6 border-b border-white/5">
+    <div class="max-w-7xl mx-auto">
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 class="text-2xl font-bold flex items-center gap-3">
+            <span class="text-3xl">⚡</span>
+            <span style="background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+              Gosper's Hack
+            </span>
+            <span class="text-lg font-normal text-slate-400">— 同 popcount 下一个数</span>
+          </h1>
+          <p class="text-sm text-slate-400 mt-1 ml-11">MIT HAKMEM Item 175 · Bill Gosper · 1972</p>
+        </div>
+        <div class="flex items-center gap-3">
+          <label class="text-sm text-slate-400">输入 x：</label>
+          <input type="number" class="num-input" x-model.number="inputX" min="1" max="255"
+                 @keydown.enter="startDemo()" :disabled="isAnimating">
+          <button class="btn-primary" @click="startDemo()" :disabled="isAnimating">
+            🚀 开始演示
+          </button>
+          <button class="btn-secondary" @click="autoPlay()" :disabled="isAnimating || currentStep >= 4">
+            ▶ 自动播放
+          </button>
+          <button class="btn-secondary" @click="resetDemo()">↺ 重置</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-6 flex flex-col gap-6">
+
+    <!-- Step Progress Bar -->
+    <div class="glass rounded-2xl p-5">
+      <div class="flex items-center gap-2">
+        <template x-for="(s, i) in steps" :key="i">
+          <div class="flex items-center flex-1 last:flex-none">
+            <div class="flex flex-col items-center gap-1 relative z-10 cursor-pointer" @click="jumpToStep(i)">
+              <div class="step-dot"
+                   :class="i < currentStep ? 'done' : i === currentStep ? 'active' : 'pending'"
+                   x-text="i + 1"></div>
+              <span class="text-xs mt-1 whitespace-nowrap"
+                    :class="i <= currentStep ? 'text-cyan-300' : 'text-slate-500'"
+                    x-text="s.shortName"></span>
+            </div>
+            <div x-show="i < steps.length - 1" class="step-line mx-2"
+                 :class="i < currentStep ? 'done' : 'pending'"></div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Left: Binary Visualization -->
+      <div class="lg:col-span-2 flex flex-col gap-5">
+
+        <!-- Binary Display Panel -->
+        <div class="glass rounded-2xl p-6">
+          <h3 class="text-sm font-semibold text-slate-400 mb-4 flex items-center gap-2">
+            <span>🔢</span> 二进制位视图 <span class="text-xs text-slate-500">(8-bit)</span>
+          </h3>
+          <div class="flex flex-col gap-3">
+            <!-- x -->
+            <div class="flex items-center gap-3">
+              <div class="w-24 text-right">
+                <span class="mono text-sm text-cyan-300 font-bold">x</span>
+                <span class="mono text-xs text-slate-500 ml-1" x-text="'= ' + x"></span>
+              </div>
+              <div class="flex gap-1.5">
+                <template x-for="(b, i) in getBits(x)" :key="'x'+i">
+                  <div class="bit-cell" :class="b === 1 ? 'on' : 'off'">
+                    <span x-text="b"></span>
+                    <span class="bit-index" x-text="7 - i"></span>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- c (Step1+) -->
+            <template x-if="currentStep >= 1">
+              <div class="flex items-center gap-3 step-animate">
+                <div class="w-24 text-right">
+                  <span class="mono text-sm font-bold" style="color:var(--accent-red)">c</span>
+                  <span class="mono text-xs text-slate-500 ml-1" x-text="'= ' + c"></span>
+                </div>
+                <div class="flex gap-1.5">
+                  <template x-for="(b, i) in getBits(c)" :key="'c'+i">
+                    <div class="bit-cell" :class="b === 1 ? 'highlight-c' : 'off'">
+                      <span x-text="b"></span>
+                      <span class="bit-index" x-text="7 - i"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- r (Step2+) -->
+            <template x-if="currentStep >= 2">
+              <div class="flex items-center gap-3 step-animate">
+                <div class="w-24 text-right">
+                  <span class="mono text-sm font-bold" style="color:var(--accent-green)">r</span>
+                  <span class="mono text-xs text-slate-500 ml-1" x-text="'= ' + r"></span>
+                </div>
+                <div class="flex gap-1.5">
+                  <template x-for="(b, i) in getBits(r)" :key="'r'+i">
+                    <div class="bit-cell" :class="getCarryClass(i)">
+                      <span x-text="b"></span>
+                      <span class="bit-index" x-text="7 - i"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- ones (Step3+) -->
+            <template x-if="currentStep >= 3">
+              <div class="flex items-center gap-3 step-animate">
+                <div class="w-24 text-right">
+                  <span class="mono text-sm font-bold" style="color:var(--accent-purple)">ones</span>
+                  <span class="mono text-xs text-slate-500 ml-1" x-text="'= ' + ones"></span>
+                </div>
+                <div class="flex gap-1.5">
+                  <template x-for="(b, i) in getBits(ones)" :key="'o'+i">
+                    <div class="bit-cell" :class="b === 1 ? 'highlight-ones' : 'off'">
+                      <span x-text="b"></span>
+                      <span class="bit-index" x-text="7 - i"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- result (Step4) -->
+            <template x-if="currentStep >= 4">
+              <div class="flex items-center gap-3 step-animate">
+                <div class="w-24 text-right">
+                  <span class="mono text-sm font-bold" style="color:var(--accent-yellow)">result</span>
+                  <span class="mono text-xs text-slate-500 ml-1" x-text="'= ' + result"></span>
+                </div>
+                <div class="flex gap-1.5">
+                  <template x-for="(b, i) in getBits(result)" :key="'res'+i">
+                    <div class="bit-cell" :class="getResultClass(i)">
+                      <span x-text="b"></span>
+                      <span class="bit-index" x-text="7 - i"></span>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Step Detail Card -->
+        <div class="glass rounded-2xl p-6 glass-hover" x-show="currentStep >= 0 && currentStep <= 4">
+          <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+                 :style="'background:' + (currentStepData?.bg || 'var(--bg-card2)')">
+              <span x-text="currentStepData?.icon || '🔧'"></span>
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <h3 class="font-bold text-lg" x-text="currentStepData?.title || ''"></h3>
+                <div class="formula-box mono text-sm" x-html="currentStepData?.formula || ''"></div>
+              </div>
+              <p class="text-slate-300 text-sm leading-relaxed" x-html="currentStepData?.desc || ''"></p>
+              <div class="mt-3 p-3 rounded-lg bg-slate-800/50 border border-slate-700/50" x-show="currentStepData?.detail">
+                <p class="text-xs text-slate-400 leading-relaxed mono" x-html="currentStepData?.detail || ''"></p>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-end mt-4 gap-3">
+            <button class="btn-secondary text-sm" @click="prevStep()" :disabled="currentStep <= 0 || isAnimating">
+              ← 上一步
+            </button>
+            <button class="btn-primary text-sm" @click="nextStep()" :disabled="currentStep >= 4 || isAnimating">
+              下一步 →
+            </button>
+          </div>
+        </div>
+
+        <!-- Combination Traversal Demo -->
+        <div class="glass rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-semibold text-slate-400 flex items-center gap-2">
+              <span>🎯</span> 组合遍历演示 — 枚举所有 C(n, k) 组合
+            </h3>
+            <div class="flex items-center gap-2">
+              <label class="text-xs text-slate-500">n=</label>
+              <input type="number" class="num-input" style="width:60px;padding:6px 8px;font-size:13px;" x-model.number="comboN" min="3" max="8">
+              <label class="text-xs text-slate-500">k=</label>
+              <input type="number" class="num-input" style="width:60px;padding:6px 8px;font-size:13px;" x-model.number="comboK" min="1" :max="comboN">
+              <button class="btn-primary text-xs" style="padding:6px 14px;" @click="runComboDemo()" :disabled="comboRunning">
+                生成全部组合
+              </button>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2" x-show="combos.length > 0">
+            <template x-for="(cb, i) in combos" :key="i">
+              <div class="flex items-center gap-1 px-2 py-1 rounded-lg text-xs mono"
+                   :class="i === comboHighlight ? 'bg-cyan-500/20 border border-cyan-500/40' : 'bg-slate-800/50 border border-slate-700/30'"
+                   :style="'animation-delay:' + (i*30) + 'ms'"
+                   style="animation: fadeSlideIn 0.3s ease-out both;">
+                <span class="text-slate-500 mr-1" x-text="'#' + (i+1)"></span>
+                <span class="text-cyan-300" x-text="formatBin(cb, comboN)"></span>
+                <span class="text-slate-500">=</span>
+                <span class="text-yellow-300" x-text="cb"></span>
+                <span class="text-slate-600 ml-1" x-text="'→ {' + getSetRepr(cb, comboN) + '}'"></span>
+              </div>
+            </template>
+          </div>
+          <div x-show="combos.length === 0" class="text-center text-slate-500 text-sm py-6">
+            点击「生成全部组合」查看 Gosper's Hack 遍历 C(n,k) 的完整序列
+          </div>
+          <div x-show="combos.length > 0" class="mt-3 flex items-center gap-4 text-xs text-slate-400">
+            <span>总计 <strong class="text-cyan-300" x-text="combos.length"></strong> 个组合</span>
+            <span>popcount = <strong class="text-green-300" x-text="comboK"></strong></span>
+            <span>每步 O(1)，共 O(C(<span x-text="comboN"></span>,<span x-text="comboK"></span>))</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Info Panels -->
+      <div class="flex flex-col gap-5">
+
+        <!-- Popcount Verification -->
+        <div class="glass rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+            <span>✅</span> Popcount 验证
+          </h3>
+          <div class="flex items-center justify-center gap-6 py-3">
+            <div class="text-center">
+              <div class="text-3xl font-bold text-cyan-300 mono" x-text="popcount(x)"></div>
+              <div class="text-xs text-slate-500 mt-1">x 的 1 的个数</div>
+            </div>
+            <div class="text-2xl" x-text="currentStep >= 4 ? (popcount(x) === popcount(result) ? '✅' : '❌') : '⏳'"></div>
+            <div class="text-center">
+              <div class="text-3xl font-bold mono"
+                   :class="currentStep >= 4 ? 'text-yellow-300' : 'text-slate-600'"
+                   x-text="currentStep >= 4 ? popcount(result) : '?'"></div>
+              <div class="text-xs text-slate-500 mt-1">result 的 1 的个数</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Chart -->
+        <div class="glass rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+            <span>📊</span> 性能对比
+          </h3>
+          <div id="perfChart" style="width:100%;height:200px;"></div>
+        </div>
+
+        <!-- History / Insights tabs -->
+        <div class="glass rounded-2xl p-5">
+          <div class="flex items-center gap-2 mb-4">
+            <button class="tab-btn" :class="infoTab === 'history' ? 'active' : ''" @click="infoTab='history'">📜 历史渊源</button>
+            <button class="tab-btn" :class="infoTab === 'analysis' ? 'active' : ''" @click="infoTab='analysis'">🔬 技术剖析</button>
+          </div>
+
+          <div x-show="infoTab === 'history'" class="text-sm text-slate-300 leading-relaxed space-y-3">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <p><strong class="text-cyan-300">1972 · MIT AI Lab</strong></p>
+              <p class="text-xs text-slate-400 mt-1">Bill Gosper 在 HAKMEM（Memo 239）中提出此算法。那个年代的黑客们痴迷于用最少的 PDP-10 指令完成最复杂的事。这不是"优化"，这是一种信仰 —— 在硬件资源极度匮乏时，每一条指令都是战场上的子弹。</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <p><strong class="text-green-300">本质</strong></p>
+              <p class="text-xs text-slate-400 mt-1">补码的数学结构被 Gosper 当作一台精密的齿轮组来使用：<code class="text-cyan-200">x & (-x)</code> 提取最低位的 1 —— 这不是技巧，而是补码系统"进位链溢出"这一物理现象的直接映射。它把硬件加法器的进位传播行为直接暴露为可编程的逻辑。</p>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <p><strong class="text-purple-300">传承</strong></p>
+              <p class="text-xs text-slate-400 mt-1">Henry Warren 在《Hacker's Delight》中详细记载了此算法。现代 CPU 提供了 BLSI（提取最低设定位）等指令，本质上就是把 Gosper 的洞察固化到硅片里。软件的极致思考，最终变成了硬件的标配。</p>
+            </div>
+          </div>
+
+          <div x-show="infoTab === 'analysis'" class="text-sm text-slate-300 leading-relaxed space-y-3">
+            <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
+              <p class="font-bold text-yellow-300 text-xs mb-2">🔧 为什么非得用这种方式？</p>
+              <p class="text-xs text-slate-400">核心在于<strong>补码的代数封闭性</strong>。补码不只是"负数的编码方式"，它是一个完整的模运算群。<code>x & (-x)</code> 能work，是因为 <code>-x = ~x + 1</code> 中的 <code>+1</code> 会引发从最低位开始的进位链，正好在第一个 1 处停下。这是进位链物理行为的数学映射，不是巧合。</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
+              <p class="font-bold text-cyan-300 text-xs mb-2">⚡ 替代方案？</p>
+              <p class="text-xs text-slate-400">可以用查表法（预生成所有同 popcount 的数排序后做二分查找），但内存开销爆炸；可以用循环逐个试探 <code>while(popcount(++x) != k)</code>，但这可能需要扫描数百万个无效数。Gosper 的魔力在于：它把一个"搜索问题"变成了纯粹的"代数计算"。搜索是 O(间距)，计算是 O(1)。</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/50 border border-slate-700/40">
+              <p class="font-bold text-green-300 text-xs mb-2">🌐 可推广性</p>
+              <p class="text-xs text-slate-400">这种"从最低有效位提取特征 → 利用进位传播改变状态 → 归一化补偿"的三段式范式，在位运算领域反复出现。如 SNOOB（Same Number of One Bits）、子集遍历 <code>s = (s - x) & x</code> 等。本质是同一种思维：<strong>把加法器的进位链当作免费的"搜索引擎"来使用</strong>。</p>
+            </div>
+            <div class="p-3 rounded-lg bg-slate-800/50 border border-amber-700/40">
+              <p class="font-bold text-orange-300 text-xs mb-2">💡 启示</p>
+              <p class="text-xs text-slate-400">这段代码写于 1972 年。半个世纪后的 CPU 架构师们把 <code>BLSI</code>、<code>BLSR</code>、<code>BLSMSK</code> 做成了硬件指令（BMI1 指令集）。这说明什么？说明真正深刻的算法洞察不会被时代淘汰 —— 它会<strong>下沉到硬件层</strong>，从"聪明的软件技巧"变成"理所应当的物理电路"。这才是 hack 的最高境界：黑进硅片里。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Reference -->
+        <div class="glass rounded-2xl p-5">
+          <h3 class="text-sm font-semibold text-slate-400 mb-3 flex items-center gap-2">
+            <span>📋</span> 完整代码
+          </h3>
+          <pre class="mono text-xs leading-relaxed p-3 rounded-lg bg-slate-900/80 border border-slate-700/40 overflow-x-auto"><code><span style="color:var(--accent-cyan)">unsigned</span> gosper_next(<span style="color:var(--accent-cyan)">unsigned</span> x) {
+  <span style="color:var(--accent-red)">unsigned</span> c = x & (-x);       <span style="color:var(--text-secondary)">// 最低位1</span>
+  <span style="color:var(--accent-green)">unsigned</span> r = x + c;          <span style="color:var(--text-secondary)">// 进位传播</span>
+  <span style="color:var(--accent-purple)">unsigned</span> ones = ((r^x)/c)>>2; <span style="color:var(--text-secondary)">// 补回1</span>
+  <span style="color:var(--accent-yellow)">return</span> r | ones;             <span style="color:var(--text-secondary)">// 合并</span>
+}</code></pre>
+          <div class="mt-3 flex flex-wrap gap-2">
+            <span class="tag" style="background:rgba(34,211,238,0.15);color:var(--accent-cyan);">O(1) 时间</span>
+            <span class="tag" style="background:rgba(52,211,153,0.15);color:var(--accent-green);">O(1) 空间</span>
+            <span class="tag" style="background:rgba(251,191,36,0.15);color:var(--accent-yellow);">无分支</span>
+            <span class="tag" style="background:rgba(167,139,250,0.15);color:var(--accent-purple);">位运算</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function gosperApp() {
+  return {
+    inputX: 28,
+    x: 28,
+    c: 0, r: 0, ones: 0, result: 0,
+    currentStep: -1,
+    isAnimating: false,
+    infoTab: 'history',
+    comboN: 5,
+    comboK: 3,
+    combos: [],
+    comboHighlight: -1,
+    comboRunning: false,
+
+    steps: [
+      { shortName: '提取最低1', icon: '🎯', title: 'Step 1: 提取最低位的 1', bg: 'rgba(248,113,113,0.15)',
+        formula: '<span style="color:var(--accent-red)">c</span> = x & (-x)',
+        desc: '利用补码特性提取 x 中最右侧（最低位）的 1。这个位就是进位的<strong style="color:var(--accent-red)">起爆点</strong>。',
+        detail: ''
+      },
+      { shortName: '进位传播', icon: '💥', title: 'Step 2: 进位传播', bg: 'rgba(52,211,153,0.15)',
+        formula: '<span style="color:var(--accent-green)">r</span> = x + c',
+        desc: '将最低位 1 加回 x，触发连锁进位反应。最右侧连续的 1 全部被<strong style="color:var(--accent-green)">翻转为 0</strong>，左边第一个 0 变成 1。',
+        detail: ''
+      },
+      { shortName: '计算补1', icon: '🔬', title: 'Step 3: 计算需要补回的 1', bg: 'rgba(167,139,250,0.15)',
+        formula: '<span style="color:var(--accent-purple)">ones</span> = ((r^x)/c) >> 2',
+        desc: '<code>r^x</code> 找出所有变化的位，<code>/c</code> 右移对齐到最低位，<code>>>2</code> 扣除多算的 2 个 1。结果就是需要<strong style="color:var(--accent-purple)">补回到最右侧</strong>的 1。',
+        detail: ''
+      },
+      { shortName: '合并结果', icon: '✨', title: 'Step 4: 合并最终结果', bg: 'rgba(251,191,36,0.15)',
+        formula: '<span style="color:var(--accent-yellow)">result</span> = r | ones',
+        desc: '高位部分（r）与低位补回的 1（ones）按位或合并。得到<strong style="color:var(--accent-yellow)">下一个同 popcount 的数</strong>！',
+        detail: ''
+      }
+    ],
+
+    get currentStepData() {
+      if (this.currentStep < 0 || this.currentStep > 3) {
+        return { icon: '🚀', title: '准备就绪', bg: 'var(--bg-card2)',
+                 formula: '', desc: '输入一个数（1~255），点击「开始演示」逐步查看 Gosper\'s Hack 的运作过程。', detail: '' };
+      }
+      let s = {...this.steps[this.currentStep]};
+      s.detail = this.getStepDetail(this.currentStep);
+      return s;
+    },
+
+    init() {
+      this.$nextTick(() => this.initChart());
+    },
+
+    getBits(n) {
+      let bits = [];
+      for (let i = 7; i >= 0; i--) bits.push((n >> i) & 1);
+      return bits;
+    },
+
+    popcount(n) {
+      let count = 0;
+      while (n) { count += n & 1; n >>= 1; }
+      return count;
+    },
+
+    getCarryClass(i) {
+      let xBit = (this.x >> (7 - i)) & 1;
+      let rBit = (this.r >> (7 - i)) & 1;
+      if (xBit !== rBit) return 'changed';
+      return rBit === 1 ? 'highlight-carry' : 'off';
+    },
+
+    getResultClass(i) {
+      let rBit = (this.r >> (7 - i)) & 1;
+      let oBit = (this.ones >> (7 - i)) & 1;
+      if (oBit === 1) return 'highlight-ones';
+      if (rBit === 1) return 'highlight-carry';
+      return 'off';
+    },
+
+    getStepDetail(step) {
+      const bin = (n) => n.toString(2).padStart(8, '0');
+      if (step === 0) {
+        let nx = (this.x & 0xFF) >>> 0;
+        let negX = ((-this.x) & 0xFF) >>> 0;
+        return `x &nbsp;&nbsp;= ${bin(nx)}<br>-x &nbsp;= ${bin(negX)} &nbsp;(补码取反+1)<br>c &nbsp;&nbsp;= ${bin(this.c)} &nbsp;→ 最低位的 1 在 bit ${Math.log2(this.c)}`;
+      }
+      if (step === 1) {
+        return `x &nbsp;&nbsp;= ${bin(this.x)}<br>c &nbsp;&nbsp;= ${bin(this.c)}<br>r &nbsp;&nbsp;= ${bin(this.r & 0xFF)} &nbsp;→ 连续1区块翻转，高位进1`;
+      }
+      if (step === 2) {
+        let rxor = ((this.r ^ this.x) & 0xFF) >>> 0;
+        let divided = (rxor / this.c) >>> 0;
+        return `r^x &nbsp;= ${bin(rxor)} &nbsp;(变化的位)<br>/c &nbsp;&nbsp;= ${bin(divided & 0xFF)} &nbsp;(右移对齐)<br>>>2 &nbsp;= ${bin(this.ones & 0xFF)} &nbsp;(补回 ${this.popcount(this.ones)} 个1)`;
+      }
+      if (step === 3) {
+        return `r &nbsp;&nbsp;&nbsp;&nbsp;= ${bin(this.r & 0xFF)}<br>ones &nbsp;= ${bin(this.ones & 0xFF)}<br>r|ones= ${bin(this.result & 0xFF)} → <strong>${this.result}</strong> (popcount=${this.popcount(this.result)})`;
+      }
+      return '';
+    },
+
+    startDemo() {
+      this.x = Math.max(1, Math.min(255, this.inputX || 28));
+      this.inputX = this.x;
+      this.c = 0; this.r = 0; this.ones = 0; this.result = 0;
+      this.currentStep = 0;
+      this.computeStep(0);
+      this.updateChart();
+    },
+
+    computeStep(step) {
+      if (step >= 0) this.c = this.x & (-this.x);
+      if (step >= 1) this.r = this.x + this.c;
+      if (step >= 2) this.ones = (((this.r ^ this.x) / this.c) >> 2);
+      if (step >= 3) this.result = this.r | this.ones;
+    },
+
+    nextStep() {
+      if (this.currentStep >= 4) return;
+      this.currentStep++;
+      this.computeStep(this.currentStep - 1);
+    },
+
+    prevStep() {
+      if (this.currentStep <= 0) return;
+      this.currentStep--;
+      if (this.currentStep === 0) { this.c = this.x & (-this.x); this.r = 0; this.ones = 0; this.result = 0; }
+      else this.computeStep(this.currentStep - 1);
+    },
+
+    jumpToStep(i) {
+      if (this.isAnimating) return;
+      this.currentStep = i;
+      this.computeStep(i - 1);
+    },
+
+    async autoPlay() {
+      this.isAnimating = true;
+      this.startDemo();
+      for (let i = 1; i <= 4; i++) {
+        await new Promise(r => setTimeout(r, 900));
+        this.nextStep();
+      }
+      this.isAnimating = false;
+    },
+
+    resetDemo() {
+      this.currentStep = -1;
+      this.c = 0; this.r = 0; this.ones = 0; this.result = 0;
+      this.combos = [];
+      this.comboHighlight = -1;
+    },
+
+    formatBin(n, bits) {
+      return n.toString(2).padStart(bits, '0');
+    },
+
+    getSetRepr(n, bits) {
+      let parts = [];
+      for (let i = 0; i < bits; i++) {
+        if ((n >> i) & 1) parts.push(i);
+      }
+      return parts.join(',');
+    },
+
+    async runComboDemo() {
+      this.comboRunning = true;
+      this.combos = [];
+      this.comboHighlight = -1;
+      let n = Math.max(3, Math.min(8, this.comboN));
+      let k = Math.max(1, Math.min(n, this.comboK));
+      this.comboN = n;
+      this.comboK = k;
+      let x = (1 << k) - 1;
+      let limit = 1 << n;
+      let idx = 0;
+      while (x < limit) {
+        this.combos.push(x);
+        this.comboHighlight = idx;
+        await new Promise(r => setTimeout(r, Math.max(20, 120 - idx * 2)));
+        let c = x & (-x);
+        let r = x + c;
+        let ones = (((r ^ x) / c) >> 2);
+        x = r | ones;
+        idx++;
+      }
+      this.comboRunning = false;
+    },
+
+    initChart() {
+      let chart = echarts.init(document.getElementById('perfChart'), 'dark');
+      chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        legend: { top: 0, textStyle: { fontSize: 10, color: '#94a3b8' }, itemWidth: 12, itemHeight: 8 },
+        grid: { top: 30, bottom: 24, left: 44, right: 12 },
+        xAxis: {
+          type: 'category',
+          data: ['8-bit','16-bit','32-bit','64-bit'],
+          axisLabel: { fontSize: 10, color: '#64748b' },
+          axisLine: { lineStyle: { color: '#334155' } }
+        },
+        yAxis: {
+          type: 'log',
+          name: '操作次数',
+          nameTextStyle: { fontSize: 9, color: '#64748b' },
+          axisLabel: { fontSize: 9, color: '#64748b' },
+          splitLine: { lineStyle: { color: '#1e293b' } }
+        },
+        series: [
+          { name: 'Gosper O(1)', type: 'bar', data: [5,5,5,5], itemStyle: { color: '#22d3ee' }, barWidth: 16 },
+          { name: '暴力搜索(avg)', type: 'bar', data: [20, 500, 130000, 5e8], itemStyle: { color: '#f87171' }, barWidth: 16 }
+        ]
+      });
+      window.addEventListener('resize', () => chart.resize());
+      this._chart = chart;
+    },
+
+    updateChart() {
+      // Chart stays static; represents general performance comparison
+    }
+  };
+}
+</script>
+
+<script>window.parent.postMessage({ action: "ready" }, "*"); 
+ 
+window.console = new Proxy(console, {
+  get(target, prop) {
+    if (['log', 'warn', 'error'].includes(prop)) {
+      return new Proxy(target[prop], {
+        apply(fn, thisArg, args) {
+          fn.apply(thisArg, args);
+          window.parent.postMessage({ action: 'console', 
+            type: prop, 
+            args: args.map((arg) => {
+              try {
+                return JSON.stringify(arg).replace(/^["']|["']$/g, '');
+              } catch (e) {
+                return arg;
+              }
+            }) 
+          }, '*');
+        }
+      });
+    }
+    return target[prop];
+  }
+});
+</script></body>
+</html>
