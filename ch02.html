@@ -7,7 +7,7 @@
 <title>Ch.02 — 基础技巧 Basics | Hacker's Delight</title>
 <link rel="stylesheet" href="tailwind.css"/>
 <script src="echarts.min.js"></script>
-<script src="alpine.min.js" defer></script>
+<script src="alpine.min.js"></script>
 <style>
 :root{
   --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
@@ -240,14 +240,87 @@ footer a{color:var(--g);text-decoration:none;}
   cursor:pointer;
 }
 
+/* ═══ 右侧工具导航栏 ═══ */
+.tools-nav{
+  position:fixed;right:0;top:0;bottom:0;
+  width:200px;z-index:90;
+  background:rgba(5,8,16,.92);
+  backdrop-filter:blur(10px);
+  border-left:1px solid rgba(0,255,136,.12);
+  padding:1rem .5rem;
+  overflow-y:auto;
+  overflow-x:hidden;
+  transition:transform .25s ease;
+  display:flex;
+  flex-direction:column;
+}
+.tools-nav::-webkit-scrollbar{width:3px;}
+.tools-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+
+.tools-title{
+  font-family:'JetBrains Mono',monospace;
+  font-size:.62rem;color:var(--b);
+  letter-spacing:.08em;
+  padding:.4rem .6rem;
+  border-bottom:1px solid rgba(0,255,136,.15);
+  margin-bottom:.5rem;
+  flex-shrink:0;
+}
+
+.tools-link{
+  display:block;
+  width:100%;
+  font-family:'JetBrains Mono',monospace;
+  font-size:.65rem;
+  color:#64748b;
+  text-decoration:none;
+  padding:.2rem .6rem;
+  border-radius:3px;
+  transition:all .15s;
+  margin-bottom:.2rem;
+  border:1px solid transparent;
+}
+.tools-link:hover{
+  color:var(--b);
+  background:rgba(0,212,255,.06);
+  border-color:rgba(0,212,255,.2);
+}
+.tools-link.active{
+  color:var(--b);
+  background:rgba(0,212,255,.1);
+  border-color:rgba(0,212,255,.3);
+}
+.tools-link::before{
+  content:'▸';
+  font-size:.6rem;
+  margin-right:.4rem;
+  opacity:.5;
+}
+.tools-link:hover::before{opacity:1;}
+
+.tools-toggle{
+  display:none;
+  position:fixed;right:.5rem;top:.85rem;z-index:95;
+  width:32px;height:32px;
+  background:rgba(5,8,16,.9);
+  border:1px solid rgba(0,212,255,.2);
+  border-radius:4px;
+  color:var(--b);
+  font-size:1.1rem;
+  cursor:pointer;
+}
+
 @media(max-width:1100px){
   .sidebar-nav{transform:translateX(-100%);}
   .sidebar-nav.open{transform:translateX(0);}
   .sidebar-toggle{display:flex;align-items:center;justify-content:center;}
-  body{padding-left:0!important;}
+  .tools-nav{transform:translateX(100%);}
+  .tools-nav.open{transform:translateX(0);}
+  .tools-toggle{display:flex;align-items:center;justify-content:center;}
+  body{padding-left:0!important;padding-right:0!important;}
 }
 
-@media(min-width:1101px){body{padding-left:180px;}}
+@media(min-width:1101px){body{padding-left:180px;padding-right:200px;}}
 </style>
 </head>
 <body>
@@ -286,6 +359,25 @@ footer a{color:var(--g);text-decoration:none;}
     <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
     <a href="appB.html" class="sidebar-link">App.B 摘要</a>
     <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
+<!-- 右侧工具导航栏 -->
+<button class="tools-toggle" @click="toolsOpen = !toolsOpen" x-data="{toolsOpen: false}">
+  ⚙
+</button>
+<nav class="tools-nav" :class="toolsOpen ? 'open' : ''" x-data="{toolsOpen: false}" @click.away="toolsOpen = false">
+  <div class="tools-title">🛠️ 第二章工具</div>
+  
+  <div class="sidebar-section">
+    <a href="ch02_quickref.html" class="tools-link">快速参考</a>
+    <a href="ch02_interactive.html" class="tools-link">交互演示</a>
+    <a href="ch02_anaylze.html" class="tools-link">深度分析</a>
+    <a href="ch02_mindmap.html" class="tools-link">思维导图</a>
+    <a href="ch02_check.html" class="tools-link">练习检查</a>
+    <a href="ch02_game.html" class="tools-link">趣味游戏</a>
+    <a href="ch02_Gosper's Hack.html" class="tools-link">Gosper算法</a>
+    <a href="ch02_summary.html" class="tools-link">章节总结</a>
   </div>
 </nav>
 
