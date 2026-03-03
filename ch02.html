@@ -20,8 +20,8 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 #app{position:relative;z-index:1;}
 
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;}
+/* 顶部导航栏（仅作用于 .top-nav，避免影响左侧/右侧 sidebar） */
+nav.top-nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 2rem;display:flex;align-items:center;justify-content:space-between;}
 .nav-logo{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);text-decoration:none;}
 .nav-links{display:flex;gap:1.5rem;}
 .nav-links a{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;text-decoration:none;transition:color .2s;}
@@ -171,6 +171,7 @@ footer a{color:var(--g);text-decoration:none;}
   backdrop-filter:blur(10px);
   border-right:1px solid rgba(0,255,136,.12);
   padding:1rem .5rem;
+  padding-top:4rem; /* 留出顶部导航栏高度，避免 Ch.01～App.C 链接被挡住 */
   overflow-y:auto;
   overflow-x:hidden;
   transition:transform .25s ease;
@@ -194,6 +195,7 @@ footer a{color:var(--g);text-decoration:none;}
   margin-bottom:.6rem;
   display:flex;
   flex-direction:column;
+  flex-shrink:0;
 }
 .sidebar-section-title{
   font-family:'JetBrains Mono',monospace;
@@ -206,7 +208,7 @@ footer a{color:var(--g);text-decoration:none;}
 .sidebar-link{
   display:block;
   width:100%;
-  clear:both;
+  flex-shrink:0;
   font-family:'JetBrains Mono',monospace;
   font-size:.68rem;
   color:#64748b;
@@ -216,8 +218,8 @@ footer a{color:var(--g);text-decoration:none;}
   transition:all .15s;
   position:relative;
   white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  overflow:visible;
+  text-overflow:clip;
 }
 .sidebar-link:hover{color:var(--g);background:rgba(0,255,136,.06);}
 .sidebar-link.active{color:var(--g);background:rgba(0,255,136,.1);}
@@ -360,6 +362,18 @@ footer a{color:var(--g);text-decoration:none;}
     <a href="appB.html" class="sidebar-link">App.B 摘要</a>
     <a href="appC.html" class="sidebar-link">App.C 发展史</a>
   </div>
+  
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">Ch.02 相关</div>
+    <a href="ch02_quickref.html" class="sidebar-link">快速参考</a>
+    <a href="ch02_interactive.html" class="sidebar-link">交互演示</a>
+    <a href="ch02_anaylze.html" class="sidebar-link">深度分析</a>
+    <a href="ch02_mindmap.html" class="sidebar-link">思维导图</a>
+    <a href="ch02_check.html" class="sidebar-link">练习检查</a>
+    <a href="ch02_game.html" class="sidebar-link">趣味游戏</a>
+    <a href="ch02_Gosper's Hack.html" class="sidebar-link">Gosper算法</a>
+    <a href="ch02_summary.html" class="sidebar-link">章节总结</a>
+  </div>
 </nav>
 
 <!-- 右侧工具导航栏 -->
@@ -395,7 +409,7 @@ footer a{color:var(--g);text-decoration:none;}
   <div class="dot"        data-sec="critique" title="深度分析"></div>
 </div>
 
-<nav>
+<nav class="top-nav">
   <a class="nav-logo" href="index.html">← HACKER'S DELIGHT</a>
   <div class="nav-links">
     <a href="#rightmost">最右位</a>
@@ -1531,7 +1545,10 @@ function app() {
 function rightmostDemo() {
   return {
     bits: [0,0,1,0,1,1,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
-    toggle(i) { this.bits[i] = this.bits[i] ? 0 : 1; },
+    toggle(i) {
+      this.bits[i] = this.bits[i] ? 0 : 1;
+      this.bits = [...this.bits]; // 触发 Alpine 响应式更新，使 results 与比特位同步重绘
+    },
     get x32() {
       let v = 0;
       for (let i = 0; i < 32; i++) v = (v * 2 + this.bits[i]) >>> 0;
