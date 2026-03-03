@@ -7,7 +7,42 @@
 <title>Ch.02 — 基础技巧 Basics | Hacker's Delight</title>
 <link rel="stylesheet" href="tailwind.css"/>
 <script src="echarts.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<script>
+document.addEventListener('alpine:init', function() {
+  window.Alpine.data('rightmostDemo', function() {
+    return {
+      bits: [0,0,1,0,1,1,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
+      toggle(i) {
+        this.bits[i] = this.bits[i] ? 0 : 1;
+        this.bits = [...this.bits];
+      },
+      get x32() {
+        let v = 0;
+        for (let i = 0; i < 32; i++) v = (v * 2 + this.bits[i]) >>> 0;
+        return v;
+      },
+      toBits32(n) {
+        n = n >>> 0;
+        return Array.from({ length: 32 }, (_, i) => (n >> (31 - i)) & 1);
+      },
+      get results() {
+        const x = this.x32;
+        return [
+          { name: 'x & (x-1)  清除最右1', bits: this.toBits32(x & (x - 1)), desc: x === 0 ? '0 → 结果=0' : ((x & (x-1)) === 0 ? '✓ x是2的幂' : '') },
+          { name: 'x | (x+1)  置位最右0', bits: this.toBits32(x | (x + 1)), desc: '' },
+          { name: 'x & (x+1)  清除尾部1', bits: this.toBits32(x & (x + 1)), desc: ((x & (x+1)) === 0 && x !== 0) ? '✓ x是2ⁿ-1' : '' },
+          { name: 'x | (x-1)  填充尾部0', bits: this.toBits32(x | (x - 1)), desc: '' },
+          { name: 'x & (-x)   提取最右1', bits: this.toBits32(x & (-x >>> 0)), desc: x === 0 ? '全0无最右1' : '单bit掩码' },
+          { name: '~x & (x+1) 提取最右0', bits: this.toBits32(~x & (x + 1)), desc: '' },
+          { name: '~x & (x-1) 尾0掩码',  bits: this.toBits32((~x) & (x - 1)), desc: '' },
+          { name: '(x&-x)-1   尾0全1',   bits: this.toBits32(((x & (-x >>> 0)) - 1) >>> 0), desc: '' }
+        ];
+      }
+    };
+  });
+});
+</script>
 <style>
 :root{
   --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
@@ -463,13 +498,13 @@ footer a{color:var(--g);text-decoration:none;}
   </div>
 
   <!-- 交互演示 -->
-  <div class="card" style="margin-bottom:1.25rem;" x-data="rightmostDemo()">
+  <div class="card" style="margin-bottom:1.25rem;" x-data="rightmostDemo">
     <div style="font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);margin-bottom:1rem;">
       🔬 交互演示 — 点击比特位，观察各公式结果实时变化
     </div>
     <div style="margin-bottom:.75rem;">
       <div style="font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;margin-bottom:.3rem;">输入 x（点击翻转）:</div>
-      <div class="bit-row">
+      <div class="bit-row" style="min-height:32px;">
         <template x-for="(b,i) in bits" :key="i">
           <div class="bit-cell" :class="b?'one':'zero'" @click="toggle(i)" x-text="b"></div>
         </template>
@@ -1535,41 +1570,6 @@ function app() {
         ]
       });
       window.addEventListener('resize', () => chart.resize());
-    }
-  };
-}
-
-/* ═══════════════════════════════════════════
-   最右位交互演示
-═══════════════════════════════════════════ */
-function rightmostDemo() {
-  return {
-    bits: [0,0,1,0,1,1,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0],
-    toggle(i) {
-      this.bits[i] = this.bits[i] ? 0 : 1;
-      this.bits = [...this.bits]; // 触发 Alpine 响应式更新，使 results 与比特位同步重绘
-    },
-    get x32() {
-      let v = 0;
-      for (let i = 0; i < 32; i++) v = (v * 2 + this.bits[i]) >>> 0;
-      return v;
-    },
-    toBits32(n) {
-      n = n >>> 0;
-      return Array.from({ length: 32 }, (_, i) => (n >> (31 - i)) & 1);
-    },
-    get results() {
-      const x = this.x32;
-      return [
-        { name: 'x & (x-1)  清除最右1', bits: this.toBits32(x & (x - 1)), desc: x === 0 ? '0 → 结果=0' : ((x & (x-1)) === 0 ? '✓ x是2的幂' : '') },
-        { name: 'x | (x+1)  置位最右0', bits: this.toBits32(x | (x + 1)), desc: '' },
-        { name: 'x & (x+1)  清除尾部1', bits: this.toBits32(x & (x + 1)), desc: ((x & (x+1)) === 0 && x !== 0) ? '✓ x是2ⁿ-1' : '' },
-        { name: 'x | (x-1)  填充尾部0', bits: this.toBits32(x | (x - 1)), desc: '' },
-        { name: 'x & (-x)   提取最右1', bits: this.toBits32(x & (-x >>> 0)), desc: x === 0 ? '全0无最右1' : '单bit掩码' },
-        { name: '~x & (x+1) 提取最右0', bits: this.toBits32(~x & (x + 1)), desc: '' },
-        { name: '~x & (x-1) 尾0掩码',  bits: this.toBits32((~x) & (x - 1)), desc: '' },
-        { name: '(x&-x)-1   尾0全1',   bits: this.toBits32(((x & (-x >>> 0)) - 1) >>> 0), desc: '' }
-      ];
     }
   };
 }
