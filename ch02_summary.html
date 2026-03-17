@@ -4,162 +4,47 @@
     <meta charset="UTF-8">  
     <meta name="viewport" content="width=device-width, initial-scale=1.0">  
     <title>知识点统计详表</title>  
-    <style>  
-        * {  
-            margin: 0;  
-            padding: 0;  
-            box-sizing: border-box;  
-        }  
-
-        body {  
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;  
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);  
-            min-height: 100vh;  
-            padding: 30px 20px;  
-        }  
-
-        .container {  
-            max-width: 1400px;  
-            margin: 0 auto;  
-        }  
-
-        .header {  
-            text-align: center;  
-            color: white;  
-            margin-bottom: 40px;  
-        }  
-
-        .header h1 {  
-            font-size: 2.2em;  
-            margin-bottom: 10px;  
-        }  
-
-        .table-container {  
-            background: white;  
-            border-radius: 12px;  
-            padding: 30px;  
-            box-shadow: 0 15px 50px rgba(0,0,0,0.2);  
-            overflow-x: auto;  
-        }  
-
-        table {  
-            width: 100%;  
-            border-collapse: collapse;  
-            font-size: 0.95em;  
-        }  
-
-        th {  
-            background: linear-gradient(135deg, #667eea, #764ba2);  
-            color: white;  
-            padding: 15px;  
-            text-align: left;  
-            font-weight: 600;  
-            border: none;  
-        }  
-
-        td {  
-            padding: 12px 15px;  
-            border-bottom: 1px solid #eee;  
-            vertical-align: top;  
-        }  
-
-        tr:hover {  
-            background: #f9f9f9;  
-        }  
-
-        .category {  
-            background: #f0f0f0;  
-            font-weight: bold;  
-            color: #667eea;  
-        }  
-
-        .priority-high {  
-            background: #fff3f3;  
-            border-left: 3px solid #d63031;  
-        }  
-
-        .priority-medium {  
-            background: #fffaf3;  
-            border-left: 3px solid #f39c12;  
-        }  
-
-        .priority-low {  
-            background: #f3fff3;  
-            border-left: 3px solid #00b894;  
-        }  
-
-        .count-badge {  
-            display: inline-block;  
-            background: #667eea;  
-            color: white;  
-            padding: 4px 10px;  
-            border-radius: 12px;  
-            font-weight: bold;  
-            font-size: 0.85em;  
-        }  
-
-        .formula {  
-            background: #f5f5f5;  
-            padding: 6px 10px;  
-            border-radius: 4px;  
-            font-family: 'Courier New', monospace;  
-            color: #d63031;  
-            font-size: 0.9em;  
-        }  
-
-        .summary {  
-            margin-top: 30px;  
-            padding: 20px;  
-            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));  
-            border-left: 5px solid #667eea;  
-            border-radius: 8px;  
-        }  
-
-        .summary h3 {  
-            color: #667eea;  
-            margin-bottom: 10px;  
-        }  
-
-        .summary-grid {  
-            display: grid;  
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));  
-            gap: 15px;  
-            margin-top: 15px;  
-        }  
-
-        .summary-item {  
-            background: white;  
-            padding: 12px;  
-            border-radius: 6px;  
-            text-align: center;  
-            border-left: 3px solid #667eea;  
-        }  
-
-        .summary-number {  
-            font-size: 1.8em;  
-            font-weight: bold;  
-            color: #667eea;  
-        }  
-
-        .summary-text {  
-            font-size: 0.9em;  
-            color: #666;  
-            margin-top: 5px;  
-        }  
-
-        @media (max-width: 768px) {  
-            table {  
-                font-size: 0.85em;  
-            }  
-
-            td, th {  
-                padding: 8px 10px;  
-            }  
-        }  
+    <style>
+        :root{--g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;--dark:#050810;--card:#0d1117;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{font-family:'Inter',sans-serif;background:var(--dark);color:#e2e8f0;min-height:100vh;padding:30px 20px;font-size:17px;line-height:1.7;}
+        body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:0;}
+        .container{max-width:1400px;margin:0 auto;position:relative;z-index:1;}
+        .header{text-align:center;margin-bottom:40px;}
+        .header h1{font-size:clamp(1.5rem,4vw,2.2em);color:#f1f5f9;margin-bottom:10px;}
+        .header p{color:#94a3b8;}
+        .table-container{background:var(--card);border:1px solid #1e293b;border-radius:12px;padding:30px;overflow-x:auto;}
+        table{width:100%;border-collapse:collapse;font-size:0.95em;}
+        th{background:rgba(0,255,136,.12);color:var(--g);padding:15px;text-align:left;font-weight:600;border:1px solid #1e293b;}
+        td{padding:12px 15px;border-bottom:1px solid #1e293b;vertical-align:top;color:#94a3b8;}
+        tr:hover{background:rgba(0,255,136,.04);}
+        .category{background:rgba(0,255,136,.06);font-weight:bold;color:var(--g);}
+        .priority-high{background:rgba(255,68,102,.06);border-left:3px solid var(--r);}
+        .priority-medium{background:rgba(255,140,0,.06);border-left:3px solid var(--o);}
+        .priority-low{background:rgba(0,255,136,.06);border-left:3px solid var(--g);}
+        .count-badge{display:inline-block;background:var(--g);color:var(--dark);padding:4px 10px;border-radius:12px;font-weight:bold;font-size:0.85em;}
+        .formula{background:#010409;padding:6px 10px;border-radius:4px;font-family:'JetBrains Mono',monospace;color:var(--g);font-size:0.9em;border:1px solid #1e293b;}
+        .summary{margin-top:30px;padding:20px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-left:4px solid var(--g);border-radius:8px;}
+        .summary h3{color:var(--g);margin-bottom:10px;}
+        .summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:15px;margin-top:15px;}
+        .summary-item{background:var(--card);border:1px solid #1e293b;padding:12px;border-radius:6px;text-align:center;border-left:3px solid var(--g);}
+        .summary-number{font-size:1.8em;font-weight:bold;color:var(--g);}
+        .summary-text{font-size:0.9em;color:#94a3b8;margin-top:5px;}
+        .td-understand{white-space:nowrap;vertical-align:middle;}
+        .understand-btn{ padding:6px 12px; border-radius:8px; font-size:0.85em; cursor:pointer; border:1px solid #1e293b; background:rgba(0,0,0,.3); color:#94a3b8; transition:all 0.2s;}
+        .understand-btn:hover{ border-color:var(--g); color:var(--g);}
+        .understand-btn.understood{ background:rgba(0,255,136,.15); border-color:var(--g); color:var(--g);}
+        .understand-btn.understood:hover{ background:rgba(0,255,136,.25);}
+        .ch02-nav .stats-panel{ margin-top:1rem; padding:0.75rem; background:rgba(0,255,136,.06); border:1px solid rgba(0,255,136,.2); border-radius:8px; font-size:0.75rem;}
+        .ch02-nav .stats-panel .stats-panel-title{ color:var(--g); font-weight:bold; margin-bottom:0.5rem; padding-bottom:0.35rem; border-bottom:1px solid rgba(0,255,136,.2);}
+        .ch02-nav .stats-panel .stat-row{ display:flex; justify-content:space-between; margin-bottom:0.4rem; color:#94a3b8;}
+        .ch02-nav .stats-panel .stat-row .num{ color:var(--g); font-weight:700;}
+        @media (max-width:768px){table{font-size:0.85em;}td,th{padding:8px 10px;}}
     </style>  
 </head>  
 <body>  
-<nav class="ch02-nav" style="position:fixed;left:0;top:0;bottom:0;width:180px;background:rgba(0,0,0,0.92);padding:1rem 0.5rem;display:flex;flex-direction:column;gap:0.25rem;font-family:monospace;font-size:0.8rem;border-right:1px solid rgba(0,255,136,0.2);z-index:90;overflow-y:auto;"><a href="ch02.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">← 返回 Ch.02 主章</a><div style="height:1px;background:rgba(255,255,255,0.1);margin:0.25rem 0;"></div><a href="ch02_quickref.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">快速参考</a><a href="ch02_interactive.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">交互演示</a><a href="ch02_anaylze.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">深度分析</a><a href="ch02_mindmap.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">思维导图</a><a href="ch02_check.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">练习检查</a><a href="ch02_game.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">趣味游戏</a><a href="ch02_Gosper's Hack.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">Gosper算法</a><a href="ch02_summary.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">章节总结</a></nav>
+<nav class="ch02-nav" style="position:fixed;left:0;top:0;bottom:0;width:180px;background:rgba(0,0,0,0.92);padding:1rem 0.5rem;display:flex;flex-direction:column;gap:0.25rem;font-family:monospace;font-size:0.8rem;border-right:1px solid rgba(0,255,136,0.2);z-index:90;overflow-y:auto;"><a href="ch02.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">← 返回 Ch.02 主章</a><div style="height:1px;background:rgba(255,255,255,0.1);margin:0.25rem 0;"></div><a href="ch02_quickref.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">快速参考</a><a href="ch02_interactive.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">交互演示</a><a href="ch02_anaylze.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">深度分析</a><a href="ch02_mindmap.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">思维导图</a><a href="ch02_check.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">练习检查</a><a href="ch02_game.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">趣味游戏</a><a href="ch02_Gosper's Hack.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">Gosper算法</a><a href="ch02_summary.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">章节总结</a><div class="stats-panel"><div class="stats-panel-title">📊 理解进度</div><div class="stat-row">总知识点 <span class="num" id="statTotal">0</span></div><div class="stat-row">已理解 <span class="num" id="statUnderstood">0</span></div><div class="stat-row">剩余 <span class="num" id="statRemain">0</span></div></div></nav>
 <div style="margin-left:180px;">
     <div class="container">  
         <div class="header">  
@@ -177,12 +62,13 @@
                         <th>公式 / 关键内容</th>  
                         <th>优先级</th>  
                         <th>应用场景</th>  
+                        <th>是否理解</th>  
                     </tr>  
                 </thead>  
                 <tbody>  
                     <!-- 第一大类 -->  
                     <tr class="category">  
-                        <td colspan="6">🔧 第一大类：最右位操纵 (TRICKS 01-08)</td>  
+                        <td colspan="7">🔧 第一大类：最右位操纵 (TRICKS 01-08)</td>  
                     </tr>  
                     <tr class="priority-high">  
                         <td>最右位操纵</td>  
@@ -251,7 +137,7 @@
 
                     <!-- 第二大类 -->  
                     <tr class="category">  
-                        <td colspan="6">➕ 第二大类：加减法恒等式 (7个)</td>  
+                        <td colspan="7">➕ 第二大类：加减法恒等式 (7个)</td>  
                     </tr>  
                     <tr class="priority-high">  
                         <td>加减法恒等式</td>  
@@ -312,7 +198,7 @@
 
                     <!-- 第三大类 -->  
                     <tr class="category">  
-                        <td colspan="6">⚡ 第三大类：无分支算术 (6个)</td>  
+                        <td colspan="7">⚡ 第三大类：无分支算术 (6个)</td>  
                     </tr>  
                     <tr class="priority-medium">  
                         <td>无分支算术</td>  
@@ -365,7 +251,7 @@
 
                     <!-- 第四大类 -->
                     <tr class="category">
-                        <td colspan="6">🔀 第四大类：MUX多路选择器 (2个)</td>
+                        <td colspan="7">🔀 第四大类：MUX多路选择器 (2个)</td>
                     </tr>
                     <tr class="priority-medium">
                         <td>MUX选择器</td>
@@ -386,7 +272,7 @@
 
                     <!-- 第五大类 -->
                     <tr class="category">
-                        <td colspan="6">🌟 第五大类：Gosper's Hack (4步骤)</td>
+                        <td colspan="7">🌟 第五大类：Gosper's Hack (4步骤)</td>
                     </tr>
                     <tr class="priority-high">
                         <td>Gosper's Hack</td>
@@ -423,7 +309,7 @@
 
                     <!-- 第六大类 -->
                     <tr class="category">
-                        <td colspan="6">🎁 第六大类：特殊技巧 (8个)</td>
+                        <td colspan="7">🎁 第六大类：特殊技巧 (8个)</td>
                     </tr>
                     <tr class="priority-medium">
                         <td>特殊技巧</td>
@@ -492,7 +378,7 @@
 
                     <!-- 第七大类 -->
                     <tr class="category">
-                        <td colspan="6">🎓 第七大类：布尔分解定理 (5个)</td>
+                        <td colspan="7">🎓 第七大类：布尔分解定理 (5个)</td>
                     </tr>
                     <tr class="priority-medium">
                         <td>布尔分解</td>
@@ -537,7 +423,7 @@
 
                     <!-- 第八大类 -->
                     <tr class="category">
-                        <td colspan="6">⏰ 第八大类：历史演变 (6个阶段)</td>
+                        <td colspan="7">⏰ 第八大类：历史演变 (6个阶段)</td>
                     </tr>
                     <tr class="priority-low">
                         <td>历史演变</td>
@@ -590,7 +476,7 @@
 
                     <!-- 第九大类 -->
                     <tr class="category">
-                        <td colspan="6">💭 第九大类：深度点评 (5个)</td>
+                        <td colspan="7">💭 第九大类：深度点评 (5个)</td>
                     </tr>
                     <tr class="priority-high">
                         <td>深度点评</td>
@@ -635,7 +521,7 @@
 
                     <!-- 第十大类 -->
                     <tr class="category">
-                        <td colspan="6">✏️ 第十大类：课后精选题 (6个)</td>
+                        <td colspan="7">✏️ 第十大类：课后精选题 (6个)</td>
                     </tr>
                     <tr class="priority-medium">
                         <td>课后习题</td>
@@ -688,7 +574,7 @@
 
                     <!-- 应用场景 -->
                     <tr class="category">
-                        <td colspan="6">🎯 应用场景统计 (20+个)</td>
+                        <td colspan="7">🎯 应用场景统计 (20+个)</td>
                     </tr>
                     <tr>
                         <td colspan="2">棋盘引擎(bitboard) | 密码学(Constant-time) | SIMD/GPU向量化 | 神经网络稀疏化</td>
@@ -771,5 +657,64 @@
     </div>
 </div>
 <a href="#" id="ch02-back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;" style="position:fixed;bottom:24px;right:24px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(0,255,136,0.9);color:#050810;display:flex;align-items:center;justify-content:center;font-size:1.2rem;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);" title="返回顶部">↑</a>
+<script>
+(function(){
+    var STORAGE_KEY = 'ch02_summary_understood';
+    function loadSet() {
+        try {
+            var s = localStorage.getItem(STORAGE_KEY);
+            return s ? new Set(JSON.parse(s)) : new Set();
+        } catch (e) { return new Set(); }
+    }
+    function saveSet(set) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify([].slice.call(set))); } catch (e) {}
+    }
+    function updateStats(total, understood) {
+        var elTotal = document.getElementById('statTotal');
+        var elUnderstood = document.getElementById('statUnderstood');
+        var elRemain = document.getElementById('statRemain');
+        if (elTotal) elTotal.textContent = total;
+        if (elUnderstood) elUnderstood.textContent = understood;
+        if (elRemain) elRemain.textContent = total - understood;
+    }
+    var tbody = document.querySelector('.table-container tbody');
+    if (!tbody) return;
+    var rows = tbody.querySelectorAll('tr:not(.category)');
+    var total = rows.length;
+    var understoodSet = loadSet();
+    rows.forEach(function(tr, i) {
+        tr.setAttribute('data-rowindex', i);
+        var td = document.createElement('td');
+        td.className = 'td-understand';
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'understand-btn';
+        btn.setAttribute('data-rowindex', i);
+        if (understoodSet.has(i)) {
+            btn.classList.add('understood');
+            btn.textContent = '已理解';
+        } else {
+            btn.textContent = '未理解';
+        }
+        btn.onclick = function() {
+            var idx = parseInt(this.getAttribute('data-rowindex'), 10);
+            if (understoodSet.has(idx)) {
+                understoodSet.delete(idx);
+                this.classList.remove('understood');
+                this.textContent = '未理解';
+            } else {
+                understoodSet.add(idx);
+                this.classList.add('understood');
+                this.textContent = '已理解';
+            }
+            saveSet(understoodSet);
+            updateStats(total, understoodSet.size);
+        };
+        td.appendChild(btn);
+        tr.appendChild(td);
+    });
+    updateStats(total, understoodSet.size);
+})();
+</script>
 </body>
 </html>

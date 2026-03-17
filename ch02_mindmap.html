@@ -6,230 +6,55 @@
     <title>Hacker's Delight Ch02 - 完整思维导图</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.3/dist/mermaid.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-            animation: slideDown 0.6s ease-out;
-        }
-
-        .header h1 {
-            font-size: 2.2em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .header p {
-            font-size: 1em;
-            opacity: 0.95;
-        }
-
-        .mindmap-container {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-            overflow: auto;
-            animation: fadeIn 0.6s ease-out;
-            min-height: 1000px;
-        }
-
-        .mermaid {
-            display: flex;
-            justify-content: center;
-        }
-
-        .controls {
-            background: white;
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 30px;
-            animation: slideUp 0.6s ease-out;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.95em;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary {
-            background: #f9f9f9;
-            color: #333;
-            border: 2px solid #ddd;
-        }
-
-        .btn-secondary:hover {
-            background: #f0f7ff;
-            border-color: #667eea;
-        }
-
-        .legend {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .legend-title {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .legend-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .legend-item {
-            padding: 15px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border-left: 3px solid #667eea;
-        }
-
-        .legend-item-title {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .legend-item-desc {
-            font-size: 0.9em;
-            color: #666;
-            line-height: 1.5;
-        }
-
-        .priority-high {
-            border-left-color: #d63031;
-        }
-
-        .priority-high .legend-item-title {
-            color: #d63031;
-        }
-
-        .priority-medium {
-            border-left-color: #f39c12;
-        }
-
-        .priority-medium .legend-item-title {
-            color: #f39c12;
-        }
-
-        .priority-low {
-            border-left-color: #00b894;
-        }
-
-        .priority-low .legend-item-title {
-            color: #00b894;
-        }
-
-        .stats-section {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
-        }
-
-        .stats-title {
-            font-size: 1.3em;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-
-        .stat-label {
-            font-size: 0.95em;
-            opacity: 0.95;
-        }
-
-        .keyboard-hint {
-            background: linear-gradient(135deg, #667eea15, #764ba215);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-left: 3px solid #667eea;
-        }
-
-        .keyboard-hint strong {
-            color: #667eea;
-        }
+        :root{--g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;--dark:#050810;--card:#0d1117;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{font-family:'Inter',sans-serif;background:var(--dark);color:#e2e8f0;min-height:100vh;padding:20px;font-size:17px;line-height:1.7;}
+        body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:0;}
+        .container{max-width:1800px;margin:0 auto;position:relative;z-index:1;}
+        .header{text-align:center;margin-bottom:30px;animation:slideDown 0.6s ease-out;}
+        .header h1{font-size:clamp(1.5rem,4vw,2.2em);color:#f1f5f9;margin-bottom:10px;}
+        .header p{font-size:1em;color:#94a3b8;}
+        .mindmap-container{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:40px;margin-bottom:30px;overflow:auto;animation:fadeIn 0.6s ease-out;min-height:1000px;}
+        .mindmap-container:hover{border-color:rgba(0,255,136,.25);}
+        .mermaid{display:flex;justify-content:center;}
+        .mindmap-container .mermaid .edgePath path,
+        .mindmap-container .mermaid g.edge path{stroke:var(--g) !important;stroke-width:2px;}
+        .mindmap-container .mermaid .marker path,
+        .mindmap-container .mermaid g.edge .marker path{fill:var(--g) !important;}
+        .mindmap-container .mermaid g.edge line{stroke:var(--g) !important;}
+        .mindmap-container .mermaid .edge-thickness-normal{stroke:var(--g) !important;}
+        .mindmap-container .mermaid .node rect{fill:#0d1117 !important;stroke:#1e293b !important;}
+        .mindmap-container .mermaid .node .label{color:#e2e8f0 !important;}
+        .mindmap-container .mermaid .node div{color:#e2e8f0 !important;}
+        .mindmap-container .mermaid .node span{color:#e2e8f0 !important;}
+        .mindmap-container .mermaid foreignObject div{color:#e2e8f0 !important;background:transparent !important;}
+        .controls{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:20px;display:flex;gap:15px;flex-wrap:wrap;justify-content:center;margin-bottom:30px;animation:slideUp 0.6s ease-out;}
+        .btn{padding:12px 24px;border:none;border-radius:8px;font-weight:600;font-size:0.95em;cursor:pointer;transition:all 0.2s ease;display:flex;align-items:center;gap:8px;}
+        .btn-primary{background:var(--g);color:var(--dark);}
+        .btn-primary:hover{box-shadow:0 0 20px rgba(0,255,136,.5);transform:translateY(-2px);}
+        .btn-secondary{background:transparent;color:#94a3b8;border:2px solid #1e293b;}
+        .btn-secondary:hover{border-color:var(--g);color:var(--g);}
+        .legend{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:25px;margin-bottom:30px;}
+        .legend-title{font-size:1.3em;font-weight:bold;color:var(--g);margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid rgba(0,255,136,.2);}
+        .legend-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;}
+        .legend-item{padding:15px;background:rgba(0,0,0,.25);border-radius:8px;border-left:3px solid var(--g);}
+        .legend-item-title{font-weight:600;color:#e2e8f0;margin-bottom:6px;display:flex;align-items:center;gap:8px;}
+        .legend-item-desc{font-size:0.9em;color:#94a3b8;line-height:1.5;}
+        .priority-high{border-left-color:var(--r);}
+        .priority-high .legend-item-title{color:var(--r);}
+        .priority-medium{border-left-color:var(--o);}
+        .priority-medium .legend-item-title{color:var(--o);}
+        .priority-low{border-left-color:var(--g);}
+        .priority-low .legend-item-title{color:var(--g);}
+        .stats-section{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:25px;margin-bottom:30px;}
+        .stats-title{font-size:1.3em;font-weight:bold;color:var(--g);margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid rgba(0,255,136,.2);}
+        .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;}
+        .stat-card{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:#e2e8f0;padding:20px;border-radius:8px;text-align:center;}
+        .stat-number{font-size:2em;font-weight:bold;line-height:1;margin-bottom:8px;color:var(--g);}
+        .stat-label{font-size:0.95em;color:#94a3b8;}
+        .keyboard-hint{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-radius:8px;padding:15px;margin-bottom:20px;border-left:4px solid var(--g);}
+        .keyboard-hint strong{color:var(--g);}
 
         @keyframes slideDown {
             from {
@@ -323,7 +148,7 @@
         <!-- 思维导图 -->
         <div class="mindmap-container" id="mindmapContainer">
             <div class="mermaid" id="mermaidDiagram">
-%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px'}, 'logLevel':'fatal'}}%%
+%%{init: {'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'lineColor': '#00ff88', 'primaryBorderColor': '#00ff88', 'secondaryBorderColor': '#00d4ff', 'tertiaryBorderColor': '#1e293b' }, 'logLevel':'fatal'}}%%
 graph LR
     A["<b>Hacker's Delight Ch02<br/>位操作基础</b><br/>142+ 知识点"]
     
@@ -402,17 +227,17 @@ graph LR
     K --> K5["Q4 四数平均 ⭐⭐<br/>递归应用"]
     K --> K6["Q10 位复制 ⭐<br/>组合应用"]
     
-    style A fill:#667eea,stroke:#333,stroke-width:3px,color:#fff
-    style B fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style C fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style D fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style E fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style F fill:#fff4e6,stroke:#f39c12,stroke-width:2px
-    style G fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style H fill:#e8f0ff,stroke:#667eea,stroke-width:2px
-    style I fill:#f0f0f0,stroke:#999,stroke-width:2px
-    style J fill:#fff4e6,stroke:#f39c12,stroke-width:2px
-    style K fill:#fff0f0,stroke:#d63031,stroke-width:2px
+    style A fill:#0d1117,stroke:#00ff88,stroke-width:3px,color:#00ff88
+    style B fill:#0d1117,stroke:#00ff88,stroke-width:2px,color:#e2e8f0
+    style C fill:#0d1117,stroke:#00d4ff,stroke-width:2px,color:#e2e8f0
+    style D fill:#0d1117,stroke:#00ff88,stroke-width:2px,color:#e2e8f0
+    style E fill:#0d1117,stroke:#00d4ff,stroke-width:2px,color:#e2e8f0
+    style F fill:#0d1117,stroke:#ff8c00,stroke-width:2px,color:#e2e8f0
+    style G fill:#0d1117,stroke:#00ff88,stroke-width:2px,color:#e2e8f0
+    style H fill:#0d1117,stroke:#b14fff,stroke-width:2px,color:#e2e8f0
+    style I fill:#0d1117,stroke:#1e293b,stroke-width:2px,color:#94a3b8
+    style J fill:#0d1117,stroke:#ff8c00,stroke-width:2px,color:#e2e8f0
+    style K fill:#0d1117,stroke:#ff4466,stroke-width:2px,color:#e2e8f0
             </div>
         </div>
 
@@ -646,11 +471,33 @@ graph LR
         // 初始化Mermaid
         mermaid.initialize({ 
             startOnLoad: true,
-            theme: 'default',
+            theme: 'base',
+            themeVariables: {
+                lineColor: '#00ff88',
+                primaryBorderColor: '#00ff88',
+                secondaryBorderColor: '#00d4ff',
+                primaryTextColor: '#e2e8f0',
+                secondaryTextColor: '#94a3b8',
+                tertiaryColor: '#0d1117',
+                tertiaryBorderColor: '#1e293b',
+                tertiaryTextColor: '#94a3b8',
+                mainBkg: '#0d1117',
+                secondBkg: '#0d1117',
+                tertiaryBkg: '#0d1117',
+                nodeBorder: '#1e293b',
+                clusterBkg: '#0d1117',
+                clusterBorder: '#1e293b',
+                titleColor: '#00ff88',
+                edgeLabelBackground: '#0d1117',
+                nodeTextColor: '#e2e8f0',
+                textColor: '#e2e8f0',
+                fontSize: '16px'
+            },
             logLevel: 'fatal',
             flowchart: {
                 useMaxWidth: true,
-                htmlLabels: true
+                htmlLabels: true,
+                curve: 'basis'
             }
         });
 

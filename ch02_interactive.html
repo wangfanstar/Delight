@@ -5,129 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hacker's Delight Chapter 02 - 动画交互学习版</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            animation: slideDown 0.8s ease-out;
-        }
-
-        .header h1 {
-            font-size: 2.8em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.3);
-            font-weight: 700;
-        }
-
-        .header p {
-            font-size: 1.15em;
-            opacity: 0.95;
-            margin: 5px 0;
-        }
-
-        .header .subtitle {
-            font-size: 0.95em;
-            opacity: 0.85;
-            font-style: italic;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: rgba(255,255,255,0.3);
-            border-radius: 10px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            border-radius: 10px;
-            width: 0%;
-            animation: fill 1s ease-out forwards;
-        }
-
-        .section {
-            background: white;
-            border-radius: 16px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            animation: fadeInUp 0.7s ease-out;
-        }
-
-        .section-number {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 1.2em;
-            margin-bottom: 15px;
-        }
-
-        .section-title {
-            font-size: 2.2em;
-            color: #667eea;
-            margin: 15px 0 25px 0;
-            padding-bottom: 15px;
-            border-bottom: 3px solid #667eea;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .section-title-emoji {
-            font-size: 1.5em;
-        }
-
-        .core-insight {
-            background: linear-gradient(135deg, rgba(102,126,234,0.08) 0%, rgba(118,75,162,0.08) 100%);
-            border-left: 5px solid #667eea;
-            border-radius: 8px;
-            padding: 20px 25px;
-            margin: 25px 0;
-            line-height: 1.8;
-            font-size: 1.05em;
-        }
-
-        .core-insight strong {
-            color: #667eea;
-            font-weight: 600;
-        }
-
-        .highlight {
-            background: linear-gradient(120deg, #fff9c4 0%, #ffe082 100%);
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(255, 193, 7, 0.3);
-        }
+        :root{--g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;--dark:#050810;--card:#0d1117;}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        html{scroll-behavior:smooth;}
+        body{font-family:'Inter',sans-serif;background:var(--dark);color:#e2e8f0;min-height:100vh;padding:20px;font-size:17px;line-height:1.7;}
+        body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:0;}
+        .container{max-width:1400px;margin:0 auto;position:relative;z-index:1;}
+        .header{text-align:center;margin-bottom:40px;animation:slideDown 0.8s ease-out;}
+        .header h1{font-size:clamp(1.5rem,4vw,2.8em);color:#f1f5f9;margin-bottom:10px;font-weight:700;}
+        .header p{font-size:1.15em;color:#94a3b8;margin:5px 0;}
+        .header .subtitle{font-size:0.95em;color:#64748b;font-style:italic;}
+        .progress-bar{width:100%;height:8px;background:#1e293b;border-radius:10px;margin:20px 0;overflow:hidden;}
+        .progress-fill{height:100%;background:linear-gradient(90deg,var(--g),var(--b));border-radius:10px;width:0%;animation:fill 1s ease-out forwards;}
+        .section{background:var(--card);border:1px solid #1e293b;border-radius:16px;padding:40px;margin-bottom:30px;animation:fadeInUp 0.7s ease-out;}
+        .section:hover{border-color:rgba(0,255,136,.25);}
+        .section-number{display:flex;align-items:center;justify-content:center;background:var(--g);color:var(--dark);width:45px;height:45px;border-radius:50%;font-weight:bold;font-size:1.2em;margin-bottom:15px;}
+        .section-title{font-size:2.2em;color:var(--g);margin:15px 0 25px 0;padding-bottom:15px;border-bottom:1px solid rgba(0,255,136,.2);display:flex;align-items:center;gap:15px;}
+        .section-title-emoji{font-size:1.5em;}
+        .core-insight{background:rgba(0,255,136,.06);border-left:5px solid var(--g);border-radius:8px;padding:20px 25px;margin:25px 0;line-height:1.8;font-size:1.05em;color:#e2e8f0;}
+        .core-insight strong{color:var(--g);font-weight:600;}
+        .highlight{background:rgba(255,140,0,.2);padding:2px 8px;border-radius:4px;font-weight:500;color:var(--o);}
 
         .tricks-grid {
             display: grid;
@@ -136,232 +33,44 @@
             margin: 30px 0;
         }
 
-        .trick-card {
-            background: white;
-            border: 2px solid #f0f0f0;
-            border-radius: 12px;
-            padding: 25px;
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-        }
-
-        .trick-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            animation: slideRight 0.6s ease-out forwards;
-        }
-
-        .trick-card:hover {
-            transform: translateY(-8px) translateX(4px);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.25);
-            border-color: #667eea;
-        }
-
-        .trick-header {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-
-        .trick-icon {
-            font-size: 2em;
-            flex-shrink: 0;
-        }
-
-        .trick-number {
-            background: #667eea;
-            color: white;
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 0.9em;
-            flex-shrink: 0;
-        }
-
-        .trick-title {
-            font-size: 1.15em;
-            font-weight: 600;
-            color: #333;
-            flex: 1;
-        }
-
-        .trick-formula {
-            background: #f5f5f5;
-            border-left: 4px solid #667eea;
-            padding: 12px 15px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.95em;
-            color: #d63031;
-            margin: 15px 0;
-            word-break: break-word;
-            font-weight: 500;
-        }
-
-        .trick-desc {
-            color: #666;
-            line-height: 1.7;
-            font-size: 0.95em;
-            margin-bottom: 12px;
-        }
-
-        .bit-visual {
-            display: flex;
-            gap: 3px;
-            margin: 15px 0;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-        }
-
-        .bit {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 6px;
-            color: white;
-            font-size: 0.8em;
-            font-weight: bold;
-            font-family: monospace;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-
-        .bit.one {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-        }
-
-        .bit.zero {
-            background: #ddd;
-            color: #999;
-        }
-
-        .example {
-            background: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 12px;
-            border-radius: 6px;
-            margin: 12px 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            color: #2d3436;
-            line-height: 1.6;
-        }
+        .trick-card{background:var(--card);border:1px solid #1e293b;border-radius:12px;padding:25px;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);cursor:pointer;position:relative;overflow:hidden;}
+        .trick-card:hover{border-color:rgba(0,255,136,.25);transform:translateY(-8px) translateX(4px);}
+        .trick-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:4px;background:linear-gradient(90deg,var(--g),var(--b));animation:slideRight 0.6s ease-out forwards;}
+        .trick-header{display:flex;align-items:flex-start;gap:12px;margin-bottom:15px;}
+        .trick-icon{font-size:2em;flex-shrink:0;}
+        .trick-number{background:var(--g);color:var(--dark);width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:0.9em;flex-shrink:0;}
+        .trick-title{font-size:1.15em;font-weight:600;color:#e2e8f0;flex:1;}
+        .trick-formula{background:rgba(0,0,0,.3);border-left:4px solid var(--g);padding:12px 15px;border-radius:6px;font-family:'Courier New',monospace;font-size:0.95em;color:var(--r);margin:15px 0;word-break:break-word;font-weight:500;}
+        .trick-desc{color:#94a3b8;line-height:1.7;font-size:0.95em;margin-bottom:12px;}
+        .bit-visual{display:flex;gap:3px;margin:15px 0;justify-content:flex-start;flex-wrap:wrap;}
+        .bit{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:0.8em;font-weight:bold;font-family:monospace;transition:all 0.3s ease;}
+        .bit.one{background:linear-gradient(135deg,var(--g),var(--b));color:var(--dark);}
+        .bit.zero{background:#1e293b;color:#64748b;}
+        .example{background:rgba(0,0,0,.25);border:1px solid #1e293b;padding:12px;border-radius:6px;margin:12px 0;font-family:'Courier New',monospace;font-size:0.9em;color:#94a3b8;line-height:1.6;}
 
         .example-title {
             font-weight: bold;
-            color: #667eea;
+            color: var(--g);
             margin-bottom: 6px;
         }
 
-        .badge {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            font-weight: bold;
-            margin: 5px 5px 5px 0;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-
-        .badge.critical {
-            background: linear-gradient(135deg, #d63031, #ee5a6f);
-        }
-
-        .badge.expert {
-            background: linear-gradient(135deg, #764ba2, #9b59b6);
-        }
-
-        .badge.optimization {
-            background: linear-gradient(135deg, #00b894, #55efc4);
-            color: #fff;
-        }
-
-        .identities-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 25px 0;
-            font-size: 0.95em;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border-radius: 8px;
-            overflow: hidden;
-        }
-
-        .identities-table th {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border: none;
-        }
-
-        .identities-table td {
-            padding: 15px;
-            border-bottom: 1px solid #eee;
-            vertical-align: top;
-        }
-
-        .identities-table tr:hover {
-            background: #f9f9f9;
-        }
-
-        .identities-table code {
-            background: #f5f5f5;
-            padding: 4px 10px;
-            border-radius: 4px;
-            color: #d63031;
-            font-family: 'Courier New', monospace;
-            font-weight: 500;
-        }
-
-        .mnemonic {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px 30px;
-            border-radius: 12px;
-            margin: 25px 0;
-            font-size: 1.05em;
-            line-height: 2;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-            border-left: 5px solid white;
-        }
-
-        .mnemonic strong {
-            font-weight: 600;
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 4px;
-        }
-
-        .interactive-demo {
-            background: #f9f9f9;
-            border: 2px solid #667eea;
-            border-radius: 12px;
-            padding: 25px;
-            margin: 25px 0;
-        }
+        .badge{display:inline-block;background:var(--g);color:var(--dark);padding:6px 14px;border-radius:20px;font-size:0.8em;font-weight:bold;margin:5px 5px 5px 0;}
+        .badge.critical{background:linear-gradient(135deg,var(--r),#ee5a6f);color:#fff;}
+        .badge.expert{background:linear-gradient(135deg,var(--p),#9b59b6);color:#fff;}
+        .badge.optimization{background:linear-gradient(135deg,var(--g),#55efc4);color:var(--dark);}
+        .identities-table{width:100%;border-collapse:collapse;margin:25px 0;font-size:0.95em;border-radius:8px;overflow:hidden;border:1px solid #1e293b;}
+        .identities-table th{background:linear-gradient(135deg,var(--g),var(--b));color:var(--dark);padding:15px;text-align:left;font-weight:600;border:none;}
+        .identities-table td{padding:15px;border-bottom:1px solid #1e293b;vertical-align:top;}
+        .identities-table tr:hover{background:rgba(0,255,136,.06);}
+        .identities-table code{background:rgba(0,0,0,.3);padding:4px 10px;border-radius:4px;color:var(--r);font-family:'Courier New',monospace;font-weight:500;}
+        .mnemonic{background:linear-gradient(135deg,var(--g) 0%,var(--b) 100%);color:var(--dark);padding:25px 30px;border-radius:12px;margin:25px 0;font-size:1.05em;line-height:2;border-left:5px solid rgba(0,0,0,.2);}
+        .mnemonic strong{font-weight:600;background:rgba(0,0,0,0.2);padding:2px 8px;border-radius:4px;}
+        .interactive-demo{background:rgba(0,0,0,.2);border:1px solid rgba(0,255,136,.3);border-radius:12px;padding:25px;margin:25px 0;}
 
         .demo-title {
             font-size: 1.15em;
             font-weight: 600;
-            color: #667eea;
+            color: var(--g);
             margin-bottom: 15px;
         }
 
@@ -381,7 +90,7 @@
         .bit-toggle {
             width: 40px;
             height: 40px;
-            border: 2px solid #667eea;
+            border: 1px solid var(--g);
             background: white;
             border-radius: 6px;
             cursor: pointer;
@@ -400,7 +109,7 @@
         }
 
         .bit-toggle.active {
-            background: #667eea;
+            background: var(--g);
             color: white;
         }
 
@@ -411,11 +120,11 @@
             margin: 15px 0;
             font-family: monospace;
             font-size: 0.9em;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--g);
         }
 
         .result-label {
-            color: #667eea;
+            color: var(--g);
             font-weight: bold;
         }
 
@@ -440,15 +149,14 @@
         }
 
         .gosper-item {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            background: linear-gradient(135deg, var(--g), var(--b));
+            color: var(--dark);
             padding: 12px;
             border-radius: 8px;
             text-align: center;
             font-family: monospace;
             font-weight: bold;
             font-size: 0.9em;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
             animation: pulse 2s ease-in-out infinite;
         }
 
@@ -473,47 +181,13 @@
             }
         }
 
-        .comparison-box {
-            padding: 20px;
-            border-radius: 12px;
-            border: 2px solid #ddd;
-        }
-
-        .comparison-box.wrong {
-            background: #fff3f3;
-            border-color: #d63031;
-        }
-
-        .comparison-box.wrong .box-title {
-            color: #d63031;
-        }
-
-        .comparison-box.correct {
-            background: #f3fff3;
-            border-color: #00b894;
-        }
-
-        .comparison-box.correct .box-title {
-            color: #00b894;
-        }
-
-        .box-title {
-            font-weight: bold;
-            font-size: 1.1em;
-            margin-bottom: 12px;
-        }
-
-        .comparison-box code {
-            display: block;
-            background: white;
-            padding: 12px;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            line-height: 1.6;
-            color: #333;
-            margin-top: 10px;
-        }
+        .comparison-box{padding:20px;border-radius:12px;border:1px solid #1e293b;}
+        .comparison-box.wrong{background:rgba(255,68,102,.1);border-color:var(--r);}
+        .comparison-box.wrong .box-title{color:var(--r);}
+        .comparison-box.correct{background:rgba(0,255,136,.1);border-color:var(--g);}
+        .comparison-box.correct .box-title{color:var(--g);}
+        .box-title{font-weight:bold;font-size:1.1em;margin-bottom:12px;color:#e2e8f0;}
+        .comparison-box code{display:block;background:var(--card);padding:12px;border-radius:6px;font-family:'Courier New',monospace;font-size:0.9em;line-height:1.6;color:#94a3b8;margin-top:10px;border:1px solid #1e293b;}
 
         .timeline {
             position: relative;
@@ -527,89 +201,20 @@
             top: 0;
             bottom: 0;
             width: 3px;
-            background: linear-gradient(180deg, #667eea, #764ba2);
+            background: linear-gradient(180deg, var(--g), var(--p));
         }
 
-        .timeline-item {
-            padding: 20px;
-            margin-bottom: 20px;
-            background: #f9f9f9;
-            border-radius: 8px;
-            border-left: 4px solid #667eea;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -15px;
-            top: 25px;
-            width: 10px;
-            height: 10px;
-            background: #667eea;
-            border-radius: 50%;
-            border: 3px solid white;
-        }
-
-        .timeline-year {
-            font-weight: bold;
-            color: #667eea;
-            font-size: 1.1em;
-            margin-bottom: 8px;
-        }
-
-        .timeline-text {
-            color: #666;
-            line-height: 1.6;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 8px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-            margin: 8px 8px 8px 0;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:active {
-            transform: translateY(0);
-        }
-
-        button.secondary {
-            background: #f0f0f0;
-            color: #667eea;
-            border: 2px solid #667eea;
-        }
-
-        button.secondary:hover {
-            background: #667eea;
-            color: white;
-        }
-
-        .info-card {
-            background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
-            border-left: 5px solid #667eea;
-            padding: 18px;
-            border-radius: 8px;
-            margin: 20px 0;
-            font-size: 0.95em;
-            line-height: 1.7;
-        }
-
-        .info-card strong {
-            color: #667eea;
-        }
+        .timeline-item{padding:20px;margin-bottom:20px;background:rgba(0,0,0,.2);border-radius:8px;border-left:4px solid var(--g);position:relative;}
+        .timeline-item::before{content:'';position:absolute;left:-15px;top:25px;width:10px;height:10px;background:var(--g);border-radius:50%;border:3px solid var(--card);}
+        .timeline-year{font-weight:bold;color:var(--g);font-size:1.1em;margin-bottom:8px;}
+        .timeline-text{color:#94a3b8;line-height:1.6;}
+        button{background:linear-gradient(135deg,var(--g),var(--b));color:var(--dark);border:none;padding:12px 28px;border-radius:8px;font-size:1em;cursor:pointer;transition:all 0.3s ease;font-weight:600;margin:8px 8px 8px 0;}
+        button:hover{transform:translateY(-2px);box-shadow:0 0 20px rgba(0,255,136,.4);}
+        button:active{transform:translateY(0);}
+        button.secondary{background:transparent;color:var(--g);border:2px solid var(--g);}
+        button.secondary:hover{background:var(--g);color:var(--dark);}
+        .info-card{background:rgba(0,255,136,.06);border-left:5px solid var(--g);padding:18px;border-radius:8px;margin:20px 0;font-size:0.95em;line-height:1.7;color:#e2e8f0;}
+        .info-card strong{color:var(--g);}
 
         @keyframes slideDown {
             from {
@@ -703,15 +308,8 @@
         }
 
         @media print {
-            body {
-                background: white;
-            }
-
-            .section {
-                page-break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ddd;
-            }
+            body{background:#fff;}
+            .section{page-break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
         }
     </style>
 </head>
@@ -994,9 +592,9 @@
                 <div class="demo-title">🎮 恒等式验证器 - 自动计算检验所有公式</div>
                 <div class="bit-input-group">
                     <label style="font-weight: bold;">输入 x:</label>
-                    <input type="number" id="x_val" value="12" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="x_val" value="12" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <label style="font-weight: bold; margin-left: 20px;">输入 y:</label>
-                    <input type="number" id="y_val" value="7" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="y_val" value="7" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <button onclick="verifyIdentities()">验证</button>
                 </div>
                 <div id="identities-result" style="margin-top: 20px;">
@@ -1132,9 +730,9 @@
                 <div class="demo-title">🎮 无分支操作演示 - 改变 x、y 实时计算</div>
                 <div class="bit-input-group">
                     <label style="font-weight: bold;">x =</label>
-                    <input type="number" id="bf_x" value="42" min="-128" max="127" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="bf_x" value="42" min="-128" max="127" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <label style="font-weight: bold; margin-left: 20px;">y =</label>
-                    <input type="number" id="bf_y" value="-15" min="-128" max="127" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="bf_y" value="-15" min="-128" max="127" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <button onclick="branchFreeDemo()">计算</button>
                 </div>
                 <div id="branchfree-result" style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
@@ -1217,11 +815,11 @@
                 <div class="demo-title">🎮 MUX 可视化 - 选择 x 或 y</div>
                 <div class="bit-input-group">
                     <label style="font-weight: bold;">x =</label>
-                    <input type="number" id="mux_x" value="170" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="mux_x" value="170" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <label style="font-weight: bold; margin-left: 20px;">y =</label>
-                    <input type="number" id="mux_y" value="85" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="mux_y" value="85" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <label style="font-weight: bold; margin-left: 20px;">mask =</label>
-                    <input type="number" id="mux_m" value="240" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="mux_m" value="240" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <button onclick="muxDemo()">计算</button>
                 </div>
                 <div id="mux-result" style="margin-top: 20px;">
@@ -1299,12 +897,12 @@
                 <div class="demo-title">🎮 Gosper's Hack 逐步演示 - 点击 NEXT 枚举下一个</div>
                 <div class="bit-input-group">
                     <label style="font-weight: bold;">起始值：</label>
-                    <input type="number" id="gosper_start" value="7" min="0" max="255" style="width: 80px; padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <input type="number" id="gosper_start" value="7" min="0" max="255" style="width: 80px; padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                     <button onclick="gosperInit()">重置</button>
                     <button onclick="gosperNext()" style="margin-left: 10px;">NEXT →</button>
                 </div>
 
-                <div id="gosper-visualization" style="margin-top: 20px; padding: 20px; background: #f9f9f9; border-radius: 8px;">
+                <div id="gosper-visualization" style="margin-top: 20px; padding: 20px; background: rgba(0,0,0,.2); border-radius: 8px; border: 1px solid #1e293b;">
                     <div class="result-display">
                         <div class="result-label">x (当前):</div>
                         <div class="result-value" id="gosper-x">00000111</div>
@@ -1520,7 +1118,7 @@
                 <div class="demo-title">🎮 布尔函数分解演示 - Reed-Muller 展开</div>
                 <div class="bit-input-group">
                     <label style="font-weight: bold;">选择布尔函数：</label>
-                    <select id="bool_func" style="padding: 8px; border: 2px solid #667eea; border-radius: 4px;">
+                    <select id="bool_func" style="padding: 8px; border: 1px solid var(--g); border-radius: 4px;">
                         <option value="and">x AND y</option>
                         <option value="or">x OR y</option>
                         <option value="xor">x XOR y</option>
@@ -1967,8 +1565,8 @@
             identities.forEach(id => {
                 const match = id.left === id.right ? '✅' : '❌';
                 html += `
-                    <div style="background:#f9f9f9; padding:12px; border-radius:6px; border-left:4px solid ${id.left === id.right ? '#00b894' : '#d63031'}">
-                        <div style="font-weight:bold; color:#667eea;">${match} ${id.name}</div>
+                    <div style="background:rgba(0,0,0,.2); padding:12px; border-radius:6px; border-left:4px solid ${id.left === id.right ? '#00b894' : '#d63031'}">
+                        <div style="font-weight:bold; color:var(--g);">${match} ${id.name}</div>
                         <div style="font-family:monospace; margin-top:8px; font-size:0.9em;">
                             左边 = ${id.left} (${toBinary(id.left, 16)})<br>
                             右边 = ${id.right} (${toBinary(id.right, 16)})
@@ -2005,26 +1603,26 @@
             const sign_val = ((x >> 31) | ((-x) >> 31));
 
             const html = `
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #667eea;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid var(--g);">
                     <div class="result-label">x = ${x}, y = ${y}</div>
                 </div>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
                     <div class="result-label">abs(x) = ${abs_x}</div>
                     <div class="result-value" style="font-family:monospace;">公式: (x+mask)^mask = ${abs_x}</div>
                 </div>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
                     <div class="result-label">min(x,y) = ${min_val}</div>
                     <div class="result-value" style="font-family:monospace;">公式: y+((x-y)&((x-y)>>31)) = ${min_val}</div>
                 </div>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
                     <div class="result-label">max(x,y) = ${max_val}</div>
                     <div class="result-value" style="font-family:monospace;">公式: x-((x-y)&((x-y)>>31)) = ${max_val}</div>
                 </div>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
                     <div class="result-label">avg(x,y) = ${avg_val} (无溢出!)</div>
                     <div class="result-value" style="font-family:monospace;">公式: (x&y)+((x^y)>>1) = ${avg_val}</div>
                 </div>
-                <div style="background:#f9f9f9; padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
+                <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; margin:10px 0; border-left:4px solid #00b894;">
                     <div class="result-label">sign(x) = ${sign_val}</div>
                     <div class="result-value" style="font-family:monospace;">-1(负) / 0(零) / +1(正) = ${sign_val}</div>
                 </div>
@@ -2053,7 +1651,7 @@
 
             const html = `
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:15px;">
-                    <div style="background:#f9f9f9; padding:15px; border-radius:8px; border-left:4px solid #667eea;">
+                    <div style="background:rgba(0,0,0,.2); padding:15px; border-radius:8px; border-left:4px solid var(--g);">
                         <div class="result-label">输入值</div>
                         <div style="font-family:monospace; margin:10px 0;">
                             x = ${x} (${toBinary(x, 8)})<br>
@@ -2068,7 +1666,7 @@
                             = ${mux_std} (${toBinary(mux_std, 8)})
                         </div>
                     </div>
-                    <div style="background:#f3e5f5; padding:15px; border-radius:8px; border-left:4px solid #764ba2;">
+                    <div style="background:rgba(177,79,255,.12); padding:15px; border-radius:8px; border-left:4px solid var(--p);">
                         <div class="result-label">⚡ 优化MUX (3条指令)</div>
                         <div style="font-family:monospace; margin:10px 0;">
                             ((x^y)&m)^y<br>
@@ -2234,7 +1832,7 @@
             }
 
             const html = `
-                <div style="background:#f9f9f9; padding:20px; border-radius:8px; border-left:4px solid #667eea; font-family:monospace; white-space:pre-wrap; line-height:1.8;">
+                <div style="background:rgba(0,0,0,.2); padding:20px; border-radius:8px; border-left:4px solid var(--g); font-family:monospace; white-space:pre-wrap; line-height:1.8;">
                     ${analysis}
                 </div>
             `;
