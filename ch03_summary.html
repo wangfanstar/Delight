@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker's Delight Ch03 知识点统计详表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #0c0c1d 0%, #1a1a3e 50%, #0d0d2b 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* 顶部导航 */
+        .top-nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(15, 15, 40, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .top-nav a {
+            color: #64ffda;
+            text-decoration: none;
+            font-size: 14px;
+            padding: 5px 12px;
+            border-radius: 15px;
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .top-nav a:hover {
+            background: rgba(100, 255, 218, 0.1);
+            border-color: #64ffda;
+        }
+
+        .top-nav a.active {
+            background: rgba(100, 255, 218, 0.15);
+            border-color: #64ffda;
+        }
+
+        /* 进度条 */
+        .progress-bar {
+            background: rgba(20, 20, 50, 0.9);
+            border: 1px solid rgba(100, 255, 218, 0.15);
+            border-radius: 12px;
+            padding: 15px 25px;
+            margin: 20px auto;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .progress-bar .label {
+            font-size: 14px;
+            color: #64ffda;
+        }
+
+        .progress-bar .stat {
+            font-size: 20px;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .progress-bar .stat span {
+            color: #64ffda;
+        }
+
+        /* 主标题 */
+        .main-title {
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+
+        .main-title h1 {
+            font-size: 2.2em;
+            background: linear-gradient(135deg, #64ffda, #00b4d8, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .main-title p {
+            color: #8892b0;
+            font-size: 1.1em;
+        }
+
+        /* 表格容器 */
+        .table-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(15, 15, 40, 0.6);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        thead th {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.2);
+            white-space: nowrap;
+        }
+
+        tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.05);
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        tbody tr:hover {
+            background: rgba(100, 255, 218, 0.03);
+        }
+
+        /* 分类标题行 */
+        .category-row td {
+            background: rgba(100, 255, 218, 0.08);
+            color: #64ffda;
+            font-weight: 700;
+            font-size: 15px;
+            padding: 16px;
+            border-bottom: 2px solid rgba(100, 255, 218, 0.15);
+        }
+
+        /* 公式样式 */
+        .formula {
+            font-family: 'Courier New', monospace;
+            color: #ffd700;
+            background: rgba(255, 215, 0, 0.08);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        /* 优先级星标 */
+        .priority-high { color: #ff6b6b; }
+        .priority-mid { color: #ffd700; }
+        .priority-low { color: #8892b0; }
+
+        /* 应用场景标签 */
+        .app-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            background: rgba(124, 58, 237, 0.15);
+            color: #b794f6;
+            border-radius: 10px;
+            font-size: 12px;
+            margin: 1px;
+        }
+
+        /* Checkbox 样式 */
+        .understand-check {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #64ffda;
+        }
+
+        /* 统计汇总区域 */
+        .summary-section {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .summary-card {
+            background: rgba(20, 20, 50, 0.8);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .summary-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #64ffda;
+        }
+
+        .summary-card .desc {
+            font-size: 13px;
+            color: #8892b0;
+            margin-top: 5px;
+        }
+
+        /* 学习路径 */
+        .learning-path {
+            background: rgba(20, 20, 50, 0.8);
+            border: 1px solid rgba(100, 255, 218, 0.1);
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .learning-path h3 {
+            color: #64ffda;
+            margin-bottom: 15px;
+        }
+
+        .learning-path p {
+            margin: 8px 0;
+            padding-left: 15px;
+            border-left: 3px solid rgba(100, 255, 218, 0.3);
+            color: #ccd6f6;
+            font-size: 14px;
+        }
+
+        .learning-path strong {
+            color: #64ffda;
+        }
+
+        /* 返回顶部 */
+        .back-to-top {
+            text-align: center;
+            padding: 30px;
+        }
+
+        .back-to-top a {
+            color: #64ffda;
+            text-decoration: none;
+            font-size: 24px;
+        }
+
+        /* 应用场景表格 */
+        .app-table td {
+            padding: 10px 16px;
+            vertical-align: middle;
+        }
+
+        .app-list {
+            color: #b794f6;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<nav class="top-nav">
+    <a href="#">← 返回 Ch.03 主章</a>
+    <a href="#">快速参考</a>
+    <a href="#">交互演示</a>
+    <a href="#">深度分析</a>
+    <a href="#">思维导图</a>
+    <a href="#">练习检查</a>
+    <a href="#">趣味游戏</a>
+    <a href="#" class="active">章节总结</a>
+</nav>
+
+<!-- 进度条 -->
+<div class="progress-bar">
+    <div class="label">📊 理解进度</div>
+    <div class="stat">总知识点 <span id="totalCount">0</span></div>
+    <div class="stat">已理解 <span id="understoodCount">0</span></div>
+    <div class="stat">剩余 <span id="remainingCount">0</span></div>
+</div>
+
+<!-- 主标题 -->
+<div class="main-title">
+    <h1>📊 Hacker's Delight Ch03 知识点统计详表</h1>
+    <p>Power-of-2 Boundaries — 完整的分类、数量、优先级统计</p>
+</div>
+
+<!-- 主表格 -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>分类</th>
+                <th>知识点</th>
+                <th>数量</th>
+                <th>公式 / 关键内容</th>
+                <th>优先级</th>
+                <th>应用场景</th>
+                <th>是否理解</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 第一大类 -->
+            <tr class="category-row">
+                <td colspan="7">📐 第一大类：flp2/clp2 基本定义与性质 (8个)</td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>flp2(x) — 下界2次幂</td>
+                <td>1</td>
+                <td><span class="formula">flp2(x) = 2^⌊log₂x⌋, x>0</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">内存分配</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>clp2(x) — 上界2次幂</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = 2^⌈log₂x⌉, x>0</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">缓冲区大小</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>flp2与clp2等价条件</td>
+                <td>1</td>
+                <td><span class="formula">flp2(x)=clp2(x) iff x是2的幂或0</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">2次幂判定</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>缩放性质</td>
+                <td>1</td>
+                <td><span class="formula">flp2(2ⁿx) = 2ⁿ·flp2(x)</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">数学性质</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>对偶性质</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = 1/flp2(1/x), x≠0</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">理论推导</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>flp2↔clp2 互转公式</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = flp2(2x-1), x>0</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">函数互转</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>值表 (边界情况)</td>
+                <td>1</td>
+                <td><span class="formula">clp2(2³¹+1)=0 (溢出为0)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">溢出处理</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>基本定义</td>
+                <td>pop(x) 关联 — 1位计数</td>
+                <td>1</td>
+                <td><span class="formula">pop(x) = x中1-bit的数量</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">位计数基础</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第二大类 -->
+            <tr class="category-row">
+                <td colspan="7">⬇️ 第二大类：向下取整到2次幂 — flp2 算法 (6个)</td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>位传播法 (5步OR-Shift)</td>
+                <td>1</td>
+                <td><span class="formula">x|=x>>1; x|=x>>2; ...x>>16</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">高频使用</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>最终提取: x - (x>>1)</td>
+                <td>1</td>
+                <td><span class="formula">flp2 = x - (x>>1), x已传播</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">核心步骤</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>nlz方法</td>
+                <td>1</td>
+                <td><span class="formula">flp2(x) = 0x80000000 >> nlz(x)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">nlz硬件支持</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>pop方法</td>
+                <td>1</td>
+                <td><span class="formula">利用pop(x)实现flp2</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">替代方案</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>指令计数: 12条 (basic RISC)</td>
+                <td>1</td>
+                <td><span class="formula">5次shift + 5次or + 1次shift + 1次sub</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">性能分析</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>flp2算法</td>
+                <td>x=0 边界处理</td>
+                <td>1</td>
+                <td><span class="formula">flp2(0) = 0 (需特殊处理)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">防御性编程</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第三大类 -->
+            <tr class="category-row">
+                <td colspan="7">⬆️ 第三大类：向上取整到2次幂 — clp2 算法 (6个)</td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>x-1 + 位传播 + 加1</td>
+                <td>1</td>
+                <td><span class="formula">x-=1; x|=x>>1; ...x>>16; x+=1</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">哈希表扩容</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>先减1的巧妙之处</td>
+                <td>1</td>
+                <td><span class="formula">x=2ⁿ时不进位: 保持x不变</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">核心技巧</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>指令计数: 13条 (basic RISC)</td>
+                <td>1</td>
+                <td><span class="formula">1次sub + 5次shift + 5次or + 1次add + 1次处理</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">性能分析</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>溢出处理: x > 2³¹</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = 0 当 x > 2³¹ (mod 2³²)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">安全检查</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>nlz方法</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = 1<<(32-nlz(x-1))</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">硬件加速</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>clp2算法</td>
+                <td>flp2互转法</td>
+                <td>1</td>
+                <td><span class="formula">clp2(x) = flp2(2x - 1)</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">替代实现</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第四大类 -->
+            <tr class="category-row">
+                <td colspan="7">🔄 第四大类：向已知2次幂对齐 (5个)</td>
+            </tr>
+            <tr>
+                <td>对齐操作</td>
+                <td>向下对齐 (Round Down)</td>
+                <td>1</td>
+                <td><span class="formula">x & (-d), d是2的幂</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">内存对齐</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>对齐操作</td>
+                <td>向上对齐 (Round Up)</td>
+                <td>1</td>
+                <td><span class="formula">(x + d - 1) & (-d)</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">页面分配</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>对齐操作</td>
+                <td>等价形式</td>
+                <td>1</td>
+                <td><span class="formula">(x + (d-1)) & ~(d-1)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">等价表达</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>对齐操作</td>
+                <td>取模对齐量</td>
+                <td>1</td>
+                <td><span class="formula">x & (d - 1) — 取偏移量</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">偏移计算</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>对齐操作</td>
+                <td>对齐检测</td>
+                <td>1</td>
+                <td><span class="formula">(x & (d-1)) == 0 → 已对齐</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">断言检查</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第五大类 -->
+            <tr class="category-row">
+                <td colspan="7">🔍 第五大类：2次幂边界跨越检测 (5个)</td>
+            </tr>
+            <tr>
+                <td>边界检测</td>
+                <td>区间[a, a+b)是否跨越2ᵏ边界</td>
+                <td>1</td>
+                <td><span class="formula">((a ^ (a+b-1)) >> k) != 0</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">DMA传输</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>边界检测</td>
+                <td>简化形式 (b为2的幂)</td>
+                <td>1</td>
+                <td><span class="formula">((a | (a+b-1)) >> k) → 跨界</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">缓存行检测</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>边界检测</td>
+                <td>XOR法原理</td>
+                <td>1</td>
+                <td><span class="formula">a⊕(a+b-1)的高位≠0</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">理论基础</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>边界检测</td>
+                <td>页面跨越检测</td>
+                <td>1</td>
+                <td><span class="formula">4KB页: ((a^(a+b-1))>>12)!=0</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">虚拟内存</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>边界检测</td>
+                <td>b=0边界处理</td>
+                <td>1</td>
+                <td><span class="formula">b=0时无跨越, 需特殊处理</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">防御编程</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第六大类 -->
+            <tr class="category-row">
+                <td colspan="7">⚡ 第六大类：位传播技巧 (Bit Propagation) (5个)</td>
+            </tr>
+            <tr>
+                <td>位传播</td>
+                <td>OR传播: 最高1位右扩</td>
+                <td>1</td>
+                <td><span class="formula">x |= x>>1; x |= x>>2; ...</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">核心技法</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>位传播</td>
+                <td>倍增策略: 1→2→4→8→16</td>
+                <td>1</td>
+                <td><span class="formula">5次迭代覆盖32位</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">算法设计</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>位传播</td>
+                <td>传播后结果: 2ⁿ-1 形式</td>
+                <td>1</td>
+                <td><span class="formula">0x00100000 → 0x001FFFFF</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">掩码生成</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>位传播</td>
+                <td>64位扩展: 6次迭代</td>
+                <td>1</td>
+                <td><span class="formula">额外 x |= x>>32</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">64位移植</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>位传播</td>
+                <td>并行前缀思想</td>
+                <td>1</td>
+                <td><span class="formula">Guy Steele 并行前缀理论</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">理论深度</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第七大类 -->
+            <tr class="category-row">
+                <td colspan="7">🔗 第七大类：与nlz/pop的关联 (4个)</td>
+            </tr>
+            <tr>
+                <td>关联函数</td>
+                <td>nlz实现flp2 (1条指令)</td>
+                <td>1</td>
+                <td><span class="formula">flp2 = 0x80000000 >> nlz(x)</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">硬件最优</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>关联函数</td>
+                <td>nlz实现clp2</td>
+                <td>1</td>
+                <td><span class="formula">clp2 = 1 << (32 - nlz(x-1))</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">硬件加速</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>关联函数</td>
+                <td>pop实现flp2</td>
+                <td>1</td>
+                <td><span class="formula">传播后 pop(x)=位宽, flp2=1<<(pop-1)</span></td>
+                <td><span class="priority-low">⭐</span></td>
+                <td><span class="app-tag">替代路径</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>关联函数</td>
+                <td>ilog2(x) = 31 - nlz(x)</td>
+                <td>1</td>
+                <td><span class="formula">整数log2 → flp2 = 1 << ilog2(x)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">对数运算</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第八大类 -->
+            <tr class="category-row">
+                <td colspan="7">🏗️ 第八大类：工程应用模式 (6个)</td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>内存分配器对齐</td>
+                <td>1</td>
+                <td><span class="formula">malloc → clp2(size) 对齐分配</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">内存管理</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>哈希表容量</td>
+                <td>1</td>
+                <td><span class="formula">capacity = clp2(n * 4/3)</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">HashMap</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>环形缓冲区大小</td>
+                <td>1</td>
+                <td><span class="formula">size = clp2(requested)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">Ring Buffer</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>纹理尺寸 (GPU)</td>
+                <td>1</td>
+                <td><span class="formula">OpenGL要求2ⁿ纹理尺寸</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">图形渲染</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>FFT尺寸填充</td>
+                <td>1</td>
+                <td><span class="formula">FFT需要2ⁿ点 → clp2(N)</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">信号处理</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>工程应用</td>
+                <td>DMA边界对齐检测</td>
+                <td>1</td>
+                <td><span class="formula">跨页检测 → 拆分传输</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">硬件驱动</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第九大类 -->
+            <tr class="category-row">
+                <td colspan="7">💡 第九大类：深度点评 (4个)</td>
+            </tr>
+            <tr>
+                <td>深度点评</td>
+                <td>位传播 vs 循环: O(log n) vs O(n)</td>
+                <td>1</td>
+                <td><span class="formula">5条指令 vs 32次循环, 6倍加速</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">性能关键</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>深度点评</td>
+                <td>编译器内置: __builtin_clz</td>
+                <td>1</td>
+                <td><span class="formula">GCC/Clang → LZCNT/CLZ指令</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">编译器优化</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>深度点评</td>
+                <td>Java: Integer.highestOneBit</td>
+                <td>1</td>
+                <td><span class="formula">JDK标准库直接提供flp2</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">跨语言</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>深度点评</td>
+                <td>clp2溢出陷阱</td>
+                <td>1</td>
+                <td><span class="formula">x=2³¹+1 → clp2=0, 必须检查!</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">安全隐患</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 第十大类 -->
+            <tr class="category-row">
+                <td colspan="7">✏️ 第十大类：课后精选题 (4个)</td>
+            </tr>
+            <tr>
+                <td>课后习题</td>
+                <td>Q1: flp2循环实现对比</td>
+                <td>1</td>
+                <td><span class="formula">循环 vs 位传播性能对比</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">实践对比</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>课后习题</td>
+                <td>Q2: 证明位传播正确性</td>
+                <td>1</td>
+                <td><span class="formula">数学归纳法证明5步OR覆盖</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">理论证明</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>课后习题</td>
+                <td>Q3: clp2无分支实现</td>
+                <td>1</td>
+                <td><span class="formula">全无分支的clp2完整代码</span></td>
+                <td><span class="priority-high">⭐⭐⭐</span></td>
+                <td><span class="app-tag">编码实战</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+            <tr>
+                <td>课后习题</td>
+                <td>Q4: 边界跨越泛化</td>
+                <td>1</td>
+                <td><span class="formula">任意2ᵏ边界跨越推导</span></td>
+                <td><span class="priority-mid">⭐⭐</span></td>
+                <td><span class="app-tag">扩展思考</span></td>
+                <td><input type="checkbox" class="understand-check"></td>
+            </tr>
+
+            <!-- 应用场景统计 -->
+            <tr class="category-row">
+                <td colspan="7">🎯 应用场景统计 (15+个)</td>
+            </tr>
+            <tr class="app-table">
+                <td colspan="2" class="app-list">内存分配器(malloc) | 哈希表(HashMap) | 环形缓冲区(Ring Buffer) | FFT尺寸</td>
+                <td>4</td>
+                <td colspan="2">核心应用</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr class="app-table">
+                <td colspan="2" class="app-list">DMA传输 | 虚拟内存管理 | 缓存行对齐 | GPU纹理</td>
+                <td>4</td>
+                <td colspan="2">硬件相关</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr class="app-table">
+                <td colspan="2" class="app-list">编译器优化 | Buddy系统 | 页面分配 | SIMD对齐</td>
+                <td>4</td>
+                <td colspan="2">系统编程</td>
+                <td colspan="2"></td>
+            </tr>
+            <tr class="app-table">
+                <td colspan="2" class="app-list">位图索引 | B+树节点 | 段对齐</td>
+                <td>3</td>
+                <td colspan="2">数据结构</td>
+                <td colspan="2"></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- 统计汇总 -->
+<div class="summary-section">
+    <div class="summary-grid">
+        <div class="summary-card">
+            <div class="number">53+</div>
+            <div class="desc">总知识点</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">10</div>
+            <div class="desc">大类分别</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">20</div>
+            <div class="desc">核心技巧</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">15+</div>
+            <div class="desc">应用场景</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">⭐⭐⭐</div>
+            <div class="desc">高优先级(14个)</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">⭐⭐</div>
+            <div class="desc">中优先级(23个)</div>
+        </div>
+    </div>
+
+    <h3 style="color: #64ffda; margin: 30px 0 15px;">📈 按优先级统计</h3>
+    <div class="summary-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="summary-card">
+            <div class="number">14</div>
+            <div class="desc">⭐⭐⭐ 必学 (关键基础)</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">23</div>
+            <div class="desc">⭐⭐ 重要 (深度理解)</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">16</div>
+            <div class="desc">⭐ 参考 (拓展认知)</div>
+        </div>
+    </div>
+
+    <!-- 学习路径 -->
+    <div class="learning-path">
+        <h3>🎯 学习路径建议</h3>
+        <p><strong>第1阶段（基础）：</strong> 理解 flp2/clp2 定义 + 位传播技巧 + 对齐公式 = 掌握2次幂边界操作的核心</p>
+        <p><strong>第2阶段（实战）：</strong> 学习 5步OR-Shift算法 + clp2的减1技巧 + 边界跨越检测 = 直接应用到系统编程</p>
+        <p><strong>第3阶段（深化）：</strong> 学习 nlz/pop关联方法 + 编译器内置函数 + 溢出处理 = 工程完整性</p>
+        <p><strong>第4阶段（应用）：</strong> 掌握 15+ 应用场景（内存/哈希/DMA/GPU）= 跨领域迁移和性能优化</p>
+    </div>
+</div>
+
+<!-- 返回顶部 -->
+<div class="back-to-top">
+    <a href="#">↑</a>
+</div>
+
+<script>
+    // 进度统计
+    function updateProgress() {
+        const checkboxes = document.querySelectorAll('.understand-check');
+        const total = checkboxes.length;
+        const understood = Array.from(checkboxes).filter(cb => cb.checked).length;
+        const remaining = total - understood;
+
+        document.getElementById('totalCount').textContent = total;
+        document.getElementById('understoodCount').textContent = understood;
+        document.getElementById('remainingCount').textContent = remaining;
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+        updateProgress();
+        document.querySelectorAll('.understand-check').forEach(cb => {
+            cb.addEventListener('change', updateProgress);
+        });
+    });
+</script>
+
+</body>
+</html>

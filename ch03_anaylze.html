@@ -1,0 +1,991 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Hacker's Delight Ch03 · Power-of-2 Boundaries ·深度解析</title>  
+<style>  
+*{margin:0;padding:0;box-sizing:border-box}  
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans SC',sans-serif;background:#0a0a1a;color:#c8d6e5;line-height:1.8;overflow-x:hidden}  
+::selection{background:#64ffda33;color:#fff}  
+::-webkit-scrollbar{width:6px}  
+::-webkit-scrollbar-track{background:#0a0a1a}  
+::-webkit-scrollbar-thumb{background:#64ffda44;border-radius:3px}  
+
+.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px 20px;background:radial-gradient(ellipse at 50% 30%,#1a1a3e 0%,#0a0a1a 70%);overflow:hidden}  
+.hero::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 30h60M30 0v60' stroke='%2364ffda08' stroke-width='1'/%3E%3C/svg%3E");opacity:.3}  
+.hero-content{position:relative;z-index:2;max-width:900px}  
+.hero h1{font-size:clamp(2em,5vw,3.5em);background:linear-gradient(135deg,#64ffda,#00b4d8,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:20px;font-weight:900;letter-spacing:-1px}  
+.hero .subtitle{font-size:1.3em;color:#8892b0;margin-bottom:30px}  
+.hero .author-tag{display:inline-block;padding:8px 20px;border:1px solid #64ffda44;border-radius:30px;color:#64ffda;font-size:.9em;margin-bottom:40px}  
+.hero .chapter-badge{font-size:6em;opacity:.08;position:absolute;right:10%;top:20%;font-weight:900;color:#64ffda}  
+
+.nav-bar{position:sticky;top:0;z-index:100;background:rgba(10,10,26,.92);backdrop-filter:blur(20px);border-bottom:1px solid #64ffda15;padding:10px 0}  
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:10px;padding:0 20px;overflow-x:auto;white-space:nowrap}  
+.nav-inner a{color:#8892b0;text-decoration:none;font-size:13px;padding:6px 14px;border-radius:20px;border:1px solid transparent;transition:all .3s}  
+.nav-inner a:hover,.nav-inner a.active{color:#64ffda;border-color:#64ffda44;background:#64ffda0a}  
+
+.container{max-width:900px;margin:0 auto;padding:0 20px}  
+
+.section{padding:60px 0}  
+.section-header{margin-bottom:40px}  
+.section-header h2{font-size:2em;color:#ccd6f6;margin-bottom:8px;position:relative;display:inline-block}  
+.section-header h2::after{content:'';display:block;width:60px;height:3px;background:linear-gradient(90deg,#64ffda,transparent);margin-top:8px;border-radius:2px}  
+.section-header .section-desc{color:#8892b0;font-size:1.05em}  
+
+.insight-card{background:linear-gradient(135deg,rgba(20,20,50,.8),rgba(15,15,40,.6));border:1px solid #64ffda15;border-radius:16px;padding:30px;margin-bottom:30px;position:relative;overflow:hidden;transition:border-color .3s}  
+.insight-card:hover{border-color:#64ffda44}  
+.insight-card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;background:linear-gradient(180deg,#64ffda,#7c3aed);border-radius:4px 0 0 4px}  
+.insight-card .card-tag{display:inline-block;padding:3px 10px;background:#64ffda15;color:#64ffda;border-radius:12px;font-size:.75em;font-weight:600;margin-bottom:12px;letter-spacing:1px;text-transform:uppercase}  
+.insight-card h3{color:#e6f1ff;font-size:1.35em;margin-bottom:15px}  
+.insight-card p{color:#a8b2d1;margin-bottom:12px}  
+.insight-card .dog-voice{color:#b8c6db;font-style:italic;border-left:3px solid #7c3aed55;padding-left:15px;margin:15px 0;font-size:.95em}  
+
+.code-block{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:20px;margin:15px 0;overflow-x:auto;font-family:'JetBrains Mono','Fira Code',monospace;font-size:.85em;line-height:1.7;color:#c9d1d9;position:relative;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word}  
+.code-block .lang{position:absolute;top:8px;right:12px;font-size:.7em;color:#8b949e;background:#161b22;padding:2px 8px;border-radius:4px}  
+.code-block .comment{color:#8b949e}  
+.code-block .keyword{color:#ff7b72}  
+.code-block .function{color:#d2a8ff}  
+.code-block .number{color:#79c0ff}  
+.code-block .highlight{color:#64ffda;font-weight:bold}  
+
+.bit-viz{display:flex;gap:2px;margin:15px 0;flex-wrap:wrap;justify-content:center}  
+.bit-viz .bit{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:4px;font-family:monospace;font-size:.8em;font-weight:bold}  
+.bit-viz .bit.on{background:#64ffda22;color:#64ffda;border:1px solid #64ffda44}  
+.bit-viz .bit.off{background:#1a1a2e;color:#4a4a6a;border:1px solid #2a2a4e}  
+.bit-viz .bit.highlight{background:#7c3aed22;color:#b794f6;border:1px solid #7c3aed44}  
+.bit-viz .separator{width:6px}  
+
+.formula-box{background:linear-gradient(135deg,#1a1a3e,#0d0d2b);border:1px solid #ffd70033;border-radius:12px;padding:20px 25px;margin:15px 0;text-align:center}  
+.formula-box .formula{font-family:'JetBrains Mono',monospace;color:#ffd700;font-size:1.2em;font-weight:bold}  
+.formula-box .explain{color:#8892b0;font-size:.85em;margin-top:8px}  
+
+.analogy-box{background:linear-gradient(135deg,rgba(124,58,237,.1),rgba(100,255,218,.05));border:1px solid #7c3aed33;border-radius:12px;padding:20px;margin:15px 0}  
+.analogy-box .label{color:#b794f6;font-weight:600;font-size:.85em;margin-bottom:8px}  
+.analogy-box p{color:#a8b2d1}  
+
+.app-scenario{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:15px;margin:20px 0}  
+.app-card{background:rgba(20,20,50,.6);border:1px solid #64ffda11;border-radius:12px;padding:18px;transition:all .3s}  
+.app-card:hover{border-color:#64ffda44;transform:translateY(-2px)}  
+.app-card .app-icon{font-size:1.5em;margin-bottom:8px}  
+.app-card .app-title{color:#ccd6f6;font-weight:600;font-size:.95em;margin-bottom:6px}  
+.app-card .app-desc{color:#8892b0;font-size:.82em}  
+
+.timeline{position:relative;padding-left:30px;margin:20px 0}  
+.timeline::before{content:'';position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#64ffda44,#7c3aed44)}  
+.timeline .step{position:relative;margin-bottom:25px;padding-left:20px}  
+.timeline .step::before{content:'';position:absolute;left:-26px;top:8px;width:12px;height:12px;border-radius:50%;background:#64ffda;border:2px solid #0a0a1a}  
+.timeline .step h4{color:#e6f1ff;font-size:1em;margin-bottom:6px}  
+.timeline .step p{color:#a8b2d1;font-size:.9em}  
+
+.perf-compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin:20px 0}  
+.perf-item{background:rgba(20,20,50,.6);border-radius:12px;padding:18px;text-align:center;border:1px solid transparent}  
+.perf-item.winner{border-color:#64ffda44}  
+.perf-item .perf-label{color:#8892b0;font-size:.82em;margin-bottom:6px}  
+.perf-item .perf-value{font-size:2em;font-weight:900;color:#64ffda}  
+.perf-item.loser .perf-value{color:#ff6b6b}  
+.perf-item .perf-desc{color:#6a7b8f;font-size:.78em;margin-top:4px}  
+
+.warning-box{background:rgba(255,107,107,.08);border:1px solid #ff6b6b33;border-radius:12px;padding:18px;margin:15px 0}  
+.warning-box .warning-title{color:#ff6b6b;font-weight:700;margin-bottom:6px}  
+.warning-box p{color:#c4a0a0}  
+
+.toc-float{position:fixed;right:20px;top:50%;transform:translateY(-50%);z-index:50;display:none}  
+@media(min-width:1400px){.toc-float{display:block}}  
+.toc-float a{display:block;width:8px;height:8px;border-radius:50%;background:#8892b044;margin:8px 0;transition:all .3s}  
+.toc-float a:hover,.toc-float a.active{background:#64ffda;transform:scale(1.5)}  
+
+.footer{text-align:center;padding:60px 20px;color:#4a5568;font-size:.85em;border-top:1px solid #64ffda0a}  
+.footer a{color:#64ffda;text-decoration:none}  
+
+/* Tab：仅显示当前激活的 section，其余隐藏 */  
+.section{display:none}  
+.section.active{display:block}  
+
+@media(max-width:768px){  
+  .hero h1{font-size:2em}  
+  .perf-compare{grid-template-columns:1fr}  
+  .app-scenario{grid-template-columns:1fr}  
+}  
+</style>  
+</head>  
+<body>  
+
+<!-- Hero -->  
+<section class="hero">  
+  <div class="chapter-badge">Ch.3</div>  
+  <div class="hero-content">  
+    <div class="author-tag">🐕 深度技术解析</div>  
+    <h1>Power-of-2 Boundaries</h1>  
+    <p class="subtitle">2次幂边界 — 比你想的深得多的"对齐"哲学<br>Hacker's Delight 第三章 · 用最强大脑拆解每一条位操作</p>  
+    <p style="color:#64ffda;font-size:.9em;margin-top:30px">⚡ flp2 · clp2 · 内存对齐 · 边界跨越检测 · 位传播 · 并行前缀</p>  
+  </div>  
+</section>  
+
+<!-- Nav -->  
+<nav class="nav-bar">  
+  <div class="nav-inner">  
+    <a href="#s1" class="active" data-tab>🧠 开篇</a>  
+    <a href="#s2" data-tab>📐 flp2定义</a>  
+    <a href="#s3" data-tab>⬇️ 向下取整</a>  
+    <a href="#s4" data-tab>⬆️ 向上取整</a>  
+    <a href="#s5" data-tab>🔗 对齐操作</a>  
+    <a href="#s6" data-tab>🔍 边界跨越</a>  
+    <a href="#s7" data-tab>💡 位传播本质</a>  
+    <a href="#s8" data-tab>🏗️ 工程应用</a>  
+    <a href="#s9" data-tab>⚠️ 溢出陷阱</a>  
+    <a href="#s10" data-tab>🔮 总结</a>  
+    <a href="#demo" data-tab>🎮 演示</a>  
+  </div>  
+</nav>  
+
+<div class="container">  
+
+<!-- Section 1: 开篇 -->  
+<section class="section active" id="s1">  
+  <div class="section-header">  
+    <h2>🧠 开篇：为什么2的幂如此特殊</h2>  
+    <p class="section-desc">计算机世界的"黄金分割"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">dog250 说</span>  
+    <h3>2的幂，是二进制世界里唯一的"整数"</h3>  
+    <p>你有没有想过一个问题：为什么内存总是4GB、8GB、16GB，而不是7GB、11GB？为什么页面大小是4096而不是4000？为什么HashMap的初始容量是16而不是15？</p>  
+    <p class="dog-voice">"在十进制的世界里，10是圆满的数；在二进制的世界里，2的幂才是唯一的'整数'。所有其他的数，不过是2的幂的余烬。"</p>  
+    <p>这不是审美强迫症，这是<strong>硬件决定论</strong>。一个2次幂的数，在二进制里只有一个1-bit。这意味着取模操作变成了AND操作，除法变成了右移，乘法变成了左移。CPU用一个周期就能完成原本需要几十个周期的除法。</p>  
+    <p>Chapter 3就是要解决一个看似简单的问题：<strong>给定一个任意的数x，如何高效地找到离它最近的2次幂？</strong></p>  
+  </div>  
+
+  <div class="analogy-box">  
+    <div class="label">🎯 类比理解</div>  
+    <p>想象你在高速公路上开车，收费站每隔2<sup>k</sup>公里设一个。flp2(x)告诉你"上一个收费站在哪"，clp2(x)告诉你"下一个收费站在哪"。而3-3节的边界跨越检测，就是在问"从这里到那里，中间会不会经过收费站"。</p>  
+  </div>  
+</section>  
+
+<!-- Section 2: flp2/clp2 定义 -->  
+<section class="section" id="s2">  
+  <div class="section-header">  
+    <h2>📐 flp2 与 clp2：2次幂的Floor和Ceiling</h2>  
+    <p class="section-desc">命名暗示了一切——floor-power-of-2 和 ceiling-power-of-2</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">核心定义</span>  
+    <h3>两个函数，一个哲学</h3>  
+
+    <div class="formula-box">  
+      <div class="formula">flp2(x) = 2<sup>⌊log₂x⌋</sup> — 不超过x的最大2次幂</div>  
+      <div class="explain">the greatest power of 2 that is ≤ x</div>  
+    </div>  
+    <div class="formula-box">  
+      <div class="formula">clp2(x) = 2<sup>⌈log₂x⌉</sup> — 不小于x的最小2次幂</div>  
+      <div class="explain">the least power of 2 that is ≥ x</div>  
+    </div>  
+
+    <p class="dog-voice">"flp2和clp2，就像地板和天花板——你站在任何一个位置，都被两个2次幂夹着。这两个函数的关系，和floor(x)与ceil(x)的关系如出一辙。当x本身就是2的幂时，地板和天花板重合了——你站在了'恰好'的位置。"</p>  
+
+    <p>Warren给出了关键的对称性质：</p>  
+    <div class="code-block">  
+      <span class="lang">性质</span>  
+<span class="comment">// 类比 floor/ceiling 的性质</span>  
+flp2(x) = clp2(x)  <span class="highlight">当且仅当 x 是 2 的幂或 0</span>  
+flp2(2ⁿ·x) = 2ⁿ·flp2(x)  <span class="comment">// 缩放性质</span>  
+clp2(x) = 1/flp2(1/x)   <span class="comment">// 对偶性质</span>  
+
+<span class="comment">// 互转公式（关键！）</span>  
+clp2(x) = flp2(2x - 1), x > 0    <span class="comment">// 用flp2算clp2</span>  
+flp2(x) = clp2(x/2 + 1), x > 1   <span class="comment">// 用clp2算flp2</span>  
+    </div>  
+
+    <div class="warning-box">  
+      <div class="warning-title">⚠️ 溢出边界</div>  
+      <p>在32位unsigned中，clp2(2³¹ + 1) = 0！因为2³²无法在32位中表示，模运算后归零。这个陷阱在Java的HashMap中曾经制造过真实的bug。</p>  
+    </div>  
+  </div>  
+</section>  
+
+<!-- Section 3: flp2 算法 -->  
+<section class="section" id="s3">  
+  <div class="section-header">  
+    <h2>⬇️ 向下取整：flp2的位传播魔法</h2>  
+    <p class="section-desc">12条指令，无分支，用OR-Shift把1-bit从左向右"涂满"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">核心算法</span>  
+    <h3>5步OR-Shift：像倒墨水一样让1-bit右扩</h3>  
+
+    <div class="code-block">  
+      <span class="lang">C</span>  
+<span class="keyword">unsigned</span> <span class="function">flp2</span>(<span class="keyword">unsigned</span> x) {  
+    x = x | (x >> <span class="number">1</span>);   <span class="comment">// 1个1变2个1</span>  
+    x = x | (x >> <span class="number">2</span>);   <span class="comment">// 2个1变4个1</span>  
+    x = x | (x >> <span class="number">4</span>);   <span class="comment">// 4个1变8个1</span>  
+    x = x | (x >> <span class="number">8</span>);   <span class="comment">// 8个1变16个1</span>  
+    x = x | (x >> <span class="number">16</span>);  <span class="comment">// 16个1变32个1</span>  
+    <span class="keyword">return</span> x - (x >> <span class="number">1</span>); <span class="comment">// 只保留最高位的1</span>  
+}  
+    </div>  
+
+    <p class="dog-voice">"我第一次看到这段代码，感觉像看到了病毒的复制过程——一个1-bit感染了它右边的所有bit。第一步，一个分裂成两个。第二步，两个分裂成四个。五步之后，32位全被感染。然后最后一行`x - (x>>1)`，相当于只留下了'零号病人'——最左边的那个1-bit。"</p>  
+
+    <p><strong>让我们跟踪一个具体例子：</strong>x = 0x00100000 (bit 20 为1)</p>  
+
+    <div class="timeline">  
+      <div class="step">  
+        <h4>初始: 0000 0000 0001 0000 0000 0000 0000 0000</h4>  
+        <p>只有bit 20是1</p>  
+      </div>  
+      <div class="step">  
+        <h4>x |= x>>1: ...0001 1000...</h4>  
+        <p>bit 20和19都是1了 — 1个变2个</p>  
+      </div>  
+      <div class="step">  
+        <h4>x |= x>>2: ...0001 1110...</h4>  
+        <p>4个连续的1 — 2个变4个</p>  
+      </div>  
+      <div class="step">  
+        <h4>x |= x>>4: ...0001 1111 1110...</h4>  
+        <p>8个1</p>  
+      </div>  
+      <div class="step">  
+        <h4>x |= x>>8 和 x |= x>>16 后</h4>  
+        <p>bit 20到bit 0全是1，形成掩码 0x001FFFFF</p>  
+      </div>  
+      <div class="step">  
+        <h4>x - (x>>1): 0x00100000</h4>  
+        <p>减去自己右移一位 = 只保留最高位 = flp2完成！</p>  
+      </div>  
+    </div>  
+
+    <div class="analogy-box">  
+      <div class="label">🌊 并行前缀的思想 (Guy Steele)</div>  
+      <p>这就是<strong>并行前缀(parallel prefix)</strong>思想：每步覆盖量翻倍，log₂(32)=5步覆盖全部32位。这和归并排序的思想是同构的——分治的倍增策略。在硬件加法器中，同样的思想用于carry-lookahead adder，把进位传播从O(n)降到O(log n)。</p>  
+    </div>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">替代方案</span>  
+    <h3>有nlz就是一条指令的事</h3>  
+    <div class="formula-box">  
+      <div class="formula">flp2(x) = 0x80000000 >> nlz(x)</div>  
+      <div class="explain">nlz = Number of Leading Zeros，现代CPU都有硬件指令（如x86的LZCNT、ARM的CLZ）</div>  
+    </div>  
+    <p class="dog-voice">"这就好比：你可以花12步用手推磨把小麦磨成面粉，也可以一秒钟用电动磨。nlz指令就是那个电动磨——它在硬件里用一棵优先编码器树，一个周期就算出来了。但Warren教你手推磨不是为了让你真的去用，而是让你理解磨面粉的本质。"</p>  
+  </div>  
+</section>  
+
+<!-- Section 4: clp2 算法 -->  
+<section class="section" id="s4">  
+  <div class="section-header">  
+    <h2>⬆️ 向上取整：clp2的减1妙手</h2>  
+    <p class="section-desc">一个减1，改变了一切</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">核心算法</span>  
+    <h3>x -= 1 的巧妙：让2次幂保持不变</h3>  
+
+    <div class="code-block">  
+      <span class="lang">C</span>  
+<span class="keyword">unsigned</span> <span class="function">clp2</span>(<span class="keyword">unsigned</span> x) {  
+    x -= <span class="number">1</span>;            <span class="comment">// ← 这一步是灵魂！</span>  
+    x |= x >> <span class="number">1</span>;  
+    x |= x >> <span class="number">2</span>;  
+    x |= x >> <span class="number">4</span>;  
+    x |= x >> <span class="number">8</span>;  
+    x |= x >> <span class="number">16</span>;  
+    <span class="keyword">return</span> x + <span class="number">1</span>;       <span class="comment">// 掩码+1 = 下一个2次幂</span>  
+}  
+    </div>  
+
+    <p class="dog-voice">"为什么要先减1？想想：如果x=8(1000)，不减1的话，传播后得到1111，加1得到10000=16，但我们要的是8本身！减1后x=7(0111)，传播后还是0111，加1得到1000=8。完美。这一步减1，是区分'我站在边界上'和'我在两个边界之间'的关键。"</p>  
+
+    <p><strong>和flp2的对比：</strong></p>  
+    <div class="perf-compare">  
+      <div class="perf-item">  
+        <div class="perf-label">flp2(x)</div>  
+        <div class="perf-value">12</div>  
+        <div class="perf-desc">条指令 (basic RISC)</div>  
+      </div>  
+      <div class="perf-item">  
+        <div class="perf-label">clp2(x)</div>  
+        <div class="perf-value">13</div>  
+        <div class="perf-desc">条指令 (多了减1和加1)</div>  
+      </div>  
+    </div>  
+  </div>  
+</section>  
+
+<!-- Section 5: 对齐操作 -->  
+<section class="section" id="s5">  
+  <div class="section-header">  
+    <h2>🔗 对齐操作：内核开发者的日常</h2>  
+    <p class="section-desc">当d是已知的2次幂时，对齐只需AND一下</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">内存对齐公式</span>  
+    <h3>两个公式，撑起了整个操作系统的内存管理</h3>  
+
+    <div class="formula-box">  
+      <div class="formula">向下对齐: x & (-d)</div>  
+      <div class="explain">d是2的幂。-d的二进制恰好是高位全1、低位全0的掩码。AND一下就清零了低位。</div>  
+    </div>  
+    <div class="formula-box">  
+      <div class="formula">向上对齐: (x + d - 1) & (-d)</div>  
+      <div class="explain">先加上d-1"顶上去"，再向下对齐。等价于 (x + (d-1)) & ~(d-1)</div>  
+    </div>  
+
+    <p class="dog-voice">"你以为内核里那些PAGE_ALIGN宏多复杂？其实就这一行。Linux内核中，PAGE_SIZE = 4096 = 2¹²，所以PAGE_ALIGN(addr) = (addr + 4095) & ~4095。4095 = 0xFFF，~4095 = 0xFFFFF000。一个AND，addr的低12位就被清零了，自然对齐到了4KB页边界。你用20行代码做的事，位操作一行搞定，而且没有分支、没有除法。"</p>  
+
+    <div class="app-scenario">  
+      <div class="app-card">  
+        <div class="app-icon">🖥️</div>  
+        <div class="app-title">PAGE_ALIGN</div>  
+        <div class="app-desc">Linux内核中页面对齐：(addr + PAGE_SIZE - 1) & PAGE_MASK</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">📦</div>  
+        <div class="app-title">malloc对齐</div>  
+        <div class="app-desc">glibc malloc内部使用2的幂对齐：返回的地址总是16字节对齐</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">🔧</div>  
+        <div class="app-title">SIMD对齐</div>  
+        <div class="app-desc">SSE要求16字节对齐，AVX要求32字节对齐，否则SEGFAULT</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">💾</div>  
+        <div class="app-title">磁盘扇区对齐</div>  
+        <div class="app-desc">4K扇区对齐：(offset + 4095) & ~4095，SSD性能关键</div>  
+      </div>  
+    </div>  
+
+    <div class="code-block">  
+      <span class="lang">Linux Kernel</span>  
+<span class="comment">/* include/linux/mm.h */</span>  
+<span class="keyword">#define</span> <span class="function">PAGE_ALIGN</span>(addr)    ALIGN(addr, PAGE_SIZE)  
+<span class="keyword">#define</span> <span class="function">ALIGN</span>(x, a)         __ALIGN_KERNEL((x), (a))  
+<span class="keyword">#define</span> <span class="function">__ALIGN_KERNEL</span>(x, a) __ALIGN_KERNEL_MASK(x, (<span class="keyword">typeof</span>(x))(a) - <span class="number">1</span>)  
+<span class="keyword">#define</span> <span class="function">__ALIGN_KERNEL_MASK</span>(x, mask) (((x) + (mask)) & ~(mask))  
+
+<span class="comment">/* 展开后就是我们的公式：(x + d - 1) & (-d)   */</span>  
+<span class="comment">/* 当 d = 4096: (addr + 4095) & 0xFFFFF000     */</span>  
+    </div>  
+
+    <p class="dog-voice">"看到了吗？Linux内核里那些看起来很高大上的宏，层层剥开后就是Warren书里的一行公式。内核开发者不是不懂这个公式，他们是把它裹了三层抽象，让代码既正确又可读。但如果你不懂底层原理，你看这些宏就像看天书。这就是为什么我说：Hacker's Delight不是一本'有趣但没用'的书——它是理解系统底层代码的钥匙。"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">深度拆解</span>  
+    <h3>-d 的魔法：为什么负数恰好是掩码？</h3>  
+    <p>这是整个对齐操作最精妙的地方。当 d 是2的幂时：</p>  
+
+    <div class="code-block">  
+      <span class="lang">二进制分析</span>  
+d   = <span class="number">4096</span> = 0x00001000 = 0000...0001 0000 0000 0000  
+-d  = <span class="highlight">0xFFFFF000</span> = 1111...1111 0000 0000 0000  
+~(d-1) = <span class="highlight">0xFFFFF000</span> = 1111...1111 0000 0000 0000  <span class="comment">// 相同!</span>  
+
+<span class="comment">// 所以 x & (-d) 就是清除 x 的低 log₂(d) 位</span>  
+<span class="comment">// 这恰好是"向下对齐到 d 的倍数"</span>  
+    </div>  
+
+    <p class="dog-voice">"二补码的取负操作（取反加1），恰好把2的幂变成了高位全1、低位全0的掩码。这不是巧合，这是二补码编码的数学必然性。当你理解了这一点，你就理解了为什么二补码是现代计算机的唯一选择——它让算术和逻辑在2的幂处完美统一。"</p>  
+
+    <div class="formula-box">  
+      <div class="formula">对齐检测: (x & (d-1)) == 0 ? "已对齐" : "未对齐"</div>  
+      <div class="explain">d-1 恰好是低位全1的掩码。AND一下看看低位有没有残留，就知道对齐不对齐。</div>  
+    </div>  
+  </div>  
+</section>  
+
+<!-- Section 6: 边界跨越检测 -->  
+<section class="section" id="s6">  
+  <div class="section-header">  
+    <h2>🔍 边界跨越检测：DMA和虚拟内存的守门人</h2>  
+    <p class="section-desc">3–3 Detecting a Power-of-2 Boundary Crossing</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">核心问题</span>  
+    <h3>从地址a开始，传输l个字节，会不会跨越2<sup>k</sup>边界？</h3>  
+    <p>这个问题出现在每一个DMA引擎、每一个虚拟内存系统、每一个缓存控制器中。当你的数据传输跨越了页面边界，硬件需要做额外的地址翻译；当DMA跨越了某个边界，需要拆分成两次传输。</p>  
+
+    <div class="formula-box">  
+      <div class="formula">跨越检测: ((a ^ (a + l - 1)) >> k) != 0</div>  
+      <div class="explain">起始地址和结束地址XOR，如果高于第k位的部分不同，说明跨越了2ᵏ边界</div>  
+    </div>  
+
+    <p class="dog-voice">"XOR是世界上最优雅的'差异检测器'。两个数XOR后，不同的位变成1，相同的位变成0。如果a和a+l-1在第k位以上完全相同，说明它们在同一个2ᵏ大小的块内——没有跨越。但只要有一个高位不同，XOR的结果右移k位后就不为零——跨越了！"</p>  
+
+    <div class="code-block">  
+      <span class="lang">示例：4KB页面跨越检测</span>  
+<span class="comment">// 问题：从地址 a 开始读取 l 字节，是否跨越 4KB 页面？</span>  
+<span class="keyword">int</span> <span class="function">crosses_page</span>(<span class="keyword">unsigned</span> a, <span class="keyword">unsigned</span> l) {  
+    <span class="keyword">return</span> ((a ^ (a + l - <span class="number">1</span>)) >> <span class="number">12</span>) != <span class="number">0</span>;  
+    <span class="comment">// 4KB = 2¹², 所以 k = 12</span>  
+}  
+
+<span class="comment">// 等价形式 (Warren 给出):</span>  
+<span class="comment">// (a & 0xFFF) + l - 1 >= 4096</span>  
+<span class="comment">// 即：页内偏移 + 长度 - 1 >= 页大小</span>  
+    </div>  
+
+    <div class="analogy-box">  
+      <div class="label">🏠 类比</div>  
+      <p>想象一栋楼有很多楼层，每层4096个房间。你在第a号房间开始搬运l件东西，你想知道会不会搬到上一层去。最直接的判断：你在本层的房间号（a mod 4096）加上搬运数量-1，如果超过4095，就跨楼层了。XOR法做的是同样的事，只是更加精巧——它不需要取模运算。</p>  
+    </div>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">IBM System/370 的三指令方案</span>  
+    <h3>[CJS] 的经典实现</h3>  
+    <p>Warren在书中引用了Christopher J. Stephenson的方法，这是IBM System/370上的经典三指令方案：</p>  
+
+    <div class="code-block">  
+      <span class="lang">System/370 Assembly</span>  
+<span class="comment">// 三条指令检测4KB页面跨越</span>  
+O     RA, =X'FFFFF000'    <span class="comment">// RA = a | 0xFFFFF000</span>  
+AL    RA, =A(l)           <span class="comment">// RA += l, 设置进位和零标志</span>  
+BO    CROSSES             <span class="comment">// 如果进位且结果非零则跳转</span>  
+
+<span class="comment">// 等价的 RISC 表达式 (5~6条指令):</span>  
+<span class="comment">// ((a | -8) - 1) + l  产生进位 → 跨越</span>  
+<span class="comment">// ¬(a | -d) < l       → 跨越</span>  
+<span class="comment">// (a & (d-1)) + l > d → 跨越 (最直观)</span>  
+    </div>  
+
+    <p class="dog-voice">"IBM的大型机程序员几十年前就在用这些技巧了。Warren把它们从大型机的汇编手册里挖出来，翻译成了现代RISC可用的形式。这些知识不是新发明的——它们是被重新发现的。每一行代码背后，都有一个在1970年代IBM实验室里绞尽脑汁优化每一个时钟周期的工程师。"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">边界条件</span>  
+    <h3>l = 0 的陷阱</h3>  
+    <p>当传输长度 l = 0 时，a + l - 1 会下溢（无符号减法）。Warren特别指出，所有这些公式都假设 l ≥ 1。如果 l 可能为 0，必须提前判断。</p>  
+
+    <div class="warning-box">  
+      <div class="warning-title">⚠️ 常见Bug</div>  
+      <p>很多DMA驱动在边界检测中忽略了l=0的情况，导致误报跨越。在Linux内核的DMA引擎中，你会看到类似 <code>if (!len) return;</code> 的前置检查，这不是多余的——这是血泪教训。</p>  
+    </div>  
+  </div>  
+</section>  
+
+<!-- Section 7: 位传播本质 -->  
+<section class="section" id="s7">  
+  <div class="section-header">  
+    <h2>💡 位传播的本质：从一个1到一片1</h2>  
+    <p class="section-desc">并行前缀 (Parallel Prefix) — Guy Steele 的贡献</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">理论深度</span>  
+    <h3>为什么是5步？为什么每步翻倍？</h3>  
+    <p>5步OR-Shift的核心思想是<strong>倍增传播</strong>，这是计算机科学中最重要的思想之一，广泛应用于：</p>  
+
+    <div class="app-scenario">  
+      <div class="app-card">  
+        <div class="app-icon">➕</div>  
+        <div class="app-title">Carry-Lookahead Adder</div>  
+        <div class="app-desc">用并行前缀把进位传播从O(n)降到O(log n)，现代CPU加法器的基础</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">📊</div>  
+        <div class="app-title">前缀和 (Prefix Sum)</div>  
+        <div class="app-desc">GPU并行计算的基石，CUDA的thrust::inclusive_scan就是这个思想</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">🌳</div>  
+        <div class="app-title">归并排序</div>  
+        <div class="app-desc">分治的倍增策略：每步合并的区间翻倍，log n步覆盖全部</div>  
+      </div>  
+      <div class="app-card">  
+        <div class="app-icon">🌐</div>  
+        <div class="app-title">网络路由汇聚</div>  
+        <div class="app-desc">CIDR前缀匹配本质上也是2的幂边界操作</div>  
+      </div>  
+    </div>  
+
+    <div class="code-block">  
+      <span class="lang">并行前缀 OR 的数学证明</span>  
+<span class="comment">// 设 x 的最高1-bit在位置 p (0-indexed from right)</span>  
+<span class="comment">// 第1步后: 位置 p 和 p-1 都是1 → 覆盖2位</span>  
+<span class="comment">// 第2步后: 位置 p 到 p-3 都是1 → 覆盖4位</span>  
+<span class="comment">// 第3步后: 覆盖8位</span>  
+<span class="comment">// 第4步后: 覆盖16位</span>  
+<span class="comment">// 第5步后: 覆盖32位 → 位置 p 到 0 全是1</span>  
+
+<span class="comment">// 归纳法证明：</span>  
+<span class="comment">// 第 k 步后，x 的从最高1-bit开始向右连续有 min(2^k, p+1) 个 1</span>  
+<span class="comment">// 当 k = 5 时，2^5 = 32 ≥ p+1 (因为 p ≤ 31)，所以全覆盖</span>  
+    </div>  
+
+    <p class="dog-voice">"Guy Steele在给Warren的50页审稿意见中贡献了并行前缀的思想。Warren在前言里特别感谢他：'Wherever you see parallel prefix in this book, the material is due to Guy.' 这是计算机科学史上最好的code review之一——审稿人给书带来了全新的理论维度。"</p>  
+
+    <div class="perf-compare">  
+      <div class="perf-item loser">  
+        <div class="perf-label">朴素循环</div>  
+        <div class="perf-value">O(n)</div>  
+        <div class="perf-desc">逐位传播，32次迭代</div>  
+      </div>  
+      <div class="perf-item winner">  
+        <div class="perf-label">并行前缀</div>  
+        <div class="perf-value">O(log n)</div>  
+        <div class="perf-desc">倍增传播，5次迭代</div>  
+      </div>  
+    </div>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">64位扩展</span>  
+    <h3>从32位到64位：只需多加一步</h3>  
+
+    <div class="code-block">  
+      <span class="lang">C</span>  
+<span class="keyword">uint64_t</span> <span class="function">flp2_64</span>(<span class="keyword">uint64_t</span> x) {  
+    x |= x >> <span class="number">1</span>;  
+    x |= x >> <span class="number">2</span>;  
+    x |= x >> <span class="number">4</span>;  
+    x |= x >> <span class="number">8</span>;  
+    x |= x >> <span class="number">16</span>;  
+    x |= x >> <span class="number">32</span>;   <span class="comment">// ← 只需多加这一步！</span>  
+    <span class="keyword">return</span> x - (x >> <span class="number">1</span>);  
+}  
+
+<span class="comment">// 128位? 再加一步 x |= x >> 64;</span>  
+<span class="comment">// 这就是 log₂ 的美——指数增长只需线性步数</span>  
+    </div>  
+  </div>  
+</section>  
+
+<!-- Section 8: 工程应用 -->  
+<section class="section" id="s8">  
+  <div class="section-header">  
+    <h2>🏗️ 工程应用：无处不在的2次幂</h2>  
+    <p class="section-desc">从HashMap到GPU纹理，从FFT到Buddy System</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">Java HashMap</span>  
+    <h3>tableSizeFor — JDK里的clp2</h3>  
+
+    <div class="code-block">  
+      <span class="lang">Java (JDK 8+)</span>  
+<span class="comment">// java.util.HashMap</span>  
+<span class="keyword">static final int</span> <span class="function">tableSizeFor</span>(<span class="keyword">int</span> cap) {  
+    <span class="keyword">int</span> n = cap - <span class="number">1</span>;       <span class="comment">// ← Warren的减1技巧！</span>  
+    n |= n >>> <span class="number">1</span>;  
+    n |= n >>> <span class="number">2</span>;  
+    n |= n >>> <span class="number">4</span>;  
+    n |= n >>> <span class="number">8</span>;  
+    n |= n >>> <span class="number">16</span>;  
+    <span class="keyword">return</span> (n < <span class="number">0</span>) ? <span class="number">1</span> : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + <span class="number">1</span>;  
+}  
+
+<span class="comment">// 这就是 clp2(cap)，一字不差地来自 Hacker's Delight!</span>  
+<span class="comment">// >>> 是Java的无符号右移 (Java没有unsigned类型)</span>  
+    </div>  
+
+    <p class="dog-voice">"你每次new HashMap()的时候，JDK在背后调用的就是Warren的clp2算法。Josh Bloch (java.util.HashMap的作者) 在Effective Java里推荐的初始容量计算，本质上就是Chapter 3的内容。如果你读过Hacker's Delight，你看JDK源码就像看注释一样清晰。"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">Linux Kernel</span>  
+    <h3>Buddy System — 内存管理的2次幂哲学</h3>  
+    <p>Linux的伙伴系统(Buddy System)将物理内存按2的幂大小的块来管理：1页、2页、4页...1024页。每次分配时，找到恰好够大的2次幂块；释放时，如果相邻的"伙伴"也空闲，就合并成更大的块。</p>  
+
+    <div class="code-block">  
+      <span class="lang">Buddy System 核心逻辑</span>  
+<span class="comment">// 分配 n 页内存</span>  
+order = <span class="function">ilog2</span>(<span class="function">clp2</span>(n));  <span class="comment">// 向上取整到2次幂，取log</span>  
+<span class="comment">// order=0 → 1页, order=1 → 2页, ..., order=10 → 1024页</span>  
+
+<span class="comment">// 伙伴地址计算 (异或翻转第 order+12 位)</span>  
+buddy_pfn = pfn ^ (<span class="number">1</span> << order);  
+<span class="comment">// 这利用了2次幂的单bit性质：XOR一个bit就跳到伙伴</span>  
+    </div>  
+
+    <p class="dog-voice">"Buddy System是2次幂哲学的集大成者。它的每一步操作——分配、释放、合并、伙伴定位——都依赖于2次幂的位操作性质。如果你理解了Chapter 3，你就理解了为什么操作系统选择了这种看似浪费（因为内部碎片）但极其高效的方案。"</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">信号处理</span>  
+    <h3>FFT的2次幂要求</h3>  
+    <p>快速傅里叶变换要求数据点数为2的幂。如果你有1000个数据点，你需要填充到clp2(1000) = 1024。如果你有1025个点，你需要填充到clp2(1025) = 2048——几乎翻倍了。</p>  
+    <div class="formula-box">  
+      <div class="formula">FFT_size = clp2(N) = 下一个 ≥ N 的2次幂</div>  
+      <div class="explain">Zero-padding到2次幂大小，这是所有FFT库的标准操作</div>  
+    </div>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">环形缓冲区</span>  
+    <h3>Ring Buffer的取模技巧</h3>  
+    <div class="code-block">  
+      <span class="lang">C</span>  
+<span class="comment">// 当 size 是 2 的幂时：</span>  
+index = (head + offset) & (size - <span class="number">1</span>);  <span class="comment">// 取模！</span>  
+
+<span class="comment">// 等价于：</span>  
+index = (head + offset) % size;         <span class="comment">// 除法，慢20倍</span>  
+
+<span class="comment">// 所以 Ring Buffer 的大小必须是 2 的幂</span>  
+<span class="comment">// Linux内核的 kfifo 就是这样设计的</span>  
+    </div>  
+
+    <p class="dog-voice">"这就是为什么所有高性能Ring Buffer（Linux kfifo、Disruptor、io_uring的CQ/SQ）的大小都是2的幂。不是因为好看，是因为取模操作从一条除法指令（20~40个周期）变成了一条AND指令（1个周期）。在每秒处理百万级消息的系统里，这个差距是生死攸关的。"</p>  
+  </div>  
+</section>  
+
+<!-- Section 9: 溢出陷阱 -->  
+<section class="section" id="s9">  
+  <div class="section-header">  
+    <h2>⚠️ 溢出陷阱：你以为很安全的代码</h2>  
+    <p class="section-desc">clp2 的定时炸弹和编译器的救赎</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">致命Bug</span>  
+    <h3>clp2(2³¹ + 1) = 0</h3>  
+
+    <div class="code-block">  
+      <span class="lang">Bug 复现</span>  
+<span class="keyword">unsigned</span> x = <span class="number">0x80000001</span>;  <span class="comment">// 2³¹ + 1 = 2147483649</span>  
+<span class="keyword">unsigned</span> result = <span class="function">clp2</span>(x);  
+<span class="comment">// 期望: 2³² = 4294967296</span>  
+<span class="comment">// 实际: 0  (因为 2³² 无法用 32 位表示，溢出为 0)</span>  
+
+<span class="comment">// 如果你用 clp2 来分配内存...</span>  
+<span class="keyword">void</span> *buf = <span class="function">malloc</span>(result);  <span class="comment">// malloc(0) → 可能返回 NULL 或极小块</span>  
+<span class="function">memcpy</span>(buf, src, x);        <span class="comment">// 写入 2GB+ 数据到极小缓冲区 → 💥</span>  
+    </div>  
+
+    <p>Warren在书中明确指出：我们约定 clp2(x) 对 x > 2³¹ 的结果为 0（模 2³² 语义）。这意味着<strong>你必须自己检查溢出</strong>。</p>  
+
+    <div class="warning-box">  
+      <div class="warning-title">⚠️ 防御性编程</div>  
+      <p>在实际工程中，clp2的结果必须和输入比较。如果 clp2(x) < x（或等于0），说明发生了溢出。Java的 tableSizeFor 就做了这个检查：<code>(n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1</code>。</p>  
+    </div>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">现代编译器</span>  
+    <h3>__builtin_clz：硬件的救赎</h3>  
+    <p>现代CPU都有硬件指令来计算前导零（leading zeros），这使得flp2和clp2可以用1~3条指令实现：</p>  
+
+    <div class="code-block">  
+      <span class="lang">现代实现</span>  
+<span class="comment">// GCC/Clang 内置函数</span>  
+<span class="keyword">unsigned</span> <span class="function">flp2_modern</span>(<span class="keyword">unsigned</span> x) {  
+    <span class="keyword">if</span> (x == <span class="number">0</span>) <span class="keyword">return</span> <span class="number">0</span>;  
+    <span class="keyword">return</span> <span class="number">1u</span> << (<span class="number">31</span> - <span class="function">__builtin_clz</span>(x));  
+    <span class="comment">// __builtin_clz → x86: LZCNT / BSR</span>  
+    <span class="comment">//                → ARM: CLZ</span>  
+    <span class="comment">//                → RISC-V: CLZ (Zbb extension)</span>  
+}  
+
+<span class="keyword">unsigned</span> <span class="function">clp2_modern</span>(<span class="keyword">unsigned</span> x) {  
+    <span class="keyword">if</span> (x <= <span class="number">1</span>) <span class="keyword">return</span> <span class="number">1</span>;  
+    <span class="keyword">return</span> <span class="number">1u</span> << (<span class="number">32</span> - <span class="function">__builtin_clz</span>(x - <span class="number">1</span>));  
+}  
+
+<span class="comment">// C++20: std::bit_ceil(x)   — 标准库直接提供!</span>  
+<span class="comment">// C++20: std::bit_floor(x)  — 标准库直接提供!</span>  
+<span class="comment">// Java:  Integer.highestOneBit(x)  — flp2</span>  
+    </div>  
+
+    <p class="dog-voice">"Warren教你的12条指令方案，在现代CPU上被一条LZCNT指令取代了。但这不意味着Warren的方法过时了——在没有硬件支持的嵌入式平台上（很多RISC-V芯片还没有Zbb扩展），Warren的5步OR-Shift仍然是最优解。更重要的是，理解了位传播的原理，你才能理解硬件为什么要设计LZCNT指令。"</p>  
+  </div>  
+</section>  
+
+<!-- Section 10: 总结 -->  
+<section class="section" id="s10">  
+  <div class="section-header">  
+    <h2>🔮 终极总结：Chapter 3 的知识图谱</h2>  
+    <p class="section-desc">用一张图看清所有知识点的关系</p>  
+  </div>  
+
+  <div class="insight-card">  
+    <span class="card-tag">全景视图</span>  
+    <h3>三个小节，一个哲学</h3>  
+
+    <div class="timeline">  
+      <div class="step">  
+        <h4>§3-1 向已知2次幂对齐</h4>  
+        <p><strong>核心公式：</strong><code>x & (-d)</code> 和 <code>(x+d-1) & (-d)</code><br>  
+        <strong>应用：</strong>PAGE_ALIGN、SIMD对齐、磁盘扇区对齐<br>
+        <strong>本质：</strong>当d是已知的2的幂时，取模=AND，对齐=AND负数掩码</p>
+      </div>
+      <div class="step">
+        <h4>§3-2 向上/向下取整到下一个2次幂 (flp2/clp2)</h4>
+        <p><strong>核心算法：</strong>5步OR-Shift位传播 + 最终提取/加1<br>
+        <strong>关键技巧：</strong>clp2的减1妙手，让2的幂保持不变<br>
+        <strong>指令数：</strong>flp2=12条, clp2=13条 (basic RISC)<br>
+        <strong>替代：</strong>nlz一条指令搞定，现代CPU标配</p>
+      </div>
+      <div class="step">
+        <h4>§3-3 检测2次幂边界跨越</h4>
+        <p><strong>核心公式：</strong><code>((a ^ (a+l-1)) >> k) != 0</code><br>
+        <strong>来源：</strong>IBM System/370 [CJS] 三指令方案<br>
+        <strong>应用：</strong>DMA传输、页面跨越检测、缓存行分析</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-card">
+    <span class="card-tag">数据总览</span>
+    <h3>Chapter 3 关键数字</h3>
+
+    <div class="app-scenario">
+      <div class="app-card">
+        <div class="app-icon">📊</div>
+        <div class="app-title">3个小节</div>
+        <div class="app-desc">对齐 → flp2/clp2 → 边界跨越</div>
+      </div>
+      <div class="app-card">
+        <div class="app-icon">⚡</div>
+        <div class="app-title">12~13条指令</div>
+        <div class="app-desc">flp2/clp2无分支实现</div>
+      </div>
+      <div class="app-card">
+        <div class="app-icon">🔑</div>
+        <div class="app-title">5个核心公式</div>
+        <div class="app-desc">x&(-d), (x+d-1)&(-d), OR-Shift, x-1技巧, XOR检测</div>
+      </div>
+      <div class="app-card">
+        <div class="app-icon">🌐</div>
+        <div class="app-title">15+应用场景</div>
+        <div class="app-desc">从HashMap到Buddy System到FFT</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="insight-card">
+    <span class="card-tag">dog250 终章</span>
+    <h3>写在最后：2次幂是计算机的母语</h3>
+
+    <p class="dog-voice">"我花了很多年才真正理解一个道理：计算机不是在操作数字，而是在操作比特。所有'高效'的算法，本质上都是找到了问题和比特操作之间的直接映射。2次幂之所以特殊，是因为它是唯一能让除法变成移位、取模变成AND、边界检测变成XOR的数。这不是'技巧'——这是计算机硬件的物理真相。"</p>
+
+    <p class="dog-voice">"Warren在这短短几页里塞进了三个看似不相关的话题：对齐、取整、边界检测。但你仔细看就会发现，它们都是同一个问题的不同侧面——'给定一个任意地址，找到它在2次幂网格中的位置'。对齐是强制它落在网格点上，flp2/clp2是找最近的网格点，边界检测是判断两个地址是否在同一格里。"</p>
+
+    <p class="dog-voice">"最后说一句：如果你读完这一章后去看Linux内核的mm/page_alloc.c和include/linux/log2.h，你会发现自己突然看懂了以前觉得天书一般的代码。这不是因为代码变简单了——是因为你的眼睛变了。Hacker's Delight不是一本给你'技巧'的书，而是一本给你'眼睛'的书。"</p>
+  </div>
+</section>
+
+</div><!-- end container -->
+
+<!-- 互动演示区 -->
+<section class="section" id="demo" style="max-width:900px;margin:0 auto;padding:0 20px 60px">
+  <div class="section-header">
+    <h2>🎮 互动演示：亲手试一试</h2>
+    <p class="section-desc">输入一个无符号整数，看 flp2 和 clp2 的计算过程</p>
+  </div>
+
+  <div class="insight-card" style="text-align:center">
+    <div style="margin-bottom:20px">
+      <label style="color:#64ffda;font-size:.9em;display:block;margin-bottom:8px">输入一个正整数 (1 ~ 4294967295)</label>
+      <input type="number" id="inputX" value="100" min="1" max="4294967295"
+        style="background:#0d1117;border:1px solid #64ffda44;color:#e6f1ff;padding:12px 20px;border-radius:8px;font-size:1.2em;width:200px;text-align:center;font-family:monospace">
+      <button onclick="compute()" style="background:linear-gradient(135deg,#64ffda,#00b4d8);color:#0a0a1a;border:none;padding:12px 24px;border-radius:8px;font-size:1em;font-weight:700;cursor:pointer;margin-left:10px">计算 ⚡</button>
+    </div>
+
+    <div id="result" style="text-align:left;margin-top:20px"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <p>📖 基于 <em>Hacker's Delight, 2nd Edition</em> by Henry S. Warren, Jr. · Chapter 3: Power-of-2 Boundaries</p>
+  <p style="margin-top:8px">🐕 dog250 风格技术解析 · 用最强大脑拆解位操作的本质</p>
+  <p style="margin-top:8px;color:#64ffda">⬆ <a href="#s1">返回顶部</a></p>
+</footer>
+
+<!-- TOC Float -->
+<div class="toc-float">
+  <a href="#s1" title="开篇"></a>
+  <a href="#s2" title="定义"></a>
+  <a href="#s3" title="flp2"></a>
+  <a href="#s4" title="clp2"></a>
+  <a href="#s5" title="对齐"></a>
+  <a href="#s6" title="边界跨越"></a>
+  <a href="#s7" title="位传播"></a>
+  <a href="#s8" title="工程应用"></a>
+  <a href="#s9" title="溢出陷阱"></a>
+  <a href="#s10" title="总结"></a>
+</div>
+
+<script>
+// 导航高亮
+const navLinks = document.querySelectorAll('.nav-inner a');
+const sections = document.querySelectorAll('.section[id]');
+
+function updateNav() {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 200) current = s.id;
+  });
+  navLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateNav);
+
+// TOC Float 高亮
+const tocLinks = document.querySelectorAll('.toc-float a');
+function updateToc() {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 300) current = s.id;
+  });
+  tocLinks.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+  });
+}
+window.addEventListener('scroll', updateToc);
+
+// flp2 / clp2 计算器
+function flp2(x) {
+  if (x === 0) return 0;
+  x = x | (x >>> 1);
+  x = x | (x >>> 2);
+  x = x | (x >>> 4);
+  x = x | (x >>> 8);
+  x = x | (x >>> 16);
+  return x - (x >>> 1);
+}
+
+function clp2(x) {
+  if (x === 0) return 0;
+  if (x === 1) return 1;
+  x = x - 1;
+  x = x | (x >>> 1);
+  x = x | (x >>> 2);
+  x = x | (x >>> 4);
+  x = x | (x >>> 8);
+  x = x | (x >>> 16);
+  return (x + 1) >>> 0;
+}
+
+function toBin32(n) {
+  return (n >>> 0).toString(2).padStart(32, '0').replace(/(.{4})/g, '$1 ').trim();
+}
+
+function toHex(n) {
+  return '0x' + (n >>> 0).toString(16).toUpperCase().padStart(8, '0');
+}
+
+function compute() {
+  const x = parseInt(document.getElementById('inputX').value) >>> 0;
+  if (x === 0 || isNaN(x)) {
+    document.getElementById('result').innerHTML = '<p style="color:#ff6b6b">请输入一个正整数 (1~4294967295)</p>';
+    return;
+  }
+
+  const f = flp2(x);
+  const c = clp2(x);
+  const isPow2 = (x & (x - 1)) === 0;
+
+  // OR-Shift 中间步骤
+  let steps = [];
+  let v = x;
+  steps.push({label: '初始值 x', val: v});
+  v = v | (v >>> 1);
+  steps.push({label: 'x |= x>>1', val: v});
+  v = v | (v >>> 2);
+  steps.push({label: 'x |= x>>2', val: v});
+  v = v | (v >>> 4);
+  steps.push({label: 'x |= x>>4', val: v});
+  v = v | (v >>> 8);
+  steps.push({label: 'x |= x>>8', val: v});
+  v = v | (v >>> 16);
+  steps.push({label: 'x |= x>>16', val: v});
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:20px">
+      <div style="background:#0d1117;border:1px solid #64ffda44;border-radius:10px;padding:15px;text-align:center">
+        <div style="color:#8892b0;font-size:.8em;margin-bottom:4px">flp2(${x})</div>
+        <div style="color:#64ffda;font-size:1.8em;font-weight:900">${f}</div>
+        <div style="color:#6a7b8f;font-size:.75em;margin-top:4px">${toHex(f)}</div>
+      </div>
+      <div style="background:#0d1117;border:1px solid #7c3aed44;border-radius:10px;padding:15px;text-align:center">
+        <div style="color:#8892b0;font-size:.8em;margin-bottom:4px">clp2(${x})</div>
+        <div style="color:#b794f6;font-size:1.8em;font-weight:900">${c === 0 ? '溢出! (0)' : c}</div>
+        <div style="color:#6a7b8f;font-size:.75em;margin-top:4px">${toHex(c)}</div>
+      </div>
+    </div>
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;margin-bottom:15px">
+      <div style="color:#64ffda;font-size:.85em;font-weight:600;margin-bottom:10px">
+        ${isPow2 ? '✅ x 本身就是 2 的幂！flp2 = clp2 = x' : '📐 x 不是 2 的幂，flp2 < x < clp2'}
+      </div>
+      <div style="color:#8892b0;font-size:.8em">
+        x 的二进制: <span style="color:#ffd700;font-family:monospace">${toBin32(x)}</span>
+      </div>
+    </div>
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px">
+      <div style="color:#64ffda;font-size:.85em;font-weight:600;margin-bottom:10px">🔬 OR-Shift 传播过程 (flp2)</div>
+      <table style="width:100%;font-family:monospace;font-size:.78em;border-collapse:collapse">
+        <tr style="color:#8892b0"><td style="padding:4px 8px;width:120px">步骤</td><td style="padding:4px 8px">二进制</td><td style="padding:4px 8px;width:100px;text-align:right">十进制</td></tr>`;
+
+  steps.forEach(s => {
+    html += `<tr style="border-top:1px solid #1a1a3e">
+      <td style="padding:4px 8px;color:#64ffda">${s.label}</td>
+      <td style="padding:4px 8px;color:#ffd700">${toBin32(s.val >>> 0)}</td>
+      <td style="padding:4px 8px;color:#c9d1d9;text-align:right">${(s.val >>> 0)}</td>
+    </tr>`;
+  });
+
+  html += `<tr style="border-top:2px solid #64ffda44">
+    <td style="padding:4px 8px;color:#64ffda;font-weight:bold">x - (x>>1)</td>
+    <td style="padding:4px 8px;color:#64ffda;font-weight:bold">${toBin32(f)}</td>
+    <td style="padding:4px 8px;color:#64ffda;font-weight:bold;text-align:right">${f} = flp2</td>
+  </tr>`;
+
+  html += '</table></div>';
+
+  // 对齐演示
+  html += `
+    <div style="background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:15px;margin-top:15px">
+      <div style="color:#b794f6;font-size:.85em;font-weight:600;margin-bottom:10px">🔗 对齐演示 (假设 d = 4096 = 页面大小)</div>
+      <div style="font-family:monospace;font-size:.8em;color:#c9d1d9;line-height:1.8">
+        <div>向下对齐: ${x} & (-4096) = <span style="color:#64ffda;font-weight:bold">${(x & (-4096)) >>> 0}</span>  <span style="color:#8892b0">(${toHex((x & (-4096)) >>> 0)})</span></div>
+        <div>向上对齐: (${x}+4095) & (-4096) = <span style="color:#b794f6;font-weight:bold">${((x + 4095) & (-4096)) >>> 0}</span>  <span style="color:#8892b0">(${toHex(((x + 4095) & (-4096)) >>> 0)})</span></div>
+        <div>页内偏移: ${x} & 4095 = <span style="color:#ffd700;font-weight:bold">${x & 4095}</span></div>
+        <div>已对齐?  (${x} & 4095) == 0 → <span style="color:${(x & 4095) === 0 ? '#64ffda' : '#ff6b6b'};font-weight:bold">${(x & 4095) === 0 ? '是 ✅' : '否 ❌'}</span></div>
+      </div>
+    </div>`;
+
+  document.getElementById('result').innerHTML = html;
+}
+
+// 初始计算
+compute();
+
+// Tab 切换：点击导航只显示对应 section，不全部展开
+function showTab(id) {
+  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+  const section = document.getElementById(id);
+  if (section) section.classList.add('active');
+  document.querySelectorAll('.nav-inner a[data-tab]').forEach(a => a.classList.remove('active'));
+  const link = document.querySelector('.nav-inner a[href="#' + id + '"]');
+  if (link) link.classList.add('active');
+  if (typeof history !== 'undefined' && history.replaceState) history.replaceState(null, '', '#' + id);
+}
+document.querySelectorAll('.nav-inner a[data-tab]').forEach(a => {
+  a.addEventListener('click', function(e) {
+    e.preventDefault();
+    const id = (this.getAttribute('href') || '').replace('#', '');
+    if (id) showTab(id);
+  });
+});
+// 初始根据 hash 显示对应 tab
+(function() {
+  const id = (location.hash || '#s1').replace('#', '');
+  if (id && document.getElementById(id)) showTab(id);
+  else showTab('s1');
+})();
+</script>
+
+</body>
+</html>
