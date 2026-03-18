@@ -1,0 +1,1064 @@
+<!DOCTYPE html>  
+<html lang="zh-CN">  
+<head>  
+<meta charset="UTF-8">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0">  
+<title>Hacker's Delight Ch03 - 快速记忆卡片</title>  
+<style>  
+*{margin:0;padding:0;box-sizing:border-box}  
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans SC',sans-serif;background:linear-gradient(135deg,#0a0a1a 0%,#1a1a3e 50%,#0d0d2b 100%);color:#e0e0e0;min-height:100vh;line-height:1.6}  
+.nav-bar{position:sticky;top:0;z-index:100;background:rgba(10,10,26,.95);backdrop-filter:blur(10px);border-bottom:1px solid rgba(100,255,218,.1);padding:10px 20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}  
+.nav-bar a{color:#64ffda;text-decoration:none;font-size:13px;padding:5px 12px;border-radius:15px;border:1px solid rgba(100,255,218,.2);transition:all .3s;white-space:nowrap}  
+.nav-bar a:hover,.nav-bar a.active{background:rgba(100,255,218,.1);border-color:#64ffda}  
+.page-title{text-align:center;padding:40px 20px 10px}  
+.page-title h1{font-size:2em;background:linear-gradient(135deg,#64ffda,#00b4d8,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;font-weight:900}  
+.page-title p{color:#8892b0;font-size:.95em}  
+.print-btn{display:block;width:fit-content;margin:10px auto 30px;padding:10px 28px;background:linear-gradient(135deg,#64ffda,#00b4d8);color:#0a0a1a;border:none;border-radius:25px;font-size:.9em;font-weight:700;cursor:pointer;text-decoration:none;transition:all .3s}  
+.print-btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(100,255,218,.3)}  
+.section{max-width:1200px;margin:0 auto 50px;padding:0 20px}  
+.section-title{font-size:1.3em;color:#64ffda;font-weight:700;margin-bottom:20px;padding:12px 20px;background:rgba(100,255,218,.05);border:1px solid rgba(100,255,218,.15);border-radius:10px;border-left:4px solid #64ffda}  
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}  
+.card{perspective:1000px;height:180px;cursor:pointer}  
+.card-inner{position:relative;width:100%;height:100%;transition:transform .6s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}  
+.card.flipped .card-inner{transform:rotateY(180deg)}  
+.card-front,.card-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;padding:18px;display:flex;flex-direction:column;justify-content:space-between}  
+.card-front{background:linear-gradient(135deg,rgba(20,20,50,.9),rgba(15,15,40,.8));border:1px solid rgba(100,255,218,.15)}  
+.card-back{background:linear-gradient(135deg,rgba(15,40,30,.95),rgba(10,30,25,.9));border:1px solid rgba(100,255,218,.4);transform:rotateY(180deg)}  
+.card-tag{font-size:.7em;font-weight:700;padding:2px 8px;border-radius:10px;display:inline-block;margin-bottom:6px;letter-spacing:.5px;text-transform:uppercase;width:fit-content}  
+.tag-align{background:rgba(100,255,218,.12);color:#64ffda}  
+.tag-flp2{background:rgba(0,180,216,.12);color:#00b4d8}  
+.tag-clp2{background:rgba(124,58,237,.12);color:#b794f6}  
+.tag-cross{background:rgba(255,107,107,.12);color:#ff6b6b}  
+.tag-prop{background:rgba(255,215,0,.12);color:#ffd700}  
+.tag-nlz{background:rgba(100,255,218,.08);color:#64ffda}  
+.card-front h3{font-size:1em;color:#ccd6f6;font-weight:600;flex-grow:1;display:flex;align-items:center}  
+.card-formula{font-family:'JetBrains Mono','Fira Code','Courier New',monospace;font-size:1em;color:#ffd700;background:rgba(255,215,0,.08);padding:8px 12px;border-radius:6px;font-weight:700;letter-spacing:.3px;text-align:center}  
+.card-hint{font-size:.75em;color:#8892b0;margin-top:6px}  
+.flip-label{font-size:.65em;color:#64ffda44;text-align:right;margin-top:4px}  
+.card-back-title{font-size:.85em;color:#64ffda;font-weight:700;margin-bottom:8px}  
+.card-back-content{font-size:.82em;color:#a8c0b4;flex-grow:1}  
+.card-back-content code{font-family:monospace;color:#ffd700;background:rgba(255,215,0,.1);padding:1px 5px;border-radius:3px;font-size:.9em}  
+.card-back-content .warn{color:#ff6b6b}  
+.card-back-content .tip{color:#64ffda}  
+.star-badge{font-size:.8em;float:right;margin-top:2px}  
+.memory-box{max-width:1200px;margin:0 auto 50px;padding:0 20px}  
+.memory-title{font-size:1.3em;color:#ffd700;font-weight:700;margin-bottom:20px;padding:12px 20px;background:rgba(255,215,0,.05);border:1px solid rgba(255,215,0,.15);border-radius:10px;border-left:4px solid #ffd700}  
+.memory-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:15px}  
+.memory-item{background:rgba(20,20,50,.7);border:1px solid rgba(255,215,0,.1);border-radius:12px;padding:16px 18px}  
+.memory-item .num{color:#ffd700;font-weight:800;font-size:1em;margin-bottom:4px}  
+.memory-item .text{color:#b0c0d0;font-size:.85em;line-height:1.6}  
+.memory-item .text code{color:#ffd700;font-family:monospace;background:rgba(255,215,0,.08);padding:1px 5px;border-radius:3px}  
+.memory-item .text .key{color:#64ffda;font-weight:600}  
+.progress-section{max-width:1200px;margin:0 auto 60px;padding:0 20px}  
+.progress-title{font-size:1.3em;color:#b794f6;font-weight:700;margin-bottom:20px;padding:12px 20px;background:rgba(124,58,237,.05);border:1px solid rgba(124,58,237,.15);border-radius:10px;border-left:4px solid #b794f6}  
+.progress-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px}  
+.progress-card{background:rgba(20,20,50,.7);border:1px solid rgba(124,58,237,.15);border-radius:12px;padding:18px}  
+.progress-card h4{color:#b794f6;font-size:.9em;font-weight:700;margin-bottom:12px}  
+.progress-card .item{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.82em;color:#8892b0}  
+.progress-card .item input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:#64ffda;flex-shrink:0}  
+.progress-card .eta{font-size:.75em;color:#64ffda44;margin-top:8px;padding-top:8px;border-top:1px solid rgba(100,255,218,.08)}  
+.back-top{text-align:center;padding:20px;color:#64ffda44;font-size:1.5em}  
+.back-top a{color:#64ffda;text-decoration:none}  
+@media print{  
+  .ch03-nav{display:none!important}  
+  .ch03-main{margin-left:0!important}  
+  .nav-bar,.print-btn,.progress-section,.back-top{display:none}  
+  body{background:#fff;color:#000}  
+  .card-front{background:#f0f8ff;border:1px solid #ccc;color:#000}  
+  .card-formula{background:#fff3cd;color:#856404;border:1px solid #ffc107}  
+  .card-back{display:none}  
+  .cards-grid{grid-template-columns:repeat(3,1fr)}  
+  .card{height:auto;page-break-inside:avoid}  
+}  
+@media(max-width:600px){  
+  .cards-grid{grid-template-columns:1fr 1fr}  
+  .card{height:160px}  
+}  
+</style>  
+</head>  
+<body>  
+<nav class="ch03-nav" style="position:fixed;left:0;top:0;bottom:0;width:180px;background:rgba(0,0,0,0.92);padding:1rem 0.5rem;display:flex;flex-direction:column;gap:0.25rem;font-family:monospace;font-size:0.8rem;border-right:1px solid rgba(0,255,136,0.2);z-index:90;overflow-y:auto;"><a href="ch03.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">← 返回 Ch.03 主章</a><div style="height:1px;background:rgba(255,255,255,0.1);margin:0.25rem 0;"></div><a href="ch03_quickref.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">快速参考</a><a href="ch03_anaylze.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">深度分析</a><a href="ch03_summary.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">章节总结</a></nav>
+<div class="ch03-main" style="margin-left:180px;">
+
+<!-- 顶部导航 -->  
+<nav class="nav-bar">  
+  <a href="ch03.html">← 返回 Ch.03 主章</a>  
+  <a href="ch03_quickref.html" class="active">快速参考</a>  
+  <a href="ch03_anaylze.html">深度分析</a>  
+  <a href="ch03_summary.html">章节总结</a>  
+</nav>  
+
+<!-- 标题 -->  
+<div class="page-title">  
+  <h1>🎓 Hacker's Delight Ch03 - 快速记忆卡片</h1>  
+  <p>点击卡片翻转 | 打印成便签随身携带</p>  
+</div>  
+<a class="print-btn" onclick="window.print()">🖨️ 打印记忆卡片</a>  
+
+<!-- ═══════════════════════════════════════════════  
+     第一部分：3-1 向已知2次幂对齐 (6个)  
+══════════════════════════════════════════════════ -->  
+<div class="section" id="s1">  
+  <div class="section-title">📐 第一部分：§3-1 向已知2次幂对齐 (6个)</div>  
+  <div class="cards-grid">  
+
+    <!-- TRICK 01 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 01</span>  
+          <h3>向下对齐到已知2次幂 d<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">x & (-d)</div>  
+          <div class="card-hint">d 必须是2的幂</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">向下取整到d的倍数</div>  
+          <div class="card-back-content">  
+            <code>x & (-d)</code> 等价于 <code>x & ~(d-1)</code><br><br>  
+            <span class="tip">原理：-d 在二进制中恰好是低 log₂d 位全0、高位全1 的掩码</span><br><br>  
+            例: d=4096(0x1000), -d=0xFFFFF000<br>  
+            x & 0xFFFFF000 → 清零低12位 → 页对齐  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 02 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 02</span>  
+          <h3>向上对齐到已知2次幂 d<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">(x + d - 1) & (-d)</div>  
+          <div class="card-hint">先"顶上去"再向下对齐</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">向上取整到d的倍数</div>  
+          <div class="card-back-content">  
+            等价写法: <code>(x + (d-1)) & ~(d-1)</code><br><br>  
+            <span class="tip">Linux内核: PAGE_ALIGN(addr)</span><br>  
+            <code>(addr + 4095) & ~4095</code><br><br>  
+            原理: +d-1 保证不足一页的部分"进位"，再AND截断低位  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 03 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 03</span>  
+          <h3>取模/偏移量计算</h3>  
+          <div class="card-formula">x & (d - 1)</div>  
+          <div class="card-hint">等价于 x mod d（d为2次幂）</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">页内偏移 / 环形缓冲索引</div>  
+          <div class="card-back-content">  
+            <code>x & (d-1)</code> = x 除以 d 的余数<br><br>  
+            Ring Buffer 索引: <code>idx & (size-1)</code><br>  
+            代替 <code>idx % size</code>，快 10~20 倍<br><br>  
+            <span class="tip">Linux kfifo / Disruptor 核心原理</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 04 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 04</span>  
+          <h3>对齐检测</h3>  
+          <div class="card-formula">(x & (d-1)) == 0</div>  
+          <div class="card-hint">检测 x 是否已对齐到 d</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">判断是否为 d 的倍数</div>  
+          <div class="card-back-content">  
+            低 log₂d 位全为0 → 已对齐<br><br>  
+            <span class="tip">判断2次幂: (x & (x-1)) == 0</span><br>  
+            <span class="warn">注意: 0 也会通过判断！需要 x > 0</span><br><br>  
+            SIMD断言: assert((addr & 15) == 0)  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 05 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 05</span>  
+          <h3>-d 掩码原理 ⭐⭐</h3>  
+          <div class="card-formula">-d = ~(d-1)</div>  
+          <div class="card-hint">二补码取负 = 高位全1掩码</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">二补码与掩码的统一</div>  
+          <div class="card-back-content">  
+            d=4 → d-1=3=<code>011</code><br>  
+            ~(d-1)=<code>...11100</code> = -4<br><br>  
+            <span class="tip">AND掩码 = 取负操作，这是二补码的数学必然</span><br><br>  
+            所以 <code>x & (-d) ≡ x & ~(d-1)</code>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 06 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-align">ALIGN 06</span>  
+          <h3>64位对齐扩展 ⭐</h3>  
+          <div class="card-formula">(x + d - 1) & ~(d - 1)</div>  
+          <div class="card-hint">32位和64位写法完全相同</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">跨平台对齐写法</div>  
+          <div class="card-back-content">  
+            <code>uintptr_t align_up(uintptr_t x, size_t d)</code><br>  
+            <code>{ return (x+d-1) & ~(d-1); }</code><br><br>  
+            <span class="tip">用 uintptr_t 保证32/64位都正确</span><br>  
+            d 必须是2的幂，否则公式失效  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     第二部分：3-2 flp2 向下取整到下一个2次幂 (6个)  
+══════════════════════════════════════════════════ -->  
+<div class="section" id="s2">  
+  <div class="section-title">⬇️ 第二部分：§3-2 flp2 向下取整到2次幂 (6个)</div>  
+  <div class="cards-grid">  
+
+    <!-- TRICK 07 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 01</span>  
+          <h3>flp2 定义<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">flp2(x) = 2<sup>⌊log₂x⌋</sup></div>  
+          <div class="card-hint">不超过 x 的最大2次幂</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">floor-power-of-2</div>  
+          <div class="card-back-content">  
+            flp2(0) = 0, flp2(1) = 1<br>  
+            flp2(5) = 4, flp2(8) = 8<br>  
+            flp2(2³¹-1) = 2³⁰<br><br>  
+            <span class="tip">flp2(x)=clp2(x) 当且仅当 x 是2次幂或0</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 08 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 02</span>  
+          <h3>5步 OR-Shift 位传播<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">x|=x>>1; x|=x>>2;%%BR%%x|=x>>4; x|=x>>8; x|=x>>16</div>  
+          <div class="card-hint">传播最高1-bit向右覆盖所有低位</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">并行前缀 OR 传播 (Guy Steele)</div>  
+          <div class="card-back-content">  
+            结果: 从最高1-bit到bit0全为1<br>  
+            例: 0x00100000 → 0x001FFFFF<br><br>  
+            <span class="tip">倍增策略: 1→2→4→8→16，log₂32=5步</span><br>  
+            共 5次OR + 5次SHIFT = 10条指令  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 09 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 03</span>  
+          <h3>flp2 完整代码<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">传播后: x - (x >> 1)</div>  
+          <div class="card-hint">减去自身右移一位 = 保留最高位</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">flp2 完整实现 (12条指令)</div>  
+          <div class="card-back-content">  
+            <code>x|=x>>1; x|=x>>2; x|=x>>4;</code><br>  
+            <code>x|=x>>8; x|=x>>16;</code><br>  
+            <code>return x - (x>>1);</code><br><br>  
+            <span class="tip">x-(x>>1): 0x001FFFFF→0x00100000</span><br>  
+            掩码减去半掩码 = 最高位单独1  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 10 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 04</span>  
+          <h3>nlz 方法 (硬件最优)<span class="star-badge">⭐⭐</span></h3>  
+          <div class="card-formula">0x80000000 >> nlz(x)</div>  
+          <div class="card-hint">nlz = Number of Leading Zeros</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">单指令实现 (现代 CPU)</div>  
+          <div class="card-back-content">  
+            GCC: <code>1u << (31 - __builtin_clz(x))</code><br>  
+            x86: BSR/LZCNT 指令<br>  
+            ARM: CLZ 指令<br><br>  
+            <span class="warn">注意: x=0 时 nlz(x)=32，需特判</span><br>  
+            <span class="tip">C++20: std::bit_floor(x)</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 11 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 05</span>  
+          <h3>flp2 互转关系 ⭐⭐</h3>  
+          <div class="card-formula">clp2(x) = flp2(2x - 1)<br>x > 0</div>  
+          <div class="card-hint">用 flp2 算 clp2</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">flp2 与 clp2 互推</div>  
+          <div class="card-back-content">  
+            <code>clp2(x) = flp2(2x-1)</code> for x > 0<br>  
+            <code>flp2(x) = clp2(x/2+1)</code> for x > 1<br><br>  
+            <span class="tip">性质: flp2(2ⁿx) = 2ⁿ·flp2(x)</span><br>  
+            对偶: clp2(x) = 1/flp2(1/x), x≠0  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 12 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-flp2">FLP2 06</span>  
+          <h3>64位扩展 ⭐⭐</h3>  
+          <div class="card-formula">追加: x |= x >> 32</div>  
+          <div class="card-hint">32位→64位只需多一步</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">64位 flp2 (6步 OR-Shift)</div>  
+          <div class="card-back-content">  
+            <code>x|=x>>1; x|=x>>2; x|=x>>4;</code><br>  
+            <code>x|=x>>8; x|=x>>16; x|=x>>32;</code><br>  
+            <code>return x - (x>>1);</code><br><br>  
+            <span class="tip">log₂64=6步，规律: 步数=log₂(位宽)</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     第三部分：3-2 clp2 向上取整到下一个2次幂 (6个)  
+══════════════════════════════════════════════════ -->  
+<div class="section" id="s3">  
+  <div class="section-title">⬆️ 第三部分：§3-2 clp2 向上取整到2次幂 (6个)</div>  
+  <div class="cards-grid">  
+
+    <!-- TRICK 13 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 01</span>  
+          <h3>clp2 定义<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">clp2(x) = 2<sup>⌈log₂x⌉</sup></div>  
+          <div class="card-hint">不小于 x 的最小2次幂</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">ceiling-power-of-2</div>  
+          <div class="card-back-content">  
+            clp2(0) = 0, clp2(1) = 1<br>  
+            clp2(5) = 8, clp2(8) = 8<br>  
+            clp2(2³¹+1) = <span class="warn">0 (溢出!)</span><br><br>  
+            <span class="tip">HashMap/FFT/RingBuffer 的标配操作</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 14 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 02</span>  
+          <h3>减1的妙手<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">x -= 1  ← 灵魂！</div>  
+          <div class="card-hint">让2次幂"原地保持"不变</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">为什么先减1？</div>  
+          <div class="card-back-content">  
+            x=8(1000): 不减1→传播→1111→+1→16 ❌<br>  
+            x=8(1000): 减1→7(0111)→传播→0111→+1→8 ✅<br><br>  
+            <span class="tip">区分"已在边界"和"在边界之间"的关键</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 15 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 03</span>  
+          <h3>clp2 完整代码<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">x--; 传播5步; x++;</div>  
+          <div class="card-hint">减1 → OR-Shift → 加1</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">clp2 完整实现 (13条指令)</div>  
+          <div class="card-back-content">  
+            <code>x -= 1;</code><br>  
+            <code>x|=x>>1; x|=x>>2; x|=x>>4;</code><br>  
+            <code>x|=x>>8; x|=x>>16;</code><br>  
+            <code>return x + 1;</code><br><br>  
+            比 flp2 多 1 条指令 (sub + add)  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 16 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 04</span>  
+          <h3>nlz 方法 ⭐⭐</h3>  
+          <div class="card-formula">1 &lt;&lt; (32 - nlz(x-1))</div>  
+          <div class="card-hint">硬件 CLZ 指令一步到位</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">现代 CPU 单指令实现</div>  
+          <div class="card-back-content">  
+            <code>1u << (32 - __builtin_clz(x-1))</code><br><br>  
+            Java: <code>Integer.highestOneBit(x-1) << 1</code><br>  
+            Java HashMap: <code>tableSizeFor(cap)</code><br>  
+            C++20: <code>std::bit_ceil(x)</code><br><br>  
+            <span class="warn">x=0 或 x=1 需特判!</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 17 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 05</span>  
+          <h3>溢出陷阱 ⚠️<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">clp2(2³¹+1) = 0 !</div>  
+          <div class="card-hint">32位无符号无法表示 2³²</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">⚠️ 必须检查溢出</div>  
+          <div class="card-back-content">  
+            <code>result = clp2(x);</code><br>  
+            <code>if (result &lt; x) // 溢出了！</code><br><br>  
+            <span class="warn">Java HashMap 的 tableSizeFor 有此检查</span><br>  
+            malloc(clp2(x)) 若 x>2³¹ 则 malloc(0) → 灾难  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 18 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-clp2">CLP2 06</span>  
+          <h3>Java tableSizeFor ⭐⭐</h3>  
+          <div class="card-formula">n=cap-1; n|=n>>>1;<br>...n>>>16; n+1</div>  
+          <div class="card-hint">JDK HashMap 源码 = Warren clp2</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">Josh Bloch 用了 Warren 的算法</div>  
+          <div class="card-back-content">  
+            完全就是 clp2(cap)！<br>  
+            <code>int n = cap - 1;</code><br>  
+            <code>n |= n >>> 1; ... n |= n >>> 16;</code><br>  
+            <code>return (n &lt; 0) ? 1 : n + 1;</code><br><br>  
+            <span class="tip">Java 用 >>> (无符号右移) 代替 >> </span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     第四部分：3-3 2次幂边界跨越检测 (6个)  
+══════════════════════════════════════════════════ -->  
+<div class="section" id="s4">  
+  <div class="section-title">🔍 第四部分：§3-3 2次幂边界跨越检测 (6个)</div>  
+  <div class="cards-grid">  
+
+    <!-- TRICK 19 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 01</span>  
+          <h3>XOR 跨越检测<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">((a ^ (a+l-1)) >> k) != 0</div>  
+          <div class="card-hint">起始和结束地址 XOR 后看高位</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">是否跨越 2ᵏ 边界</div>  
+          <div class="card-back-content">  
+            从地址 a 传输 l 字节，是否跨越 2ᵏ 边界？<br><br>  
+            XOR 在不同位置显示差异：高于第k位不同 → 跨越<br>  
+            <span class="tip">l ≥ 1，l=0 需特判（会下溢）</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 20 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 02</span>  
+          <h3>4KB页跨越检测<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">((a ^ (a+l-1)) >> 12) != 0</div>  
+          <div class="card-hint">4KB = 2¹²，k = 12</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">DMA 传输页面跨越检测</div>  
+          <div class="card-back-content">  
+            等价写法：<code>(a & 0xFFF) + l - 1 >= 4096</code><br>  
+            即：页内偏移 + 长度 - 1 ≥ 页大小<br><br>  
+            <span class="tip">DMA 驱动必备：跨页需拆成两次传输</span><br>  
+            虚拟内存映射、IOMMU 边界检测同理  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 21 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 03</span>  
+          <h3>IBM System/370 方案 ⭐⭐</h3>  
+          <div class="card-formula">¬(a | -d) &lt; l</div>  
+          <div class="card-hint">Christopher J. Stephenson [CJS]</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">System/370 三指令经典方案</div>  
+          <div class="card-back-content">  
+            等价方案（更直观）:<br>  
+            <code>(a & (d-1)) + l &gt; d</code><br>  
+            页内偏移+长度 > 页大小 → 跨越<br><br>  
+            <span class="tip">Warren 书中引用 [CJS] 私人通信</span><br>  
+            IBM 大型机程序员几十年前的经典技巧  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 22 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 04</span>  
+          <h3>l=0 边界陷阱 ⚠️ ⭐⭐</h3>  
+          <div class="card-formula">l=0 时 a+l-1 下溢!</div>  
+          <div class="card-hint">无符号减法下溢 = 假跨越</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">⚠️ 必须前置检查 l</div>  
+          <div class="card-back-content">  
+            l=0 时 a+0-1 → 0xFFFFFFFF (下溢)<br>  
+            XOR检测会误报"跨越"！<br><br>  
+            <code>if (l == 0) return NO_CROSSING;</code><br>  
+            <span class="tip">Linux DMA 驱动中有此前置检查</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 23 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 05</span>  
+          <h3>XOR 原理 ⭐⭐</h3>  
+          <div class="card-formula">a ⊕ (a+l-1)<br>高于第k位不同 → 跨越</div>  
+          <div class="card-hint">XOR 是最优差异检测器</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">XOR 差异检测原理</div>  
+          <div class="card-back-content">  
+            同一2ᵏ块内: XOR >> k = 0 (高位相同)<br>  
+            跨越2ᵏ块: XOR >> k ≠ 0 (高位不同)<br><br>  
+            <span class="tip">类比: 同一楼层高位相同，跨层高位不同</span><br>  
+            不需要取模！纯位操作，1~2条指令  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 24 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-cross">CROSS 06</span>  
+          <h3>缓存行跨越 ⭐⭐</h3>  
+          <div class="card-formula">((a^(a+l-1)) >> 6) != 0</div>  
+          <div class="card-hint">64B缓存行: k=6</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">性能优化：避免跨缓存行</div>  
+          <div class="card-back-content">  
+            64字节缓存行 = 2⁶，k=6<br>  
+            数据结构跨缓存行 → 额外一次 cache miss<br><br>  
+            <span class="tip">false sharing 检测: 两地址同一缓存行?</span><br>  
+            <code>!(a >> 6 ^ b >> 6)</code> → 同一缓存行  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     第五部分：位传播 & nlz 关联 (6个)  
+══════════════════════════════════════════════════ -->  
+<div class="section" id="s5">  
+  <div class="section-title">⚡ 第五部分：位传播原理 & nlz 关联 (6个)</div>  
+  <div class="cards-grid">  
+
+    <!-- TRICK 25 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-prop">PROP 01</span>  
+          <h3>并行前缀 OR 思想<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">5步覆盖 = O(log n) 替代 O(n)</div>  
+          <div class="card-hint">Guy Steele 贡献的核心思想</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">并行前缀 (Parallel Prefix)</div>  
+          <div class="card-back-content">  
+            第k步覆盖 2ᵏ 个连续位<br>  
+            步k=5: 覆盖 32 位 ≥ 最高位+1<br><br>  
+            <span class="tip">同构: 归并排序/Carry-Lookahead Adder/GPU前缀和</span><br>  
+            "Wherever you see parallel prefix, the material is due to Guy." —Warren  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 26 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-prop">PROP 02</span>  
+          <h3>传播结果形态 ⭐⭐</h3>  
+          <div class="card-formula">传播后 = 2ⁿ - 1 形式</div>  
+          <div class="card-hint">从最高1-bit到bit0全为1</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">传播后形成"全1"掩码</div>  
+          <div class="card-back-content">  
+            任何数传播后都是 0...01...1 形式<br>  
+            例: 0x00100000 → 0x001FFFFF<br><br>  
+            <span class="tip">这正是 2ⁿ-1 = 2¹·1111...1 的位模式</span><br>  
+            再 +1 就得到 clp2，再 -(x>>1) 就得到 flp2  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 27 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-nlz">NLZ 01</span>  
+          <h3>ilog2(x) = 31 - nlz(x) ⭐⭐</h3>  
+          <div class="card-formula">flp2(x) = 1 &lt;&lt; ilog2(x)</div>  
+          <div class="card-hint">整数 log₂ 直接给出位位置</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">通过 ilog2 实现 flp2</div>  
+          <div class="card-back-content">  
+            ilog2(8) = 3, flp2(8) = 1&lt;&lt;3 = 8<br>  
+            ilog2(9) = 3, flp2(9) = 1&lt;&lt;3 = 8<br><br>  
+            <code>int ilog2(unsigned x) {</code><br>  
+            <code>  return 31 - __builtin_clz(x); }</code><br>  
+            <span class="tip">相当于找最高1位的位置</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 28 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-nlz">NLZ 02</span>  
+          <h3>pop 实现 flp2 ⭐</h3>  
+          <div class="card-formula">传播后 pop(x) = 位宽<br>flp2 = 1 &lt;&lt; (pop-1)</div>  
+          <div class="card-hint">通过 popcount 找最高位位置</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">pop(x) 路径</div>  
+          <div class="card-back-content">  
+            传播后 x = 0x001FFFFF → pop(x) = 21<br>  
+            flp2 = 1 &lt;&lt; (21-1) = 1 &lt;&lt; 20 = 0x00100000<br><br>  
+            <span class="tip">不如 nlz 方法高效，但理论价值高</span><br>  
+            注脚: "pop(x) is the number of 1-bits in x" —Warren  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 29 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-prop">PROP 03</span>  
+          <h3>指令计数对比 ⭐⭐</h3>  
+          <div class="card-formula">flp2: 12条 | clp2: 13条</div>  
+          <div class="card-hint">basic RISC 无分支实现</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">flp2 vs clp2 指令分解</div>  
+          <div class="card-back-content">  
+            flp2: 5×OR + 5×SHR + 1×SHR + 1×SUB = 12<br>  
+            clp2: 1×SUB + 5×OR + 5×SHR + 1×ADD = 13<br><br>  
+            <span class="tip">有 nlz/CLZ 硬件时: 两者都降为 2~3 条</span>  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+    <!-- TRICK 30 -->  
+    <div class="card" onclick="this.classList.toggle('flipped')">  
+      <div class="card-inner">  
+        <div class="card-front">  
+          <span class="card-tag tag-prop">PROP 04</span>  
+          <h3>Buddy System 应用<span class="star-badge">⭐⭐⭐</span></h3>  
+          <div class="card-formula">buddy = pfn ^ (1 &lt;&lt; order)</div>  
+          <div class="card-hint">Linux 内存伙伴系统核心</div>  
+          <div class="flip-label">点击查看答案</div>  
+        </div>  
+        <div class="card-back">  
+          <div class="card-back-title">Linux Buddy System</div>  
+          <div class="card-back-content">  
+            <code>order = ilog2(clp2(n));</code><br>  
+            分配 2^order 页的内存块<br>  
+            伙伴地址: <code>pfn ^ (1 &lt;&lt; order)</code><br><br>  
+            <span class="tip">XOR 翻转第 order 位 = 跳到伙伴块</span><br>  
+            这就是 clp2 在 OS 内核里的核心应用  
+          </div>  
+        </div>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     记忆技巧  
+══════════════════════════════════════════════════ -->  
+<div class="memory-box" id="memory">  
+  <div class="memory-title">💡 记忆技巧</div>  
+  <div class="memory-list">  
+
+    <div class="memory-item">  
+      <div class="num">1. 对齐公式记忆口诀</div>  
+      <div class="text">  
+        <span class="key">向下：AND 负数</span> <code>x & (-d)</code><br>  
+        <span class="key">向上：加 d-1 再 AND 负数</span> <code>(x+d-1) & (-d)</code><br>  
+        记忆: "下去直接AND，上去先加垫脚石"  
+      </div>  
+    </div>  
+
+    <div class="memory-item">  
+      <div class="num">2. -d 为什么是掩码</div>  
+      <div class="text">  
+        <code>d=4096</code> → 二进制低12位全0<br>  
+        <code>-d</code> (二补码取负) = 高位全1低12位全0<br>  
+        <span class="key">二补码性质使 -d 天然变成对齐掩码</span>  
+      </div>  
+    </div>  
+
+    <div class="memory-item">  
+      <div class="num">3. flp2 = 传播 + 减去半身</div>  
+      <div class="text">  
+        5步OR-Shift把最高1位"感染"所有低位<br>  
+        再用 <code>x - (x>>1)</code> 删掉右边的"分身"<br>  
+        <span class="key">如同病毒复制后只留零号病人</span>  
+      </div>  
+    </div>  
+
+    <div class="memory-item">  
+      <div class="num">4. clp2 的减1妙手</div>  
+      <div class="text">  
+        x是2次幂时: 减1后传播不会到达最高位<br>  
+        x不是2次幂时: 减1不影响最终结果<br>  
+        <span class="key">减1 = "我已在边界上"的特判消除技</span>  
+      </div>  
+    </div>  
+
+    <div class="memory-item">  
+      <div class="num">5. XOR 跨越检测原理</div>  
+      <div class="text">  
+        同一2ᵏ块内所有地址高k+1位相同<br>  
+        <code>a XOR (a+l-1)</code> → 不同的位变1<br>  
+        <span class="key">右移k位后非零 = 高位不同 = 跨越了</span>  
+      </div>  
+    </div>  
+
+    <div class="memory-item">  
+      <div class="num">6. 三个公式的统一视角</div>  
+      <div class="text">  
+        本质都是"x在2次幂网格中的位置"：<br>  
+        对齐 = 强制落在网格点<br>  
+        flp2/clp2 = 找最近的网格点<br>  
+        <span class="key">跨越检测 = 判断两点在同一格内</span>  
+      </div>  
+    </div>  
+
+  </div>  
+</div>  
+
+<!-- ═══════════════════════════════════════════════  
+     学习进度追踪  
+══════════════════════════════════════════════════ -->  
+<div class="progress-section" id="progress">  
+  <div class="progress-title">📈 学习进度追踪</div>  
+  <div class="progress-grid">  
+
+    <div class="progress-card">  
+      <h4>第1阶段：基础掌握</h4>  
+      <div class="item"><input type="checkbox"> 向下对齐公式</div>  
+      <div class="item"><input type="checkbox"> 向上对齐公式</div>  
+      <div class="item"><input type="checkbox"> flp2/clp2 定义</div>  
+      <div class="item"><input type="checkbox"> 对齐检测</div>  
+      <div class="eta">预计：2天</div>  
+    </div>  
+
+    <div class="progress-card">  
+      <h4>第2阶段：算法实现</h4>  
+      <div class="item"><input type="checkbox"> 5步OR-Shift传播</div>  
+      <div class="item"><input type="checkbox"> flp2 完整代码</div>  
+      <div class="item"><input type="checkbox"> clp2 减1技巧</div>  
+      <div class="item"><input type="checkbox"> clp2 完整代码</div>  
+      <div class="eta">预计：3天</div>  
+    </div>  
+
+    <div class="progress-card">  
+      <h4>第3阶段：边界跨越</h4>  
+      <div class="item"><input type="checkbox"> XOR检测公式</div>  
+      <div class="item"><input type="checkbox"> 4KB页面检测</div>  
+      <div class="item"><input type="checkbox"> l=0陷阱处理</div>  
+      <div class="item"><input type="checkbox"> 缓存行检测</div>  
+      <div class="eta">预计：5天</div>  
+    </div>  
+
+    <div class="progress-card">  
+      <h4>第4阶段：应用迁移</h4>  
+      <div class="item"><input type="checkbox"> HashMap tableSizeFor</div>  
+      <div class="item"><input type="checkbox">
+	   Linux Buddy System</div>
+      <div class="item"><input type="checkbox"> Ring Buffer kfifo</div>
+      <div class="item"><input type="checkbox"> DMA 跨页检测</div>
+      <div class="eta">预计：7天</div>
+    </div>
+
+    <div class="progress-card">
+      <h4>第5阶段：深化理论</h4>
+      <div class="item"><input type="checkbox"> 并行前缀 OR 原理</div>
+      <div class="item"><input type="checkbox"> 溢出陷阱处理</div>
+      <div class="item"><input type="checkbox"> 64位扩展方法</div>
+      <div class="item"><input type="checkbox"> 课后习题</div>
+      <div class="eta">预计：10天</div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     快速参考：最常用公式
+══════════════════════════════════════════════════ -->
+<div class="memory-box" id="quickref">
+  <div class="memory-title">⚡ 快速参考：最常用公式</div>
+  <div class="memory-list">
+
+    <div class="memory-item">
+      <div class="num">向下对齐</div>
+      <div class="text">
+        <code>x & (-d)</code><br>
+        d 是2的幂，AND负数 = 清低位 = 对齐
+      </div>
+    </div>
+
+    <div class="memory-item">
+      <div class="num">向上对齐</div>
+      <div class="text">
+        <code>(x + d - 1) & (-d)</code><br>
+        先加垫脚石 d-1，再向下对齐，Linux PAGE_ALIGN 的本质
+      </div>
+    </div>
+
+    <div class="memory-item">
+      <div class="num">flp2 完整实现</div>
+      <div class="text">
+        <code>x|=x>>1; x|=x>>2; x|=x>>4; x|=x>>8; x|=x>>16; return x-(x>>1);</code><br>
+        5步传播 + 减去半身，共12条指令
+      </div>
+    </div>
+
+    <div class="memory-item">
+      <div class="num">clp2 完整实现</div>
+      <div class="text">
+        <code>x--; x|=x>>1; x|=x>>2; x|=x>>4; x|=x>>8; x|=x>>16; return x+1;</code><br>
+        减1妙手 + 5步传播 + 加1，共13条指令
+      </div>
+    </div>
+
+    <div class="memory-item">
+      <div class="num">边界跨越检测</div>
+      <div class="text">
+        <code>((a ^ (a+l-1)) >> k) != 0</code><br>
+        从地址 a 传输 l 字节，是否跨越 2ᵏ 边界；l=0 需特判
+      </div>
+    </div>
+
+    <div class="memory-item">
+      <div class="num">现代 CPU 一行写法</div>
+      <div class="text">
+        <code>flp2: 1u &lt;&lt; (31 - __builtin_clz(x))</code><br>
+        <code>clp2: 1u &lt;&lt; (32 - __builtin_clz(x-1))</code><br>
+        C++20: <code>std::bit_floor / std::bit_ceil</code>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 返回顶部 -->
+<div class="back-top"><a href="#">↑</a></div>
+
+<script>
+// ── 导航高亮 ──────────────────────────────────
+const navLinks = document.querySelectorAll('.nav-bar a');
+const sectionIds = ['s1','s2','s3','s4','s5','memory','progress','quickref'];
+
+window.addEventListener('scroll', () => {
+  let cur = '';
+  sectionIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && window.scrollY >= el.offsetTop - 120) cur = id;
+  });
+  navLinks.forEach(a => {
+    const href = a.getAttribute('href');
+    a.classList.toggle('active', href === '#' + cur);
+  });
+});
+
+// ── 复选框持久化 ────────────────────────────────
+document.querySelectorAll('input[type=checkbox]').forEach((cb, i) => {
+  const key = 'ch03_ck_' + i;
+  cb.checked = localStorage.getItem(key) === '1';
+  cb.addEventListener('change', () => {
+    localStorage.setItem(key, cb.checked ? '1' : '0');
+    updateProgressBars();
+  });
+});
+
+function updateProgressBars() {
+  document.querySelectorAll('.progress-card').forEach(card => {
+    const all = card.querySelectorAll('input[type=checkbox]');
+    const done = [...all].filter(c => c.checked).length;
+    const eta = card.querySelector('.eta');
+    if (eta) {
+      eta.style.color = done === all.length ? '#64ffda' : '#64ffda44';
+      if (done === all.length) eta.textContent = '✅ 已完成！';
+    }
+  });
+}
+updateProgressBars();
+
+// ── 卡片键盘支持 ────────────────────────────────
+document.querySelectorAll('.card').forEach(card => {
+  card.setAttribute('tabindex', '0');
+  card.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      card.classList.toggle('flipped');
+    }
+  });
+});
+
+// ── 全部翻转 / 全部重置 快捷键 ──────────────────
+document.addEventListener('keydown', e => {
+  // Shift+F: 翻转当前视图内所有卡片
+  if (e.shiftKey && e.key === 'F') {
+    const cards = document.querySelectorAll('.card');
+    const allFlipped = [...cards].every(c => c.classList.contains('flipped'));
+    cards.forEach(c => c.classList.toggle('flipped', !allFlipped));
+  }
+  // Shift+R: 重置所有卡片
+  if (e.shiftKey && e.key === 'R') {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('flipped'));
+  }
+});
+</script>
+</div>
+
+</body>
+</html>

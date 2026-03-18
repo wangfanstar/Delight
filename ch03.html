@@ -28,10 +28,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(5,8,16,.9);b
 
 #prog{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,var(--g),var(--b),var(--p));transition:width .12s;}
 
-.dot-nav{position:fixed;right:1.4rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.55rem;}
+.ch03-right-rail{position:fixed;right:1rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;align-items:flex-end;gap:1rem;}
+.ch03-ext-nav{display:flex;flex-direction:column;gap:.28rem;padding:.7rem .85rem;background:rgba(5,8,16,.94);border:1px solid var(--border);border-radius:.55rem;box-shadow:0 4px 24px rgba(0,0,0,.35);max-width:148px;}
+.ch03-ext-nav .ext-title{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:var(--g);letter-spacing:.12em;text-transform:uppercase;opacity:.95;margin-bottom:.15rem;padding-bottom:.35rem;border-bottom:1px solid rgba(0,255,136,.12);}
+.ch03-ext-nav a{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:#64748b;text-decoration:none;padding:.32rem 0;line-height:1.35;border-left:2px solid transparent;padding-left:.45rem;margin-left:-.45rem;transition:color .2s,border-color .2s;}
+.ch03-ext-nav a:hover{color:var(--g);border-left-color:var(--g);}
+.dot-nav{display:flex;flex-direction:column;gap:.55rem;}
 .dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
 .dot.active{background:var(--g);transform:scale(1.45);box-shadow:0 0 6px var(--g);}
-@media(max-width:768px){.dot-nav{display:none;}}
+@media(max-width:768px){
+  .ch03-right-rail{top:auto;bottom:1rem;right:.75rem;transform:none;flex-direction:row;align-items:stretch;gap:.5rem;}
+  .ch03-ext-nav{flex-direction:row;flex-wrap:wrap;max-width:min(calc(100vw - 1.5rem),360px);gap:.35rem .65rem;padding:.55rem .7rem;}
+  .ch03-ext-nav .ext-title{width:100%;margin-bottom:0;padding-bottom:.25rem;}
+  .ch03-ext-nav a{padding:.2rem .45rem;border-left:none;border-radius:4px;background:rgba(0,255,136,.06);}
+  .dot-nav{display:none;}
+}
 
 .hero{padding:7rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
 .chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--g);border:1px solid var(--g);padding:.28rem .95rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
@@ -276,15 +287,23 @@ footer a{color:var(--g);text-decoration:none;}
 <canvas id="bg"></canvas>
 <div id="prog"></div>
 
-<div class="dot-nav" id="dotNav">
-  <div class="dot active" data-sec="hero"     title="顶部"></div>
-  <div class="dot"        data-sec="def"      title="定义与性质"></div>
-  <div class="dot"        data-sec="flp2"     title="flp2下取整"></div>
-  <div class="dot"        data-sec="clp2"     title="clp2上取整"></div>
-  <div class="dot"        data-sec="align"    title="对齐操作"></div>
-  <div class="dot"        data-sec="nlz"      title="前导零计数"></div>
-  <div class="dot"        data-sec="history"  title="历史演变"></div>
-  <div class="dot"        data-sec="critique" title="深度点评"></div>
+<div class="ch03-right-rail" aria-label="本章扩展与段落导航">
+  <aside class="ch03-ext-nav">
+    <div class="ext-title">Ch.03 扩展</div>
+    <a href="ch03_quickref.html">快速参考</a>
+    <a href="ch03_anaylze.html">深度分析</a>
+    <a href="ch03_summary.html">章节总结</a>
+  </aside>
+  <div class="dot-nav" id="dotNav">
+    <div class="dot active" data-sec="hero"     title="顶部"></div>
+    <div class="dot"        data-sec="def"      title="定义与性质"></div>
+    <div class="dot"        data-sec="flp2"     title="flp2下取整"></div>
+    <div class="dot"        data-sec="clp2"     title="clp2上取整"></div>
+    <div class="dot"        data-sec="align"    title="对齐操作"></div>
+    <div class="dot"        data-sec="nlz"      title="前导零计数"></div>
+    <div class="dot"        data-sec="history"  title="历史演变"></div>
+    <div class="dot"        data-sec="critique" title="深度点评"></div>
+  </div>
 </div>
 
 <nav>

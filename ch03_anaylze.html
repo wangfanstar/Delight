@@ -107,9 +107,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans S
   .perf-compare{grid-template-columns:1fr}  
   .app-scenario{grid-template-columns:1fr}  
 }  
+@media print{  
+  .ch03-nav{display:none!important}  
+  .ch03-main{margin-left:0!important}  
+}  
 </style>  
 </head>  
 <body>  
+<nav class="ch03-nav" style="position:fixed;left:0;top:0;bottom:0;width:180px;background:rgba(0,0,0,0.92);padding:1rem 0.5rem;display:flex;flex-direction:column;gap:0.25rem;font-family:monospace;font-size:0.8rem;border-right:1px solid rgba(0,255,136,0.2);z-index:90;overflow-y:auto;"><a href="ch03.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">← 返回 Ch.03 主章</a><div style="height:1px;background:rgba(255,255,255,0.1);margin:0.25rem 0;"></div><a href="ch03_quickref.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">快速参考</a><a href="ch03_anaylze.html" style="color:#00ff88;text-decoration:none;padding:0.35rem 0.6rem;">深度分析</a><a href="ch03_summary.html" style="color:#94a3b8;text-decoration:none;padding:0.35rem 0.6rem;">章节总结</a></nav>
+<div class="ch03-main" style="margin-left:180px;">
 
 <!-- Hero -->  
 <section class="hero">  
@@ -149,7 +155,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans S
   </div>  
 
   <div class="insight-card">  
-    <span class="card-tag">dog250 说</span>  
+    <span class="card-tag"> 技术哲思 </span>  
     <h3>2的幂，是二进制世界里唯一的"整数"</h3>  
     <p>你有没有想过一个问题：为什么内存总是4GB、8GB、16GB，而不是7GB、11GB？为什么页面大小是4096而不是4000？为什么HashMap的初始容量是16而不是15？</p>  
     <p class="dog-voice">"在十进制的世界里，10是圆满的数；在二进制的世界里，2的幂才是唯一的'整数'。所有其他的数，不过是2的幂的余烬。"</p>  
@@ -986,6 +992,7 @@ document.querySelectorAll('.nav-inner a[data-tab]').forEach(a => {
   else showTab('s1');
 })();
 </script>
+</div>
 
 </body>
 </html>
