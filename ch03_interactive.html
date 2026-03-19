@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Ch.03 — 2的幂边界 Power-of-2 Boundaries | Hacker's Delight</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+<script src="echarts.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<style>
+:root{
+  --g:#00ff88;--b:#00d4ff;--p:#b14fff;--o:#ff8c00;--r:#ff4466;
+  --dark:#050810;--card:#0d1117;--border:rgba(0,255,136,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:#e2e8f0;font-family:'JetBrains Mono','Courier New',monospace;min-height:100vh;overflow-x:hidden;font-size:16px;line-height:1.7;}
+body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,136,.012) 2px,rgba(0,255,136,.012) 4px);pointer-events:none;z-index:0;}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#app{position:relative;z-index:1;}
+
+.ch03-fixed-headers{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;flex-direction:column;background:rgba(5,8,16,.95);}
+nav.top-nav{position:relative;background:rgba(5,8,16,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:.7rem 2rem;padding-left:calc(180px + 1.25rem);display:flex;align-items:center;justify-content:space-between;}
+.ch03-subnav{display:flex;flex-wrap:wrap;gap:.45rem .6rem;align-items:center;padding:.5rem 2rem .6rem;padding-left:calc(180px + 1.25rem);background:rgba(5,8,16,.94);border-bottom:1px solid rgba(0,255,136,.12);}
+.ch03-subnav a{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#64748b;text-decoration:none;padding:.32rem .75rem;border-radius:999px;border:1px solid rgba(0,255,136,.18);transition:all .2s;white-space:nowrap;}
+.ch03-subnav a:hover,.ch03-subnav a.active{color:var(--g);border-color:var(--g);background:rgba(0,255,136,.08);}
+@media(max-width:1100px){
+  nav.top-nav,.ch03-subnav{padding-left:2rem;}
+}
+.nav-logo{font-family:'JetBrains Mono',monospace;font-size:.8rem;color:var(--g);text-decoration:none;}
+.nav-links{display:flex;gap:1.5rem;}
+.nav-links a{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#475569;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--g);}
+#prog{position:fixed;top:0;left:0;height:2px;z-index:200;background:linear-gradient(90deg,var(--g),var(--b));transition:width .1s;}
+.dot-nav{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.6rem;}
+.dot{width:8px;height:8px;border-radius:50%;background:#1e293b;cursor:pointer;transition:all .2s;}
+.dot.active{background:var(--g);transform:scale(1.4);}
+@media(max-width:768px){.dot-nav{display:none;}}
+
+/* SIDEBAR */
+.sidebar-nav{position:fixed;left:0;top:0;bottom:0;width:180px;z-index:90;background:rgba(5,8,16,.92);backdrop-filter:blur(10px);border-right:1px solid rgba(0,255,136,.12);padding:1rem .5rem;padding-top:4rem;overflow-y:auto;overflow-x:hidden;transition:transform .25s ease;display:flex;flex-direction:column;}
+.sidebar-nav::-webkit-scrollbar{width:3px;}
+.sidebar-nav::-webkit-scrollbar-thumb{background:#1e293b;border-radius:2px;}
+.sidebar-title{font-family:'JetBrains Mono',monospace;font-size:.62rem;color:var(--g);letter-spacing:.08em;padding:.4rem .6rem;border-bottom:1px solid rgba(0,255,136,.15);margin-bottom:.5rem;flex-shrink:0;}
+.sidebar-section{margin-bottom:.6rem;display:flex;flex-direction:column;flex-shrink:0;}
+.sidebar-section-title{font-family:'JetBrains Mono',monospace;font-size:.58rem;color:#475569;padding:.3rem .6rem;letter-spacing:.05em;flex-shrink:0;}
+.sidebar-link{display:block;width:100%;font-family:'JetBrains Mono',monospace;font-size:.68rem;color:#64748b;text-decoration:none;padding:.25rem .6rem .25rem 1rem;border-radius:3px;transition:all .15s;position:relative;white-space:nowrap;}
+.sidebar-link:hover{color:var(--g);background:rgba(0,255,136,.06);}
+.sidebar-link.active{color:var(--g);background:rgba(0,255,136,.1);}
+.sidebar-link.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:2px;height:14px;background:var(--g);border-radius:1px;}
+.sidebar-toggle{display:none;position:fixed;left:.5rem;top:.85rem;z-index:95;width:32px;height:32px;background:rgba(5,8,16,.9);border:1px solid rgba(0,255,136,.2);border-radius:4px;color:var(--g);font-size:1.1rem;cursor:pointer;}
+@media(max-width:1100px){.sidebar-nav{transform:translateX(-100%);}.sidebar-nav.open{transform:translateX(0);}.sidebar-toggle{display:flex;align-items:center;justify-content:center;}body{padding-left:0!important;padding-right:0!important;}}
+@media(min-width:1101px){body{padding-left:180px;}}
+
+/* HERO */
+.hero{padding:10.5rem 2rem 3rem;text-align:center;max-width:900px;margin:0 auto;}
+.chapter-badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);border:1px solid var(--g);padding:.3rem 1rem;border-radius:999px;letter-spacing:.15em;margin-bottom:1.5rem;animation:badge-pulse 2.5s ease-in-out infinite;}
+@keyframes badge-pulse{0%,100%{box-shadow:0 0 6px rgba(0,255,136,.4);}50%{box-shadow:0 0 20px rgba(0,255,136,.8);}}
+.hero-title{font-size:clamp(2rem,5vw,3.6rem);font-weight:900;background:linear-gradient(135deg,#fff 0%,var(--g) 55%,var(--b) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.15;margin-bottom:.5rem;}
+.hero-sub{font-family:'JetBrains Mono',monospace;color:#475569;font-size:.9rem;margin-bottom:2rem;}
+.hero-desc{color:#94a3b8;font-size:.95rem;line-height:1.85;max-width:720px;margin:0 auto 2rem;}
+
+/* SECTION */
+section{max-width:1100px;margin:0 auto;padding:0 1.5rem 4rem;}
+.sec-header{display:flex;align-items:center;gap:.75rem;margin-bottom:1.75rem;}
+.sec-num{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);padding:.25rem .6rem;border-radius:4px;white-space:nowrap;}
+.sec-title{font-size:1.35rem;font-weight:700;color:#f1f5f9;}
+.sec-divider{flex:1;height:1px;background:linear-gradient(90deg,rgba(0,255,136,.3),transparent);}
+
+/* CARD */
+.card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.5rem;transition:border-color .25s,box-shadow .25s;}
+.card:hover{border-color:rgba(0,255,136,.25);box-shadow:0 4px 24px rgba(0,255,136,.07);}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem;}
+@media(max-width:820px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* CODE */
+.code-block{background:#010409;border:1px solid #1e293b;border-radius:.5rem;padding:1.2rem 1.5rem;font-family:'JetBrains Mono',monospace;font-size:.95rem;line-height:1.9;overflow-x:auto;color:#94a3b8;position:relative;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;}
+.code-block .kw{color:var(--p);}
+.code-block .num{color:var(--o);}
+.code-block .cm{color:#334155;font-style:italic;}
+.code-block .fn{color:var(--g);}
+.code-block .str{color:var(--b);}
+.code-block .hi{color:#fff;background:rgba(0,255,136,.1);border-radius:2px;padding:0 2px;}
+.copy-btn{position:absolute;top:.6rem;right:.6rem;font-family:'JetBrains Mono',monospace;font-size:.62rem;color:#334155;border:1px solid #1e293b;background:transparent;padding:.2rem .5rem;border-radius:3px;cursor:pointer;transition:all .2s;}
+.copy-btn:hover{color:var(--g);border-color:rgba(0,255,136,.3);}
+
+/* INSIGHT */
+.insight{background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.15);border-left:3px solid var(--g);border-radius:.5rem;padding:1.2rem 1.5rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.8;color:#94a3b8;}
+.insight strong{color:var(--g);}
+.insight .label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--g);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+
+/* TRICK CARD */
+.trick-card{background:var(--card);border:1px solid #1e293b;border-radius:.75rem;padding:1.25rem;cursor:default;transition:all .25s;position:relative;overflow:hidden;}
+.trick-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;opacity:0;transition:opacity .25s;}
+.trick-card:hover::before{opacity:1;}
+.trick-card:hover{transform:translateY(-3px);box-shadow:0 8px 28px rgba(0,255,136,.1);}
+.trick-card.green::before{background:linear-gradient(180deg,var(--g),var(--b));}
+.trick-card.blue::before{background:linear-gradient(180deg,var(--b),var(--p));}
+.trick-card.orange::before{background:linear-gradient(180deg,var(--o),var(--r));}
+.trick-card.purple::before{background:linear-gradient(180deg,var(--p),var(--g));}
+.trick-num{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;margin-bottom:.4rem;}
+.trick-title{font-size:.95rem;font-weight:700;color:#f1f5f9;margin-bottom:.5rem;}
+.trick-formula{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--g);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.12);border-radius:.3rem;padding:.4rem .75rem;margin:.5rem 0;display:inline-block;}
+.trick-desc{font-size:.82rem;color:#64748b;line-height:1.7;}
+
+/* TAG */
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.63rem;padding:.2rem .5rem;border-radius:3px;margin:.15rem;}
+.tag-g{background:rgba(0,255,136,.1);color:var(--g);border:1px solid rgba(0,255,136,.2);}
+.tag-b{background:rgba(0,212,255,.1);color:var(--b);border:1px solid rgba(0,212,255,.2);}
+.tag-p{background:rgba(177,79,255,.1);color:var(--p);border:1px solid rgba(177,79,255,.2);}
+.tag-o{background:rgba(255,140,0,.1);color:var(--o);border:1px solid rgba(255,140,0,.2);}
+.tag-r{background:rgba(255,68,102,.1);color:var(--r);border:1px solid rgba(255,68,102,.2);}
+
+/* TIMELINE */
+.timeline{position:relative;padding-left:2rem;}
+.timeline::before{content:'';position:absolute;left:.5rem;top:0;bottom:0;width:1px;background:linear-gradient(180deg,var(--g),var(--p),transparent);}
+.tl-item{position:relative;margin-bottom:2rem;}
+.tl-dot{position:absolute;left:-1.6rem;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--g);box-shadow:0 0 8px var(--g);}
+.tl-year{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--g);margin-bottom:.2rem;}
+.tl-title{font-size:.95rem;font-weight:600;color:#f1f5f9;margin-bottom:.3rem;}
+.tl-desc{font-size:.83rem;color:#64748b;line-height:1.65;}
+
+/* CRITIC */
+.critic-box{background:linear-gradient(135deg,rgba(177,79,255,.06),rgba(0,212,255,.04));border:1px solid rgba(177,79,255,.25);border-radius:.75rem;padding:1.75rem;position:relative;overflow:hidden;}
+.critic-box::before{content:'🧐 深度点评';font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--p);letter-spacing:.1em;display:block;margin-bottom:1rem;}
+.critic-box h3{font-size:1.05rem;font-weight:700;color:#f1f5f9;margin-bottom:.75rem;}
+.critic-item{margin-bottom:1.1rem;padding-left:1rem;border-left:2px solid rgba(177,79,255,.3);}
+.critic-item .ci-title{font-size:.83rem;font-weight:600;color:var(--p);margin-bottom:.3rem;}
+.critic-item p{font-size:.82rem;line-height:1.72;color:#64748b;}
+
+/* WARN */
+.warn-box{background:rgba(255,68,102,.04);border:1px solid rgba(255,68,102,.2);border-left:3px solid var(--r);border-radius:.5rem;padding:1.1rem 1.4rem;font-size:.85rem;line-height:1.75;color:#94a3b8;}
+.warn-box .label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--r);letter-spacing:.1em;display:block;margin-bottom:.4rem;}
+.warn-box strong{color:var(--r);}
+
+/* ANIM */
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:translateY(0);}}
+.fade-up{opacity:0;animation:fadeUp .5s ease both;}
+
+/* CANVAS ANIM */
+.anim-wrap{background:#010409;border:1px solid #1e293b;border-radius:.75rem;overflow:hidden;position:relative;}
+.anim-canvas{width:100%;display:block;}
+.anim-label{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:#334155;padding:.4rem .75rem;border-top:1px solid #0f172a;}
+
+/* INTERACTIVE DEMO */
+.demo-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin:.5rem 0;}
+.demo-label{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:#475569;min-width:140px;}
+.demo-val{font-family:'JetBrains Mono',monospace;font-size:.9rem;color:var(--g);background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.12);padding:.2rem .6rem;border-radius:.3rem;min-width:100px;text-align:center;}
+.demo-val.blue{color:var(--b);background:rgba(0,212,255,.06);border-color:rgba(0,212,255,.12);}
+.demo-val.orange{color:var(--o);background:rgba(255,140,0,.06);border-color:rgba(255,140,0,.12);}
+.demo-input{font-family:'JetBrains Mono',monospace;font-size:.85rem;background:#010409;border:1px solid #1e293b;color:#e2e8f0;padding:.3rem .6rem;border-radius:.3rem;width:120px;outline:none;transition:border-color .2s;}
+.demo-input:focus{border-color:rgba(0,255,136,.4);}
+.demo-btn{font-family:'JetBrains Mono',monospace;font-size:.72rem;background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--g);padding:.3rem .8rem;border-radius:.3rem;cursor:pointer;transition:all .2s;}
+.demo-btn:hover{background:rgba(0,255,136,.2);}
+
+/* CHART */
+.chart-wrap{width:100%;height:280px;}
+
+/* STEP DISPLAY */
+.step-box{background:#010409;border:1px solid #1e293b;border-radius:.5rem;padding:1rem;margin:.5rem 0;font-family:'JetBrains Mono',monospace;font-size:.82rem;}
+.step-line{display:flex;align-items:center;gap:.75rem;padding:.25rem 0;border-bottom:1px solid rgba(30,41,59,.5);}
+.step-line:last-child{border-bottom:none;}
+.step-num{color:#334155;width:20px;text-align:right;flex-shrink:0;}
+.step-op{color:var(--b);width:160px;flex-shrink:0;}
+.step-bits{font-size:.75rem;color:#475569;letter-spacing:.05em;}
+.step-bits .hi1{color:var(--g);}
+.step-bits .hi2{color:var(--o);}
+
+/* FOOTER */
+footer{text-align:center;padding:2.5rem;font-family:'JetBrains Mono',monospace;font-size:.7rem;color:#1e293b;border-top:1px solid #0f172a;}
+footer a{color:var(--g);text-decoration:none;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--dark);}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(0,255,136,.3);}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div id="prog"></div>
+
+<!-- 左侧章节导航栏 -->
+<button class="sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+<nav class="sidebar-nav" id="sidebar-nav">
+  <div class="sidebar-title">📚 HACKER'S DELIGHT</div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">正文章节</div>
+    <a href="ch01.html" class="sidebar-link">Ch.01 奠定基础</a>
+    <a href="ch02.html" class="sidebar-link">Ch.02 基础操作</a>
+    <a href="ch03.html" class="sidebar-link active">Ch.03 2的幂边界</a>
+    <a href="ch04.html" class="sidebar-link">Ch.04 算术边界</a>
+    <a href="ch05.html" class="sidebar-link">Ch.05 整数除法</a>
+    <a href="ch06.html" class="sidebar-link">Ch.06 位计数</a>
+    <a href="ch07.html" class="sidebar-link">Ch.07 位翻转</a>
+    <a href="ch08.html" class="sidebar-link">Ch.08 位置换</a>
+    <a href="ch09.html" class="sidebar-link">Ch.09 循环冗余校验</a>
+    <a href="ch10.html" class="sidebar-link">Ch.10 奇偶校验</a>
+    <a href="ch11.html" class="sidebar-link">Ch.11 Gray码</a>
+    <a href="ch12.html" class="sidebar-link">Ch.12 Hilbert曲线</a>
+    <a href="ch13.html" class="sidebar-link">Ch.13 浮点数</a>
+    <a href="ch14.html" class="sidebar-link">Ch.14 公式</a>
+    <a href="ch15.html" class="sidebar-link">Ch.15 基数转换</a>
+    <a href="ch16.html" class="sidebar-link">Ch.16 开方</a>
+    <a href="ch17.html" class="sidebar-link">Ch.17 浮点倒数开方</a>
+    <a href="ch18.html" class="sidebar-link">Ch.18 其它</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-title">附录</div>
+    <a href="appA.html" class="sidebar-link">App.A 词汇表</a>
+    <a href="appB.html" class="sidebar-link">App.B 摘要</a>
+    <a href="appC.html" class="sidebar-link">App.C 发展史</a>
+  </div>
+</nav>
+
+<!-- 右侧点导航 -->
+<div class="dot-nav" id="dotNav">
+  <div class="dot active" data-sec="0" title="概览"></div>
+  <div class="dot" data-sec="1" title="3-1 对齐取整"></div>
+  <div class="dot" data-sec="2" title="3-2 flp2/clp2"></div>
+  <div class="dot" data-sec="3" title="3-3 边界穿越"></div>
+  <div class="dot" data-sec="4" title="应用场景"></div>
+  <div class="dot" data-sec="5" title="深度点评"></div>
+</div>
+
+<div id="app">
+<div class="ch03-fixed-headers">
+<!-- 顶部导航 -->
+<nav class="top-nav">
+  <a class="nav-logo" href="index.html">⚡ HACKER'S DELIGHT</a>
+  <div class="nav-links">
+    <a href="#sec-align">§3-1 对齐取整</a>
+    <a href="#sec-pow2">§3-2 flp2/clp2</a>
+    <a href="#sec-cross">§3-3 边界穿越</a>
+    <a href="#sec-apps">应用场景</a>
+    <a href="#sec-critic">深度点评</a>
+  </div>
+</nav>
+<nav class="ch03-subnav" aria-label="Ch.03 子页面">
+  <a href="ch03.html">← Ch.03 主章</a>
+  <a href="ch03_quickref.html">快速参考</a>
+  <a href="ch03_anaylze.html">深度分析</a>
+  <a href="ch03_interactive.html" class="active">交互演示</a>
+  <a href="ch03_test.html">应用测试</a>
+  <a href="ch03_summary.html">章节总结</a>
+</nav>
+</div>
+
+<!-- HERO -->
+<div class="hero" id="sec-hero">
+  <div class="chapter-badge">CHAPTER 03 · POWER-OF-2 BOUNDARIES</div>
+  <h1 class="hero-title">2 的幂边界</h1>
+  <div class="hero-sub">// 对齐、取整、边界检测——全都藏在位运算里</div>
+  <p class="hero-desc">
+    内存按2的幂分块是整个计算机体系结构最底层的物理事实——缓存行64字节，页面4KB，总线宽度64位。
+    这一章教你用位运算，把所有跟"对齐到2的幂"相关的问题，变成1~5条指令。
+    没有循环，没有除法，没有分支——只有掩码、右移和加一。
+  </p>
+  <div>
+    <span class="tag tag-g">对齐取整</span>
+    <span class="tag tag-b">flp2 / clp2</span>
+    <span class="tag tag-p">边界穿越检测</span>
+    <span class="tag tag-o">内存分配器</span>
+    <span class="tag tag-r">无分支</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     §3-1  对齐取整动画
+═══════════════════════════════════════════════ -->
+<section id="sec-align">
+  <div class="sec-header">
+    <div class="sec-num">3–1</div>
+    <div class="sec-title">对齐到已知2的幂的倍数</div>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">核心公式</span>
+    把无符号整数 x 对齐到 8 的倍数（向下取整）：<strong>x &amp; −8</strong>。
+    向上取整：<strong>(x + 7) &amp; −8</strong>。
+    掌握了这两个，任何2的幂对齐都是同样套路，只换数字。
+  </div>
+
+  <!-- 动画画布：对齐取整可视化 -->
+  <div class="anim-wrap" style="margin-bottom:1.25rem;">
+    <canvas class="anim-canvas" id="canvas-align" height="200"></canvas>
+    <div class="anim-label">▶ 数轴上的向下/向上对齐演示 — 拖动滑块改变 x</div>
+  </div>
+
+  <!-- 交互演示 -->
+  <div class="card" x-data="alignDemo()" style="margin-bottom:1.25rem;">
+    <div style="margin-bottom:1rem;font-size:.85rem;color:#94a3b8;">
+      输入 x（无符号整数）和对齐量 k（alignment = 2^k）：
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">x =</span>
+      <input class="demo-input" type="number" min="0" max="255" x-model.number="x"/>
+      <span class="demo-label" style="margin-left:1rem;">k = log₂(align) =</span>
+      <input class="demo-input" type="number" min="1" max="5" x-model.number="k" style="width:70px;"/>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:.75rem;color:#475569;margin:.3rem 0 1rem;">
+      alignment = 2^k = <span x-text="1<<k" style="color:var(--o);"></span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">向下 x &amp; −align</span>
+      <span class="demo-val" x-text="roundDown.toString() + '  (0x' + roundDown.toString(16).toUpperCase() + ')'"></span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">向上 (x+align−1) &amp; −align</span>
+      <span class="demo-val blue" x-text="roundUp.toString() + '  (0x' + roundUp.toString(16).toUpperCase() + ')'"></span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">补齐量 (padding)</span>
+      <span class="demo-val orange" x-text="(roundUp - x) + ' 字节'"></span>
+    </div>
+    <!-- 位图 -->
+    <div style="margin-top:1rem;">
+      <div style="font-size:.72rem;color:#475569;margin-bottom:.4rem;font-family:'JetBrains Mono',monospace;">
+        x 的二进制（低8位）：
+      </div>
+      <div style="display:flex;gap:2px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;">
+        <template x-for="(bit,i) in xBits" :key="i">
+          <div :class="i >= 8-k ? 'bit-hi' : 'bit-lo'"
+               style="width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:3px;font-size:.8rem;"
+               :style="i >= 8-k ? 'background:rgba(0,255,136,.15);color:var(--g);border:1px solid rgba(0,255,136,.3);' : 'background:#010409;color:#334155;border:1px solid #1e293b;'"
+               x-text="bit"></div>
+        </template>
+      </div>
+      <div style="font-size:.65rem;color:#334155;font-family:'JetBrains Mono',monospace;margin-top:.3rem;">
+        ↑ 绿色高位 = 对齐后保留，低 k 位被 mask 清零
+      </div>
+    </div>
+  </div>
+
+  <!-- 代码框 -->
+  <div class="grid-2">
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">C — 编译期已知对齐量</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="cm">// 向下：清除低k位</span>
+<span class="fn">round_down</span>(x) = x <span class="kw">&</span> <span class="hi">-8</span>   <span class="cm">// 8=2^3</span>
+
+<span class="cm">// 向上：先+7再清低位</span>
+<span class="fn">round_up</span>(x)   = (x + <span class="hi">7</span>) <span class="kw">&</span> <span class="hi">-8</span>
+
+<span class="cm">// 补齐量</span>
+<span class="fn">padding</span>(x)    = (-x) <span class="kw">&</span> <span class="hi">7</span>
+</div>
+    </div>
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">C — 运行时对齐量 k = log₂(align)</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="kw">unsigned</span> <span class="fn">align_down</span>(<span class="kw">unsigned</span> x, <span class="kw">int</span> k) {
+  <span class="kw">return</span> x <span class="kw">&amp;</span> (<span class="hi">~0u</span> <span class="kw">&lt;&lt;</span> k);
+}
+<span class="kw">unsigned</span> <span class="fn">align_up</span>(<span class="kw">unsigned</span> x, <span class="kw">int</span> k) {
+  <span class="kw">unsigned</span> mask = (<span class="num">1u</span> <span class="kw">&lt;&lt;</span> k) - <span class="num">1</span>;
+  <span class="kw">return</span> (x + mask) <span class="kw">&amp;</span> <span class="hi">~mask</span>;
+}
+</div>
+    </div>
+  </div>
+
+  <div class="warn-box" style="margin-top:1.25rem;">
+    <span class="label">⚠ 有符号整数陷阱</span>
+    "向下" 对有符号数意味着<strong>向负无穷方向取整</strong>：(-37) &amp; (-8) = -40，不是 -32。
+    这在堆栈地址对齐时完全正确，但用于数组索引时要三思。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     §3-2  flp2 / clp2 动画
+═══════════════════════════════════════════════ -->
+<section id="sec-pow2">
+  <div class="sec-header">
+    <div class="sec-num">3–2</div>
+    <div class="sec-title">舍入到最近2的幂 — flp2 / clp2</div>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">核心思路</span>
+    <strong>flp2(x)</strong> = 不超过 x 的最大2的幂；<strong>clp2(x)</strong> = 不小于 x 的最小2的幂。
+    关键技巧：<em>右移传播最左侧的1</em>，让所有低位全部变成1，再做一次"x − (x&gt;&gt;1)"或"+1"。
+    12条指令，无分支，无循环，比任何循环方案都快。
+  </div>
+
+  <!-- 右移传播动画 -->
+  <div class="anim-wrap" style="margin-bottom:1.25rem;">
+    <canvas class="anim-canvas" id="canvas-propagate" height="320"></canvas>
+    <div class="anim-label">▶ flp2 右移传播算法逐步动画 — 自动播放</div>
+  </div>
+
+  <!-- clp2 步骤可视化 -->
+  <div class="card" x-data="clp2Demo()" style="margin-bottom:1.25rem;">
+    <div style="margin-bottom:1rem;">
+      <span style="font-size:.9rem;font-weight:600;color:#f1f5f9;">clp2 / flp2 交互演示</span>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">输入 x =</span>
+      <input class="demo-input" type="number" min="1" max="255" x-model.number="x"/>
+      <span style="font-size:.72rem;color:#475569;margin-left:.5rem;font-family:'JetBrains Mono',monospace;">
+        (建议 1–255 看8位效果)
+      </span>
+    </div>
+    <div class="demo-row" style="margin-top:.5rem;">
+      <span class="demo-label">flp2(x) =</span>
+      <span class="demo-val" x-text="flp2val"></span>
+      <span class="demo-label" style="margin-left:1.5rem;">clp2(x) =</span>
+      <span class="demo-val blue" x-text="clp2val"></span>
+    </div>
+    <!-- clp2 步骤 -->
+    <div style="margin-top:1rem;font-size:.8rem;color:#64748b;font-family:'JetBrains Mono',monospace;margin-bottom:.5rem;">
+      clp2 执行步骤（x−1 → 右移传播 → +1）：
+    </div>
+    <div class="step-box">
+      <template x-for="(s,i) in clp2Steps" :key="i">
+        <div class="step-line">
+          <span class="step-num" x-text="i+1"></span>
+          <span class="step-op" x-text="s.op"></span>
+          <span class="step-bits">
+            <template x-for="(b,j) in s.bits" :key="j">
+              <span :style="b===1 ? 'color:var(--g);' : 'color:#334155;'" x-text="b"></span>
+            </template>
+            <span style="color:#475569;margin-left:.5rem;" x-text="' = ' + s.val"></span>
+          </span>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  <!-- 代码 -->
+  <div class="grid-2">
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">flp2 — 向下取整到2的幂</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="kw">unsigned</span> <span class="fn">flp2</span>(<span class="kw">unsigned</span> x) {
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">1</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">2</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">4</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">8</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">16</span>);
+  <span class="kw">return</span> x - (x <span class="kw">&gt;&gt;</span> <span class="num">1</span>); <span class="cm">// 清除最右侧以外的1</span>
+}
+<span class="cm">// 或使用 nlz: 1u &lt;&lt; (31 - nlz(x))</span>
+</div>
+    </div>
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">clp2 — 向上取整到2的幂</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="kw">unsigned</span> <span class="fn">clp2</span>(<span class="kw">unsigned</span> x) {
+  x = x - <span class="num">1</span>;           <span class="cm">// 先减1（处理本身是2的幂）</span>
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">1</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">2</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">4</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">8</span>);
+  x = x | (x <span class="kw">&gt;&gt;</span> <span class="num">16</span>);
+  <span class="kw">return</span> x + <span class="num">1</span>;           <span class="cm">// +1得到下一个2的幂</span>
+}
+</div>
+    </div>
+  </div>
+
+  <!-- flp2/clp2 关系图表 -->
+  <div class="card" style="margin-top:1.25rem;">
+    <div style="font-size:.9rem;font-weight:600;color:#f1f5f9;margin-bottom:1rem;">flp2 vs clp2 — 取值对照</div>
+    <div id="chart-pow2" class="chart-wrap"></div>
+  </div>
+
+  <div class="insight" style="margin-top:1.25rem;">
+    <span class="label">为何先减一？</span>
+    如果 x 本身恰好是2的幂（如 x=8），不先减一的话，clp2(8) 会错误地给出 16。
+    先做 x−1=7，传播后全1=7，+1=8，结果正确。这是边界情况处理的经典手法：
+    <strong>先处理边界，再做通用流程</strong>。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     §3-3  边界穿越检测
+═══════════════════════════════════════════════ -->
+<section id="sec-cross">
+  <div class="sec-header">
+    <div class="sec-num">3–3</div>
+    <div class="sec-title">检测是否穿越2的幂边界</div>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="insight">
+    <span class="label">问题</span>
+    给定起始地址 a，长度 l，判断地址范围 [a, a+l−1] 是否跨越了某个对齐块的边界（块大小为2的幂，例如4096字节页）。
+    用位运算，4~5条指令解决，无分支。
+  </div>
+
+  <!-- 内存块动画 -->
+  <div class="anim-wrap" style="margin-bottom:1.25rem;">
+    <canvas class="anim-canvas" id="canvas-cross" height="200"></canvas>
+    <div class="anim-label">▶ 内存块边界穿越检测可视化 — 拖动滑块调整地址和长度</div>
+  </div>
+
+  <!-- 交互演示 -->
+  <div class="card" x-data="crossDemo()" style="margin-bottom:1.25rem;">
+    <div style="font-size:.9rem;font-weight:600;color:#f1f5f9;margin-bottom:1rem;">边界穿越检测 (块大小=8)</div>
+    <div class="demo-row">
+      <span class="demo-label">起始地址 a =</span>
+      <input class="demo-input" type="number" min="0" max="63" x-model.number="a"/>
+    </div>
+    <div class="demo-row">
+      <span class="demo-label">长度 l =</span>
+      <input class="demo-input" type="number" min="1" max="32" x-model.number="l"/>
+    </div>
+    <div class="demo-row" style="margin-top:.75rem;">
+      <span class="demo-label" style="color:#f1f5f9;font-weight:600;">结果：</span>
+      <span :style="crosses ? 'color:var(--r);background:rgba(255,68,102,.1);border:1px solid rgba(255,68,102,.3);' : 'color:var(--g);background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);'"
+            style="font-family:JetBrains Mono,monospace;padding:.3rem .8rem;border-radius:.3rem;font-size:.9rem;"
+            x-text="crosses ? '⚠ 穿越了块边界！' : '✓ 未穿越块边界'"></span>
+    </div>
+    <!-- 计算过程 -->
+    <div style="margin-top:1rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;color:#64748b;">
+      方法一：8 − (a &amp; 7) &lt; l
+      <div style="margin-top:.3rem;color:#94a3b8;">
+        offset in block = <span x-text="a & 7" style="color:var(--o);"></span>,
+        space remaining = <span x-text="8 - (a & 7)" style="color:var(--b);"></span>,
+        l = <span x-text="l" style="color:var(--g);"></span>
+        → <span x-text="(8 - (a & 7)) + ' < ' + l + ' → ' + ((8-(a&7)) < l ? 'YES 穿越' : 'NO 未穿')" :style="crosses?'color:var(--r);':'color:var(--g);'"></span>
+      </div>
+      <div style="margin-top:.75rem;color:#475569;">
+        方法二（IBM/370 风格）：(a | −8) + l &gt; 2³²
+      </div>
+      <div style="margin-top:.3rem;color:#64748b;">
+        a | −8 = a 的块起始 mask = <span x-text="(a | -8) >>> 0" style="color:var(--p);"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">RISC — 5条指令（块大小=2^k）</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="cm">// 块大小 = 8，a=地址，l=长度</span>
+<span class="cm">// 返回1表示穿越边界</span>
+<span class="kw">int</span> <span class="fn">crosses_boundary</span>(
+    <span class="kw">unsigned</span> a, <span class="kw">unsigned</span> l) {
+  <span class="kw">return</span> (<span class="num">8</span> - (a <span class="kw">&amp;</span> <span class="num">7</span>)) <span class="kw">&lt;</span> l;
+}
+<span class="cm">// 泛化版本：块大小 = 1&lt;&lt;k</span>
+<span class="kw">int</span> <span class="fn">crosses_k</span>(<span class="kw">unsigned</span> a,
+    <span class="kw">unsigned</span> l, <span class="kw">int</span> k) {
+  <span class="kw">unsigned</span> block = <span class="num">1u</span> <span class="kw">&lt;&lt;</span> k;
+  <span class="kw">return</span> (block-(a&amp;(block-<span class="num">1</span>))) <span class="kw">&lt;</span> l;
+}
+</div>
+    </div>
+    <div>
+      <div style="font-size:.8rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">IBM/370 汇编原理等价 C</div>
+      <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button"><span class="cm">// IBM/370 方法（取自原书[CJS]）</span>
+<span class="cm">// 等价于：(a | −block) + l 产生进位</span>
+<span class="cm">// 且结果不为零</span>
+<span class="kw">int</span> <span class="fn">crosses_ibm</span>(<span class="kw">unsigned</span> a,
+    <span class="kw">unsigned</span> l) {
+  <span class="cm">// block = 4096 (page size)</span>
+  <span class="kw">uint64_t</span> t = (a | <span class="hi">0xFFFFF000u</span>) + l;
+  <span class="kw">return</span> (t <span class="kw">&gt;</span> <span class="num">0x100000000ULL</span>);
+}
+<span class="cm">// 额外奖励：t&0xFFFFFFFF = 超出部分长度</span>
+</div>
+    </div>
+  </div>
+
+  <div class="insight" style="margin-top:1.25rem;">
+    <span class="label">几何直觉</span>
+    <strong>a &amp; 7</strong> 是 a 在其块内的偏移量（0到7）；<strong>8 − (a &amp; 7)</strong> 是从 a 到块末尾还剩多少空间。
+    如果 l 大于这个剩余空间，必然穿越边界。这个几何解释来自 [Kumar]，是本章最美的图示。
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     §应用场景
+═══════════════════════════════════════════════ -->
+<section id="sec-apps">
+  <div class="sec-header">
+    <div class="sec-num">APP</div>
+    <div class="sec-title">真实应用场景</div>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="grid-3" style="margin-bottom:1.5rem;">
+    <div class="trick-card green">
+      <div class="trick-num">场景 01</div>
+      <div class="trick-title">🔧 内存分配器</div>
+      <div class="trick-formula">size = clp2(requested)</div>
+      <div class="trick-desc">
+        jemalloc、tcmalloc 等 slab 分配器把请求的字节数舍入到下一个2的幂 size class，
+        再从对应的 free list 里取块。clp2 把这个"找合适桶"的操作压缩成12条无分支指令。
+      </div>
+    </div>
+    <div class="trick-card blue">
+      <div class="trick-num">场景 02</div>
+      <div class="trick-title">📄 DMA 页面对齐</div>
+      <div class="trick-formula">buf = (ptr+4095) &amp; −4096</div>
+      <div class="trick-desc">
+        DMA 缓冲区必须对齐到页面边界（4KB/64KB）。
+        malloc 返回的地址未必对齐，用 (ptr+N−1) &amp; −N 一条指令完成对齐，
+        比用 posix_memalign 更轻量（已有超分配的场景下）。
+      </div>
+    </div>
+    <div class="trick-card orange">
+      <div class="trick-num">场景 03</div>
+      <div class="trick-title">🗜 哈希表扩容</div>
+      <div class="trick-formula">new_cap = clp2(old_cap * 2)</div>
+      <div class="trick-desc">
+        哈希表容量保持2的幂，使 h % capacity 变成 h &amp; (capacity−1)——
+        一条 AND 替代一次除法，快2~10×。扩容时用 clp2 确保新容量仍是2的幂。
+      </div>
+    </div>
+    <div class="trick-card purple">
+      <div class="trick-num">场景 04</div>
+      <div class="trick-title">🌐 网络协议 MTU</div>
+      <div class="trick-formula">frag = crosses_boundary(off, len)</div>
+      <div class="trick-desc">
+        IP 分片检测：给定包偏移和长度，判断是否跨越64K边界（旧式 IP 分片的限制）。
+        §3-3 的 crosses_boundary 直接用于内核协议栈的发包路径，5条指令无分支。
+      </div>
+    </div>
+    <div class="trick-card green">
+      <div class="trick-num">场景 05</div>
+      <div class="trick-title">🎮 游戏引擎纹理</div>
+      <div class="trick-formula">tw = clp2(img_width)</div>
+      <div class="trick-desc">
+        OpenGL 旧版（ES 2.0以前）要求纹理宽高必须是2的幂（NPOT限制）。
+        引擎加载任意尺寸图片时，用 clp2 算出 POT 尺寸，再 blit + 补 padding。
+      </div>
+    </div>
+    <div class="trick-card blue">
+      <div class="trick-num">场景 06</div>
+      <div class="trick-title">📡 SIMD 向量对齐</div>
+      <div class="trick-formula">p = align_up(ptr, 32)</div>
+      <div class="trick-desc">
+        AVX 需要 32 字节对齐，AVX-512 需要 64 字节对齐。
+        对齐检查和对齐取整是编译器向量化 pass 和手写 SIMD kernel 的必备操作。
+        错误对齐会导致段错误或 10× 性能惩罚。
+      </div>
+    </div>
+  </div>
+
+  <!-- 应用场景性能图 -->
+  <div class="card">
+    <div style="font-size:.9rem;font-weight:600;color:#f1f5f9;margin-bottom:1rem;">位运算对齐 vs 通用方案 — 指令数对比</div>
+    <div id="chart-perf" class="chart-wrap"></div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════
+     §深度点评（dog250风格）
+═══════════════════════════════════════════════ -->
+<section id="sec-critic">
+  <div class="sec-header">
+    <div class="sec-num">CRITIC</div>
+    <div class="sec-title">深度点评：这一章真正在说什么</div>
+    <div class="sec-divider"></div>
+  </div>
+
+  <div class="critic-box" style="margin-bottom:1.5rem;">
+    <h3>本章的历史必然性</h3>
+
+    <div class="critic-item">
+      <div class="ci-title">为什么是2的幂？</div>
+      <p>
+        2的幂是计算机硬件不得不做出的妥协，不是什么优雅设计。早期内存条的地址解码器用二进制选择行列，
+        天然就是2的幂。缓存行大小、TLB 页表项粒度、总线宽度，全是这条规律的后果。
+        程序员面对的是一个"2的幂宇宙"，这不是自由选择，是物理约束。
+        理解这一点，就理解了为什么整个操作系统内核里到处都是 &amp; (N-1) 和 | (~(N-1))。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">右移传播：一个被低估的技巧</div>
+      <p>
+        flp2/clp2 的核心——右移1、2、4、8、16步——表面上看是蛮力枚举，
+        实质上是对"二分传播"的完美利用：每次移位操作覆盖的范围翻倍，5步覆盖32位，
+        这是一种自描述的算法结构。很多人第一次看到这段代码会觉得它很机械、很丑，
+        但想想：你能找到更短、更快、更可靠的无分支方案吗？循环方案要 O(log n) 次迭代，
+        每次还有条件跳转；这里是严格 12 条直线指令，无分支，流水线友好。
+        <strong>有时候，"丑"是另一种极致的美。</strong>
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">IBM/370 那段代码的意味</div>
+      <p>
+        边界穿越那道题，原书特意引用了1970年代 IBM System/370 的汇编解法 [CJS]。
+        这不是炫古董——它在说：好的算法思想不随硬件更迭而腐朽。
+        70年代的 IBM 大型机程序员用 OR+ALR 两条指令检测页面跨越，
+        50年后你在 ARM 服务器上写 DMA 驱动，换成 C 的位运算，逻辑完全相同。
+        技术会更迭，但把"进位"当信号、把"掩码"当选择器的思维方式，是永恒的。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">有没有更好的实现方式？</div>
+      <p>
+        现代 x86 有 <code style="color:var(--b);">LZCNT/BSR</code>，ARM64 有 <code style="color:var(--b);">CLZ</code>，
+        可以用 1&lt;&lt;(31−nlz(x)) 直接算出 flp2，只需2条指令。
+        但注意：这依赖硬件指令的可用性。在 FPGA、嵌入式 RISC-V、或者某些 DSP 上，
+        你只有移位和逻辑运算。原书的12指令方案是最大公约数——在所有平台上都有效。
+        <strong>好的底层工程师要同时掌握两个世界：知道最优的硬件路径，也知道最通用的软件路径。</strong>
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">能推广到其他技术吗？</div>
+      <p>
+        当然。右移传播的思路直接催生了并行前缀（Parallel Prefix）运算——
+        这是 GPU 计算中 scan/reduce 的核心原语，也是并行排序、并行前缀和的基础。
+        你在 CUDA 里写 warp-level reduce，用的是同样的"每次翻倍覆盖范围"的逻辑。
+        对齐取整在文件系统（块对齐）、编译器（栈帧对齐）、内核（slab 分配）里无处不在。
+        这一章是计算机系统底层的共同语言，不懂它，你读内核代码、读编译器代码都会遇到障碍。
+      </p>
+    </div>
+
+    <div class="critic-item">
+      <div class="ci-title">优缺点的坦诚评价</div>
+      <p>
+        <strong style="color:var(--g);">优点：</strong>无分支、流水线友好、可移植、常量时间、零依赖。
+        在性能关键路径上（分配器、内核中断处理、协议栈快速路径）这些特性价值极大。<br/>
+        <strong style="color:var(--r);">缺点：</strong>可读性差——任何维护者第一次看到 <code style="color:var(--b);">x = x | (x &gt;&gt; 16)</code>
+        都不会直觉上明白它在干什么。必须加注释，必须有文档，否则这是技术债。
+        另外，clp2(0) = 0，clp2(x) 对 x&gt;2³¹ 溢出返回0——调用方必须处理这两个边界。
+        <strong>位操作技巧不是银弹，它是特定场景下的正确工具，在合适的地方用合适的锤子。</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- 历史时间线 -->
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div style="font-size:.9rem;font-weight:600;color:#f1f5f9;margin-bottom:1.5rem;">相关技术发展时间线</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1964</div>
+        <div class="tl-title">IBM System/360 — 页对齐成为标准</div>
+        <div class="tl-desc">S/360 引入统一的内存寻址模型，页面大小固定为2的幂。OR+ADD 检测边界穿越的技法由此产生，一直沿用至今。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1972</div>
+        <div class="tl-title">HAKMEM — 并行前缀技巧文档化</div>
+        <div class="tl-desc">MIT AI Lab 的 HAKMEM 备忘录将大量位操作技巧系统记录，其中包括右移传播和2的幂边界相关操作。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">1990s</div>
+        <div class="tl-title">jemalloc / tcmalloc — clp2 进入工业界</div>
+        <div class="tl-desc">现代内存分配器大量使用 clp2 进行 size class 映射。clp2 成为每次 malloc 快速路径上几乎必然出现的操作。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2003</div>
+        <div class="tl-title">Hacker's Delight 第一版 — 系统整理</div>
+        <div class="tl-desc">Warren 将分散在各处的位操作智慧系统整理成书，Ch.03 将2的幂边界处理从"老程序员的经验"变成可传授的知识体系。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2012</div>
+        <div class="tl-title">x86 BMI1/LZCNT — 硬件加速</div>
+        <div class="tl-desc">Intel Haswell 引入 LZCNT 指令，把 flp2 从12条指令压缩到2条。但软件方案在嵌入式和跨平台场景仍是首选。</div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-dot"></div>
+        <div class="tl-year">2021</div>
+        <div class="tl-title">C++20 &lt;bit&gt; — 标准化</div>
+        <div class="tl-desc">std::bit_floor() 和 std::bit_ceil() 正式进入 C++ 标准，是 flp2/clp2 的标准化版本。从此可以无顾虑地用标准库——编译器会自动选择最佳指令。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C++20 对比 -->
+  <div class="card">
+    <div style="font-size:.9rem;font-weight:600;color:#f1f5f9;margin-bottom:1rem;">C++20 标准化版本 vs 位操作手写</div>
+    <div class="grid-2">
+      <div>
+        <div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">C++20 &lt;bit&gt; 标准库</div>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button>#include &lt;<span class="str">bit</span>&gt;
+<span class="kw">using namespace</span> std;
+
+<span class="cm">// flp2(x)</span>
+<span class="fn">bit_floor</span>(<span class="num">6u</span>);  <span class="cm">// → 4</span>
+<span class="fn">bit_floor</span>(<span class="num">8u</span>);  <span class="cm">// → 8</span>
+
+<span class="cm">// clp2(x)</span>
+<span class="fn">bit_ceil</span>(<span class="num">6u</span>);   <span class="cm">// → 8</span>
+<span class="fn">bit_ceil</span>(<span class="num">8u</span>);   <span class="cm">// → 8</span>
+
+<span class="cm">// 编译器 → LZCNT/CLZ，2条指令</span>
+</div>
+      </div>
+      <div>
+        <div style="font-size:.78rem;color:#64748b;margin-bottom:.5rem;font-family:'JetBrains Mono',monospace;">手写位操作（C89/C 兼容）</div>
+        <div class="code-block"><button class="copy-btn" onclick="copyCode(this)">copy</button><span class="cm">// 跨平台，无硬件依赖</span>
+<span class="kw">unsigned</span> <span class="fn">clp2</span>(<span class="kw">unsigned</span> x) {
+  x--;
+  x |= x >> <span class="num">1</span>;
+  x |= x >> <span class="num">2</span>;
+  x |= x >> <span class="num">4</span>;
+  x |= x >> <span class="num">8</span>;
+  x |= x >> <span class="num">16</span>;
+  <span class="kw">return</span> ++x;
+}
+<span class="cm">// RISC-V, FPGA, 老 DSP 唯一选择</span>
+</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div style="margin-bottom:.5rem;">Ch.03 — Power-of-2 Boundaries · Hacker's Delight 2nd Edition · Henry S. Warren Jr.</div>
+  <div>
+    <a href="ch02.html">← Ch.02 基础操作</a>
+    &nbsp;·&nbsp;
+    <a href="ch04.html">Ch.04 算术边界 →</a>
+  </div>
+</footer>
+</div><!-- #app -->
+
+<a href="#" id="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;"
+   style="position:fixed;bottom:24px;right:24px;z-index:999;width:44px;height:44px;border-radius:50%;background:rgba(0,255,136,0.9);color:#050810;display:flex;align-items:center;justify-content:center;font-size:1.2rem;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);">↑</a>
+
+<script>
+/* ═══════════════════════════════ PARTICLES BG ═══════════════════════════════ */
+(function(){
+  const c = document.getElementById('bg');
+  const ctx = c.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=c.width=window.innerWidth;H=c.height=window.innerHeight;}
+  resize();window.addEventListener('resize',resize);
+  for(let i=0;i<60;i++) pts.push({x:Math.random()*1e4,y:Math.random()*1e4,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3});
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x%W,p.y%H,1,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,255,136,0.25)';ctx.fill();
+    });
+    for(let i=0;i<pts.length;i++) for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d<150){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(0,255,136,${.08*(1-d/150)})`;ctx.lineWidth=.5;ctx.stroke();}
+    }
+    requestAnimationFrame(frame);
+  }
+  frame();
+})();
+
+/* ═══════════════════════════════ PROGRESS BAR ═══════════════════════════════ */
+window.addEventListener('scroll',()=>{
+  const p=document.getElementById('prog');
+  const s=document.documentElement.scrollTop,h=document.documentElement.scrollHeight-window.innerHeight;
+  p.style.width=(s/h*100)+'%';
+});
+
+/* ═══════════════════════════════ SIDEBAR ═══════════════════════════════ */
+document.getElementById('sidebar-toggle-btn').addEventListener('click',function(){
+  document.getElementById('sidebar-nav').classList.toggle('open');
+});
+
+/* ═══════════════════════════════ DOT NAV ═══════════════════════════════ */
+const sections = ['sec-hero','sec-align','sec-pow2','sec-cross','sec-apps','sec-critic'];
+const dots = document.querySelectorAll('.dot');
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const idx = sections.indexOf(e.target.id);
+      if(idx>=0){ dots.forEach(d=>d.classList.remove('active')); dots[idx]&&dots[idx].classList.add('active'); }
+    }
+  });
+},{threshold:.3});
+sections.forEach(id=>{const el=document.getElementById(id); if(el) observer.observe(el);});
+dots.forEach((d,i)=>d.addEventListener('click',()=>{
+  const el=document.getElementById(sections[i]); if(el) el.scrollIntoView({behavior:'smooth'});
+}));
+
+/* ═══════════════════════════════ COPY ═══════════════════════════════ */
+function copyCode(btn){
+  const block = btn.parentElement;
+  const text = block.innerText.replace('copy\n','').replace('copy','');
+  navigator.clipboard.writeText(text).then(()=>{btn.textContent='✓';setTimeout(()=>btn.textContent='copy',1500);});
+}
+
+/* ═══════════════════════════════ ALPINE DATA ═══════════════════════════════ */
+document.addEventListener('alpine:init',function(){
+
+  /* § 3-1 对齐演示 */
+  window.Alpine.data('alignDemo',function(){
+    return {
+      x: 37, k: 3,
+      get align(){ return 1 << this.k; },
+      get roundDown(){ return (this.x >>> 0) & (~((1<<this.k)-1) >>> 0); },
+      get roundUp(){
+        const mask = (1<<this.k)-1;
+        return ((this.x + mask) & ~mask) >>> 0;
+      },
+      get xBits(){
+        const n = (this.x >>> 0) & 0xFF;
+        return Array.from({length:8},(_,i)=>(n>>(7-i))&1);
+      }
+    };
+  });
+
+  /* § 3-2 clp2 演示 */
+  window.Alpine.data('clp2Demo',function(){
+    return {
+      x: 100,
+      toBits8(n){ n=(n>>>0)&0xFF; return Array.from({length:8},(_,i)=>(n>>(7-i))&1); },
+      get flp2val(){
+        let x=(this.x>>>0); if(!x) return 0;
+        x=x|(x>>1);x=x|(x>>2);x=x|(x>>4);x=x|(x>>8);x=x|(x>>16);
+        return (x-(x>>1))>>>0;
+      },
+      get clp2val(){
+        let x=(this.x>>>0)-1;
+        x=x|(x>>1);x=x|(x>>2);x=x|(x>>4);x=x|(x>>8);x=x|(x>>16);
+        return (x+1)>>>0;
+      },
+      get clp2Steps(){
+        let x=(this.x>>>0)-1;
+        const steps=[{op:'x = x - 1',bits:this.toBits8(x),val:x}];
+        const shifts=[1,2,4,8,16];
+        shifts.forEach(s=>{ x=x|(x>>>s); steps.push({op:`x |= (x >> ${s})`,bits:this.toBits8(x),val:x}); });
+        x=(x+1)>>>0; steps.push({op:'x = x + 1',bits:this.toBits8(x),val:x});
+        return steps;
+      }
+    };
+  });
+
+  /* § 3-3 边界穿越演示 */
+  window.Alpine.data('crossDemo',function(){
+    return {
+      a: 5, l: 6,
+      get crosses(){ return (8-(this.a&7)) < this.l; }
+    };
+  });
+});
+
+/* ═══════════════════════════════ CANVAS: 对齐取整数轴动画 ═══════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('canvas-align');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let raf;
+  let xVal = 37;
+
+  function resize(){
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+    canvas.height = 200 * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // 滑块控制 x
+  let sliderX = 37;
+  canvas.addEventListener('mousemove', function(e){
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const W = canvas.getBoundingClientRect().width;
+    sliderX = Math.round((mx / W) * 63);
+    sliderX = Math.max(0, Math.min(63, sliderX));
+  });
+  canvas.addEventListener('touchmove', function(e){
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.touches[0].clientX - rect.left;
+    const W = rect.width;
+    sliderX = Math.round((mx / W) * 63);
+    sliderX = Math.max(0, Math.min(63, sliderX));
+  }, {passive:false});
+
+  function draw(){
+    const W = canvas.getBoundingClientRect().width;
+    const H = 200;
+    ctx.clearRect(0,0,W,H);
+
+    const x = sliderX;
+    const align = 8;
+    const down = x & -align;
+    const up = (x + align - 1) & -align;
+
+    const margin = 40;
+    const totalW = W - margin*2;
+    const maxVal = 64;
+    const toX = v => margin + (v / maxVal) * totalW;
+
+    // 背景块
+    for(let b=0; b<maxVal/align; b++){
+      const bx = toX(b*align);
+      const bw = toX((b+1)*align) - bx;
+      const even = b%2===0;
+      ctx.fillStyle = even ? 'rgba(0,212,255,0.04)' : 'rgba(177,79,255,0.04)';
+      ctx.fillRect(bx, 60, bw, 80);
+      // 块边界线
+      ctx.beginPath();
+      ctx.moveTo(bx, 50);
+      ctx.lineTo(bx, 150);
+      ctx.strokeStyle = 'rgba(0,212,255,0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4,4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // 块标签
+      ctx.fillStyle = '#334155';
+      ctx.font = '10px JetBrains Mono';
+      ctx.textAlign = 'center';
+      ctx.fillText(b*align, bx, 48);
+    }
+    // 最后边界
+    ctx.beginPath();ctx.moveTo(toX(maxVal),50);ctx.lineTo(toX(maxVal),150);
+    ctx.strokeStyle='rgba(0,212,255,0.2)';ctx.lineWidth=1;ctx.stroke();
+
+    // 数轴
+    ctx.beginPath();
+    ctx.moveTo(margin, 100);
+    ctx.lineTo(W-margin, 100);
+    ctx.strokeStyle = '#1e293b';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // 向下取整区域
+    if(down < x){
+      ctx.beginPath();
+      ctx.moveTo(toX(down), 100);
+      ctx.lineTo(toX(x), 100);
+      ctx.strokeStyle = 'rgba(0,255,136,0.6)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // 向上取整区域
+    if(up > x){
+      ctx.beginPath();
+      ctx.moveTo(toX(x), 100);
+      ctx.lineTo(toX(up), 100);
+      ctx.strokeStyle = 'rgba(0,212,255,0.6)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+    }
+
+    // x 点
+    ctx.beginPath();
+    ctx.arc(toX(x), 100, 7, 0, Math.PI*2);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,255,136,0.8)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = '#050810';
+    ctx.font = 'bold 10px JetBrains Mono';
+    ctx.textAlign = 'center';
+    ctx.fillText('x', toX(x), 104);
+
+    // down 点
+    ctx.beginPath();ctx.arc(toX(down),100,6,0,Math.PI*2);
+    ctx.fillStyle='var(--g)';ctx.fill();
+    ctx.fillStyle='#050810';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillText('▼',toX(down),104);
+
+    // up 点
+    if(up <= maxVal){
+      ctx.beginPath();ctx.arc(toX(up),100,6,0,Math.PI*2);
+      ctx.fillStyle='#00d4ff';ctx.fill();
+      ctx.fillStyle='#050810';ctx.font='9px JetBrains Mono';ctx.textAlign='center';
+      ctx.fillText('▲',toX(up),104);
+    }
+
+    // 标签
+    ctx.font = '11px JetBrains Mono';
+    ctx.fillStyle = '#94a3b8';
+    ctx.textAlign = 'center';
+    ctx.fillText('x = ' + x, toX(x), 85);
+
+    ctx.fillStyle = 'var(--g)';
+    ctx.fillText('↓ ' + down, toX(down), 130);
+
+    if(up <= maxVal){
+      ctx.fillStyle = '#00d4ff';
+      ctx.fillText('↑ ' + up, toX(up), 130);
+    }
+
+    // 说明文字
+    ctx.font = '10px JetBrains Mono';
+    ctx.fillStyle = '#475569';
+    ctx.textAlign = 'left';
+    ctx.fillText('← 拖动鼠标调整 x=' + x + '  向下=' + down + '  向上=' + up + '  补齐='+(up-x), margin, 175);
+
+    raf = requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════ CANVAS: flp2 右移传播动画 ═══════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('canvas-propagate');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+    canvas.height = 320 * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  // 动画状态
+  let phase = 0; // 0~5: 各步骤, 6: 最终
+  let phaseTimer = 0;
+  const PHASE_DURATION = 90; // frames
+  let frame_n = 0;
+
+  // 演示值: x = 0b10110000 (176)
+  const DEMO_X = 0b10110000;
+  const BITS = 8;
+
+  function toBits(n){
+    n = (n>>>0) & 0xFF;
+    return Array.from({length:BITS},(_,i)=>(n>>(BITS-1-i))&1);
+  }
+
+  const steps = [
+    { label: 'x (初始值 = 176)', val: DEMO_X },
+    { label: 'x | (x >> 1)', val: DEMO_X | (DEMO_X >> 1) },
+    { label: 'x | (x >> 2)', val: null },
+    { label: 'x | (x >> 4)', val: null },
+    { label: 'x - (x >> 1)  →  flp2', val: null },
+  ];
+  // 计算各步骤值
+  let v = DEMO_X;
+  steps[0].val = v;
+  v = v|(v>>1); steps[1].val = v;
+  v = v|(v>>2); steps[2].val = v;
+  v = v|(v>>4); steps[3].val = v;
+  steps[4].val = v - (v>>1);
+
+  function draw(){
+    const W = canvas.getBoundingClientRect().width;
+    const H = 320;
+    ctx.clearRect(0,0,W,H);
+
+    // 背景
+    ctx.fillStyle = '#010409';
+    ctx.fillRect(0,0,W,H);
+
+    const CELL = Math.min(32, Math.floor((W - 80) / BITS));
+    const startX = Math.floor((W - CELL * BITS) / 2);
+    const rowH = 48;
+    const numSteps = steps.length;
+    const PHASE_COUNT = numSteps;
+
+    frame_n++;
+    phaseTimer++;
+    if(phaseTimer > PHASE_DURATION){ phaseTimer = 0; phase = (phase+1)%PHASE_COUNT; }
+
+    const t = phaseTimer / PHASE_DURATION; // 0..1
+
+    for(let s=0; s<numSteps; s++){
+      const y = 30 + s * rowH;
+      const bits = toBits(steps[s].val);
+      const isActive = s === phase;
+      const isPast = s < phase;
+
+      // 行标签
+      ctx.font = '10px JetBrains Mono';
+      ctx.fillStyle = isActive ? '#00ff88' : isPast ? '#475569' : '#1e293b';
+      ctx.textAlign = 'right';
+      ctx.fillText(steps[s].label, startX - 8, y + CELL/2 + 4);
+
+      // 单元格
+      for(let b=0; b<BITS; b++){
+        const bx = startX + b*CELL;
+        const bit = bits[b];
+        let alpha = isPast ? 0.5 : isActive ? (0.5 + 0.5 * Math.sin(t * Math.PI)) : 0.15;
+        if(bit===1){
+          ctx.fillStyle = `rgba(0,255,136,${alpha})`;
+          ctx.strokeStyle = `rgba(0,255,136,${Math.min(1,alpha*2)})`;
+        } else {
+          ctx.fillStyle = `rgba(13,17,23,${alpha})`;
+          ctx.strokeStyle = `rgba(30,41,59,0.4)`;
+        }
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(bx+1, y, CELL-2, CELL-2, 3) : ctx.rect(bx+1,y,CELL-2,CELL-2);
+        ctx.fill();ctx.stroke();
+
+        ctx.font = `bold ${CELL>26?12:10}px JetBrains Mono`;
+        ctx.fillStyle = bit===1 ? (isActive?'#ffffff':'#64748b') : '#1e293b';
+        ctx.textAlign = 'center';
+        ctx.fillText(bit, bx + CELL/2, y + CELL/2 + 4);
+      }
+
+      // 值
+      ctx.font = '10px JetBrains Mono';
+      ctx.fillStyle = isActive ? '#00ff88' : '#475569';
+      ctx.textAlign = 'left';
+      ctx.fillText('= ' + steps[s].val, startX + BITS*CELL + 8, y + CELL/2 + 4);
+    }
+
+    // 进度条
+    const barY = H - 16;
+    ctx.fillStyle = '#0f172a';
+    ctx.fillRect(startX, barY, BITS*CELL, 4);
+    ctx.fillStyle = '#00ff88';
+    ctx.fillRect(startX, barY, BITS*CELL * ((phase + t) / PHASE_COUNT), 4);
+
+    ctx.font = '9px JetBrains Mono';
+    ctx.fillStyle = '#334155';
+    ctx.textAlign = 'center';
+    ctx.fillText(`Step ${phase+1}/${PHASE_COUNT} — 右移传播演示（8位，flp2(176) = ${steps[numSteps-1].val}）`, W/2, H-3);
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════ CANVAS: 边界穿越动画 ═══════════════════════════════ */
+(function(){
+  const canvas = document.getElementById('canvas-cross');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  function resize(){
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+    canvas.height = 200 * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  let anim_a = 5;
+  let anim_l = 6;
+  let frame_n = 0;
+
+  // 滑块交互
+  canvas.addEventListener('mousemove', function(e){
+    const rect = canvas.getBoundingClientRect();
+    const my = e.clientY - rect.top;
+    const mx = e.clientX - rect.left;
+    const W = rect.width;
+    if(my < 100){
+      anim_a = Math.round((mx / W) * 63);
+      anim_a = Math.max(0, Math.min(56, anim_a));
+    } else {
+      anim_l = Math.round((mx / W) * 16) + 1;
+      anim_l = Math.max(1, Math.min(16, anim_l));
+    }
+  });
+
+  function draw(){
+    const W = canvas.getBoundingClientRect().width;
+    const H = 200;
+    frame_n++;
+    ctx.clearRect(0,0,W,H);
+
+    const BLOCK = 8;
+    const maxVal = 64;
+    const margin = 40;
+    const totalW = W - margin*2;
+    const toX = v => margin + (v / maxVal) * totalW;
+
+    const a = anim_a;
+    const l = anim_l;
+    const crosses = (BLOCK - (a & (BLOCK-1))) < l;
+
+    // 块背景
+    for(let b=0; b<maxVal/BLOCK; b++){
+      const bx = toX(b*BLOCK);
+      const bw = toX((b+1)*BLOCK) - bx;
+      ctx.fillStyle = b%2===0 ? 'rgba(0,212,255,0.05)' : 'rgba(177,79,255,0.05)';
+      ctx.fillRect(bx, 40, bw, 80);
+      ctx.beginPath();ctx.moveTo(bx,35);ctx.lineTo(bx,130);
+      ctx.strokeStyle='rgba(0,212,255,0.2)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke();ctx.setLineDash([]);
+      ctx.font='9px JetBrains Mono';ctx.fillStyle='#334155';ctx.textAlign='center';
+      ctx.fillText(b*BLOCK,bx,32);
+    }
+
+    // 数轴
+    ctx.beginPath();ctx.moveTo(margin,80);ctx.lineTo(W-margin,80);
+    ctx.strokeStyle='#1e293b';ctx.lineWidth=2;ctx.stroke();
+
+    // 地址范围
+    const rangeColor = crosses ? 'rgba(255,68,102,0.8)' : 'rgba(0,255,136,0.7)';
+    ctx.beginPath();ctx.moveTo(toX(a),80);ctx.lineTo(toX(Math.min(a+l,maxVal)),80);
+    ctx.strokeStyle=rangeColor;ctx.lineWidth=6;ctx.stroke();
+
+    // 起点标记
+    ctx.beginPath();ctx.arc(toX(a),80,6,0,Math.PI*2);
+    ctx.fillStyle='#ffffff';ctx.fill();
+    ctx.strokeStyle=rangeColor;ctx.lineWidth=2;ctx.stroke();
+
+    // 终点标记
+    if(a+l <= maxVal){
+      ctx.beginPath();ctx.arc(toX(a+l-1),80,4,0,Math.PI*2);
+      ctx.fillStyle=rangeColor;ctx.fill();
+    }
+
+    // 文字
+    ctx.font='11px JetBrains Mono';ctx.textAlign='center';
+    ctx.fillStyle='#94a3b8';
+    ctx.fillText('a='+a, toX(a), 65);
+    ctx.fillText('a+l-1='+(a+l-1), toX(Math.min(a+l-1,maxVal-1)), 65);
+
+    // 结果文字
+    ctx.font='bold 13px JetBrains Mono';
+    ctx.fillStyle = crosses ? 'var(--r)' : 'var(--g)';
+    ctx.textAlign='center';
+    const pulse = 0.7 + 0.3*Math.sin(frame_n*0.1);
+    ctx.globalAlpha = pulse;
+    ctx.fillText(crosses ? '⚠ 穿越块边界！' : '✓ 未穿越块边界', W/2, 120);
+    ctx.globalAlpha = 1;
+
+    ctx.font='10px JetBrains Mono';ctx.fillStyle='#475569';ctx.textAlign='left';
+    ctx.fillText('← 鼠标上半区拖动调整 a=' + a + '，下半区调整 l=' + l, margin, 155);
+
+    const offset = a & (BLOCK-1);
+    const space = BLOCK - offset;
+    ctx.fillText('offset=' + offset + '  remaining_space=' + space + '  l=' + l + '  → '+space+'<'+l+'?'+((space<l)?'YES':'NO'), margin, 170);
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+/* ═══════════════════════════════ ECHARTS ═══════════════════════════════ */
+window.addEventListener('load', function(){
+  // flp2/clp2 对照表
+  const el1 = document.getElementById('chart-pow2');
+  if(el1 && window.echarts){
+    const chart = echarts.init(el1,'dark');
+    const xs = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,20,24,28,32,48,64];
+    function flp2(x){ let v=x; v=v|(v>>1);v=v|(v>>2);v=v|(v>>4);v=v|(v>>8);v=v|(v>>16); return v-(v>>1); }
+    function clp2(x){ let v=x-1; v=v|(v>>1);v=v|(v>>2);v=v|(v>>4);v=v|(v>>8);v=v|(v>>16); return v+1; }
+    chart.setOption({
+      backgroundColor:'transparent',
+      grid:{left:'5%',right:'5%',top:'15%',bottom:'15%',containLabel:true},
+      tooltip:{trigger:'axis',backgroundColor:'#0d1117',borderColor:'rgba(0,255,136,.3)',textStyle:{color:'#e2e8f0',fontFamily:'JetBrains Mono',fontSize:11}},
+      legend:{data:['x','flp2(x)','clp2(x)'],textStyle:{color:'#475569',fontSize:11}},
+      xAxis:{data:xs,axisLabel:{color:'#475569',fontSize:10,fontFamily:'JetBrains Mono'},axisLine:{lineStyle:{color:'#1e293b'}}},
+      yAxis:{axisLabel:{color:'#475569'},splitLine:{lineStyle:{color:'rgba(30,41,59,.5)'}},axisLine:{lineStyle:{color:'#1e293b'}}},
+      series:[
+        {name:'x',type:'line',data:xs,lineStyle:{color:'rgba(100,116,139,0.6)',width:1},showSymbol:false},
+        {name:'flp2(x)',type:'line',data:xs.map(flp2),lineStyle:{color:'rgba(0,255,136,0.8)',width:2},symbol:'circle',symbolSize:5,itemStyle:{color:'var(--g)'}},
+        {name:'clp2(x)',type:'line',data:xs.map(clp2),lineStyle:{color:'rgba(0,212,255,0.8)',width:2},symbol:'diamond',symbolSize:5,itemStyle:{color:'#00d4ff'}},
+      ]
+    });
+    window.addEventListener('resize',()=>chart.resize());
+  }
+
+  // 性能对比图
+  const el2 = document.getElementById('chart-perf');
+  if(el2 && window.echarts){
+    const chart2 = echarts.init(el2,'dark');
+    chart2.setOption({
+      backgroundColor:'transparent',
+      grid:{left:'3%',right:'3%',top:'20%',bottom:'20%',containLabel:true},
+      tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'#0d1117',borderColor:'rgba(0,255,136,.3)',textStyle:{color:'#e2e8f0',fontFamily:'JetBrains Mono',fontSize:11}},
+      legend:{data:['位运算方案','循环/除法方案','C++20标准库'],textStyle:{color:'#475569',fontSize:10}},
+      xAxis:{data:['对齐向下','对齐向上','flp2','clp2','边界检测'],axisLabel:{color:'#475569',fontSize:10,fontFamily:'JetBrains Mono'},axisLine:{lineStyle:{color:'#1e293b'}}},
+      yAxis:{name:'指令数',nameTextStyle:{color:'#475569',fontSize:10},axisLabel:{color:'#475569'},splitLine:{lineStyle:{color:'rgba(30,41,59,.5)'}},axisLine:{lineStyle:{color:'#1e293b'}}},
+      series:[
+        {name:'位运算方案',type:'bar',data:[1,2,12,13,4],barMaxWidth:20,itemStyle:{color:'rgba(0,255,136,.7)',borderRadius:3}},
+        {name:'循环/除法方案',type:'bar',data:[4,5,20,22,8],barMaxWidth:20,itemStyle:{color:'rgba(255,68,102,.6)',borderRadius:3}},
+        {name:'C++20标准库',type:'bar',data:[1,2,2,2,4],barMaxWidth:20,itemStyle:{color:'rgba(0,212,255,.65)',borderRadius:3}},
+      ]
+    });
+    window.addEventListener('resize',()=>chart2.resize());
+  }
+});
+</script>
+</body>
+</html>
